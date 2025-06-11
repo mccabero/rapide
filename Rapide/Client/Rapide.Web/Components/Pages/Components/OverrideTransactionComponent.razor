@@ -1,0 +1,59 @@
+﻿@using MudBlazor
+@using Rapide.DTO
+@using Rapide.Web.Models
+@using System.ComponentModel.DataAnnotations
+
+<MudDialog>
+    <TitleContent>
+        <h5>Override Transaction Request
+            <h6>Please enter supervisor credential to override the transaction.</h6>
+        </h5>
+    </TitleContent>
+    <DialogContent>
+        <div class="card-body">
+            @if (!string.IsNullOrEmpty(ErrorMessage))
+            {
+                <div class="col-md-12" style="padding-bottom: 15px !important;">
+                    <MudAlert Severity="Severity.Error" Variant="Variant.Filled">@ErrorMessage</MudAlert>
+                </div>
+            }
+            
+            <div class="col-md-12">
+                <label for="exampleInputEmail1">Email address<code> *</code></label>
+                <MudTextField T="string"
+                        Required="true"
+                        RequiredError="Email is required!"
+                        MaxLength="255"
+                        @bind-Value="LoginRequestModel.Email"
+                        For="(() => LoginRequestModel.Email)"
+                        Validation="@(new EmailAddressAttribute() {ErrorMessage = "The email address is invalid"})"
+                        Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Email"
+                        Margin="Margin.Dense" Variant="Variant.Outlined" Clearable  />
+            </div>
+            <div class="col-md-12">
+                <label for="exampleInputPassword1">Password<code> *</code></label>
+                <MudTextField T="string"
+                              InputType="InputType.Password"
+                              @bind-Value="LoginRequestModel.Password"
+                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Password"
+                              Margin="Margin.Dense" Variant="Variant.Outlined" Clearable
+                              Required="true" RequiredError="Password is required!" />
+            </div>
+
+            <div class="col-md-12" style="padding-top: 20px;">
+                <button @onclick="OnValidateClick" class="btn btn-primary btn-block">Verify Account</button>
+            </div>
+
+        </div>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private MudDialogInstance MudDialog { get; set; }
+
+    private void Cancel() => MudDialog.Cancel();
+}

@@ -1,0 +1,35 @@
+﻿@using MudBlazor
+@inherits LayoutComponentBase
+
+<div class="wrapper">
+
+    @if (IsLoading)
+    {
+        <MudOverlay Visible="true" DarkBackground="true" ZIndex="9999">
+            <MudProgressCircular Color="Color.Secondary" Size="Size.Large" Class="ms-n1" Indeterminate="true" />
+        </MudOverlay>
+    }
+
+    @* Required *@
+    <MudThemeProvider />
+    <MudPopoverProvider />
+
+    @* Needed for dialogs *@
+    <MudDialogProvider />
+
+    @* Needed for snackbars *@
+    <MudSnackbarProvider />
+
+   @*  <div class="preloader flex-column justify-content-center align-items-center">
+        <img class="animation__shake" src="AdminLTE/dist/img/AdminLTELogo.png" alt="AdminLTELogo" height="60" width="60">
+    </div> *@
+
+    <TopNavMenu />
+    <NavMenu />
+
+    <div class="content-wrapper" style="padding: 20px 20px 20px 20px !important;">
+        @Body
+    </div>
+
+    <FooterMenu />
+</div>

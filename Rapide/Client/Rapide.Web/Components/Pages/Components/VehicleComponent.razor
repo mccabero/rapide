@@ -1,0 +1,324 @@
+﻿@using MudBlazor
+@using Rapide.DTO
+@using Rapide.Web.Helpers
+
+
+@if (IsLoading)
+{
+    <MudOverlay Visible="true" DarkBackground="true" ZIndex="9999">
+        <MudProgressCircular Color="Color.Secondary" Size="Size.Large" Class="ms-n1" Indeterminate="true" />
+    </MudOverlay>
+}
+
+<MudMessageBox @ref="mbox" Title="Confirmation" CancelText="No">
+    <MessageContent>
+        <i class="bi bi-exclamation-triangle"></i> Are you sure you want to save changes?
+    </MessageContent>
+    <YesButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Check">Yes</MudButton>
+    </YesButton>
+</MudMessageBox>
+
+
+<div class="col-md-12">
+    <MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors" Class="mud-form-custom">
+        @* Customer Information *@
+        <div class="card card-secondary">
+            <div class="card-header">
+                <h3 class="card-title" >Customer Information</h3>
+                <div class="card-tools">
+                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            <label>Customer Name<code> *</code></label>
+                            <MudAutocomplete T="CustomerDTO"
+                            Margin="Margin.Dense"
+                            @bind-Value="VehicleRequestModel.Customer"
+                            SearchFunc="@SearchCustomer"
+                            Variant="Variant.Outlined"
+                            ToStringFunc="@(e=> e==null?null : $"{e.FirstName} {e.MiddleName} {e.LastName}")"
+                            ShowProgressIndicator="true"
+                            Required="true" RequiredError="This field is required!"
+                            Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                            Strict="false"
+                            Clearable="true">
+                                <NoItemsTemplate>
+                                    <MudText Align="Align.Center" Class="px-4 py-1">
+                                        No items found
+                                    </MudText>
+                                </NoItemsTemplate>
+
+                                <AfterItemsTemplate>
+                                    <MudButton OnClick="(() => OnAddNewItemClick(VehicleDialogType.Customer))" Color="Color.Primary"><i class="fas fa-plus"> Add New Customer</i></MudButton>
+                                </AfterItemsTemplate>
+                            </MudAutocomplete>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+            </div>
+        </div>
+
+        @* Vehicle Information *@
+        <div class="card card-secondary">
+            <div class="card-header">
+                <h3 class="card-title" >Vehicle Information</h3>
+                <div class="card-tools">
+                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-sm-3">
+                        <div class="form-group">
+                            <label>Plate Number<code> *</code></label>
+                            <MudTextField T="string"
+                            Required="true"
+                            RequiredError="Plate Number is required!"
+                            MaxLength="100"
+                            @bind-Value="VehicleRequestModel.PlateNo"
+                            For="(() => VehicleRequestModel.PlateNo)"
+                            Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Numbers"
+                            Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <label>Vehicle Model<code> *</code></label>
+                            <MudAutocomplete T="VehicleModelDTO"
+                            Margin="Margin.Dense"
+                            @bind-Value="VehicleRequestModel.VehicleModel"
+                            SearchFunc="@SearchVehicleModel"
+                            Variant="Variant.Outlined"
+                            ToStringFunc="@(e=> e==null?null : $"{e.VehicleMake.Name} {e.Name}")"
+                            ShowProgressIndicator="true"
+                            Required="true" RequiredError="This field is required!"
+                            Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                            Strict="false"
+                            Clearable="true">
+                                <NoItemsTemplate>
+                                    <MudText Align="Align.Center" Class="px-4 py-1">
+                                        No items found
+                                    </MudText>
+                                </NoItemsTemplate>
+
+                                <AfterItemsTemplate>
+                                    <MudButton OnClick="(() => OnAddNewItemClick(VehicleDialogType.VehicleModel))" Color="Color.Primary"><i class="fas fa-plus"> Add New Vehicle Model</i></MudButton>
+                                </AfterItemsTemplate>
+                            </MudAutocomplete>
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="form-group">
+                            <label>Year Model<code> *</code></label>
+                            <div class="input-group">
+                                <MudNumericField Min="0"
+                                @bind-Value="VehicleRequestModel.YearModel"
+                                Required="true" RequiredError="This field is required!"
+                                Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.EditCalendar"
+                                Margin="Margin.Dense" Variant="Variant.Outlined" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-sm-3">
+                        <div class="form-group">
+                            <label>VIN</label>
+                            <MudTextField T="string"
+                            MaxLength="100"
+                            @bind-Value="VehicleRequestModel.VIN"
+                            For="(() => VehicleRequestModel.VIN)"
+                            Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Numbers"
+                            Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="form-group">
+                            <label>Engine Number</label>
+                            <MudTextField T="string"
+                            MaxLength="100"
+                            @bind-Value="VehicleRequestModel.EngineNo"
+                            For="(() => VehicleRequestModel.EngineNo)"
+                            Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Numbers"
+                            Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="form-group">
+                            <label>Chasis Number</label>
+                            <MudTextField T="string"
+                            MaxLength="100"
+                            @bind-Value="VehicleRequestModel.ChasisNo"
+                            For="(() => VehicleRequestModel.ChasisNo)"
+                            Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Numbers"
+                            Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="form-group">
+                            <label>Transmission Type<code> *</code></label>
+                            <MudAutocomplete T="ParameterDTO"
+                            Margin="Margin.Dense"
+                            @bind-Value="VehicleRequestModel.TransmissionParameter"
+                            SearchFunc="@SearchTransmission"
+                            Variant="Variant.Outlined"
+                            ToStringFunc="@(e=> e==null?null : $"{e.Name}")"
+                            ShowProgressIndicator="true"
+                            Required="true" RequiredError="This field is required!"
+                            Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                            Strict="false"
+                            Clearable="true">
+                                <NoItemsTemplate>
+                                    <MudText Align="Align.Center" Class="px-4 py-1">
+                                        No items found
+                                    </MudText>
+                                </NoItemsTemplate>
+
+                                <AfterItemsTemplate>
+                                    <MudButton OnClick="(() => OnAddNewItemClick(VehicleDialogType.Parameter))" Color="Color.Primary"><i class="fas fa-plus"> Add New Transmission Type</i></MudButton>
+                                </AfterItemsTemplate>
+                            </MudAutocomplete>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-sm-3">
+                        <div class="form-group">
+                            <label>Engine Type<code> *</code></label>
+                            <MudAutocomplete T="ParameterDTO"
+                            Margin="Margin.Dense"
+                            @bind-Value="VehicleRequestModel.EngineTypeParameter"
+                            SearchFunc="@SearchEngineType"
+                            Variant="Variant.Outlined"
+                            ToStringFunc="@(e=> e==null?null : $"{e.Name}")"
+                            ShowProgressIndicator="true"
+                            Required="true" RequiredError="This field is required!"
+                            Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                            Strict="false"
+                            Clearable="true">
+                                <NoItemsTemplate>
+                                    <MudText Align="Align.Center" Class="px-4 py-1">
+                                        No items found
+                                    </MudText>
+                                </NoItemsTemplate>
+
+                                <AfterItemsTemplate>
+                                    <MudButton OnClick="(() => OnAddNewItemClick(VehicleDialogType.Parameter))" Color="Color.Primary"><i class="fas fa-plus"> Add New Engine Type</i></MudButton>
+                                </AfterItemsTemplate>
+                            </MudAutocomplete>
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="form-group">
+                            <label>Engine Size<code> *</code></label>
+                            <MudAutocomplete T="ParameterDTO"
+                            Margin="Margin.Dense"
+                            @bind-Value="VehicleRequestModel.EngineSizeParameter"
+                            SearchFunc="@SearchEngineSize"
+                            Variant="Variant.Outlined"
+                            ToStringFunc="@(e=> e==null?null : $"{e.Name}")"
+                            ShowProgressIndicator="true"
+                            Required="true" RequiredError="This field is required!"
+                            Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                            Strict="false"
+                            Clearable="true">
+                                <NoItemsTemplate>
+                                    <MudText Align="Align.Center" Class="px-4 py-1">
+                                        No items found
+                                    </MudText>
+                                </NoItemsTemplate>
+
+                                <AfterItemsTemplate>
+                                    <MudButton OnClick="(() => OnAddNewItemClick(VehicleDialogType.Parameter))" Color="Color.Primary"><i class="fas fa-plus"> Add New Engine Size</i></MudButton>
+                                </AfterItemsTemplate>
+                            </MudAutocomplete>
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="form-group">
+                            <label>Odometer Type<code> *</code></label>
+                            <MudAutocomplete T="ParameterDTO"
+                            Margin="Margin.Dense"
+                            @bind-Value="VehicleRequestModel.OdometerParameter"
+                            SearchFunc="@SearchOdometerType"
+                            Variant="Variant.Outlined"
+                            ToStringFunc="@(e=> e==null?null : $"{e.Name}")"
+                            ShowProgressIndicator="true"
+                            Required="true" RequiredError="This field is required!"
+                            Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                            Strict="false"
+                            Clearable="true">
+                                <NoItemsTemplate>
+                                    <MudText Align="Align.Center" Class="px-4 py-1">
+                                        No items found
+                                    </MudText>
+                                </NoItemsTemplate>
+
+                                <AfterItemsTemplate>
+                                    <MudButton OnClick="(() => OnAddNewItemClick(VehicleDialogType.Parameter))" Color="Color.Primary"><i class="fas fa-plus"> Add New Odometer Type</i></MudButton>
+                                </AfterItemsTemplate>
+                            </MudAutocomplete>
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="form-group">
+                            <label>Customer Registration Type<code> *</code></label>
+                            <MudAutocomplete T="ParameterDTO"
+                            Margin="Margin.Dense"
+                            @bind-Value="VehicleRequestModel.CustomerRegistrationTypeParameter"
+                            SearchFunc="@SearchCustomerRegistrationType"
+                            Variant="Variant.Outlined"
+                            ToStringFunc="@(e=> e==null?null : $"{e.Name}")"
+                            ShowProgressIndicator="true"
+                            Required="true" RequiredError="This field is required!"
+                            Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                            Strict="false"
+                            Clearable="true">
+                                <NoItemsTemplate>
+                                    <MudText Align="Align.Center" Class="px-4 py-1">
+                                        No items found
+                                    </MudText>
+                                </NoItemsTemplate>
+
+                                <AfterItemsTemplate>
+                                    <MudButton OnClick="(() => OnAddNewItemClick(VehicleDialogType.Parameter))" Color="Color.Primary"><i class="fas fa-plus"> Add New Registration Type</i></MudButton>
+                                </AfterItemsTemplate>
+                            </MudAutocomplete>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-footer">
+            </div>
+        </div>
+    </MudForm>
+
+    <div class="row">
+        @if (!isViewOnly)
+        {
+            <div class="col-md-6" style="padding-bottom: 10px !important;">
+                <button type="button" @onclick="OnSaveClick" class="btn btn-primary btn-block"><i class="fa fa-floppy-o"></i> Save</button>
+            </div>
+        }
+        
+        <div class="@(isViewOnly ? "col-md-12" : "col-md-6")">
+            <button type="button" @onclick="OnCancelClick" class="btn btn-danger btn-block"><i class="fa fa-ban"></i> Cancel</button>
+        </div>
+    </div>
+
+</div>

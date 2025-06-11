@@ -1,0 +1,64 @@
+﻿@using MudBlazor
+@using Rapide.DTO
+@using Rapide.Web.Models
+
+<div class="card-body custom-mud">
+    <div class="row">
+        <div class="col-sm-12">
+            <MudTable Items="InvoiceListParam" Dense="true" Hover="true">
+                <HeaderContent>
+                    <MudTh Style="width: 40%">Invoice No.</MudTh>
+                    <MudTh>Invoice Date</MudTh>
+                    <MudTh>Due Date</MudTh>
+                    <MudTh>Job Order No.</MudTh>
+                    <MudTh>Total Amount</MudTh>
+                    <MudTh></MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="InvoiceNo">
+                        <div class="form-group">
+                            <MudTextField Disabled="true"
+                                          Adornment="Adornment.Start"
+                                          AdornmentIcon="@Icons.Material.Filled.NoteAlt"
+                                          @bind-Value="context.InvoiceNo"
+                                          For="(() => context.InvoiceNo)"
+                                          Margin="Margin.Dense" Variant="Variant.Outlined" />
+                        </div>
+                    </MudTd>
+                    <MudTd DataLabel="InvoiceDate">
+                        <div class="form-group">
+                            <MudTextField Disabled="true"
+                                          @bind-Value="context.InvoiceDate"
+                                          For="(() => context.InvoiceDate)"
+                                          Margin="Margin.Dense" Variant="Variant.Outlined" />
+                        </div>
+                    </MudTd>
+                    <MudTd DataLabel="DueDate">
+                        <div class="form-group">
+                            <MudTextField Disabled="true"
+                                          @bind-Value="context.DueDate"
+                                          For="(() => context.DueDate)"
+                                          Margin="Margin.Dense" Variant="Variant.Outlined" />
+                        </div>
+                    </MudTd>
+                    <MudTd DataLabel="JobOrderNo">
+                        <div class="form-group">
+                            <MudTextField Disabled="true"
+                                          @bind-Value="context.JobOrder.ReferenceNo"
+                                          For="(() => context.JobOrder.ReferenceNo)"
+                                          Margin="Margin.Dense" Variant="Variant.Outlined" />
+                        </div>
+                    </MudTd>
+                    <MudTd DataLabel="TotalAmount">
+                        <div class="form-group">
+                            <MudTextField Disabled="true" Format="N2"
+                                          @bind-Value="context.TotalAmount"
+                                          For="(() => context.TotalAmount)"
+                                          Margin="Margin.Dense" Variant="Variant.Outlined" />
+                        </div>
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,45 @@
+﻿@using MudBlazor
+@using Rapide.DTO
+@using Rapide.Web.Models
+
+<MudDialog>
+    <TitleContent>
+        <h3>Select Package</h3>
+    </TitleContent>
+    <DialogContent>
+        <MudDataGrid Dense T="PackageDTO" @ref="dataGrid" ServerData="ServerReload" Filterable="false">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6"></MudText>
+                <MudSpacer />
+                <MudTextField T="string" ValueChanged="@(s=>OnSearch(s))" Placeholder="Search" Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Small" Class="mt-0"></MudTextField>
+            </ToolBarContent>
+            <Columns>
+                <PropertyColumn Property="x => x.Code" Title="Code" />
+                <PropertyColumn Property="x => x.Name" Title="Name">
+                </PropertyColumn>
+                <PropertyColumn Property="x => x.TotalAmount" Title="Amount" Format="N2" Filterable="false" Sortable="false" />
+                <TemplateColumn Title="Action" Filterable="false" Sortable="false">
+                    <CellTemplate>
+                        <MudStack Row>
+                            <MudButton @onclick="args => OnApplyClick(context.Item)" Size="@Size.Medium" Variant="@Variant.Filled" Color="@Color.Success"><i class="fa fa-check">Apply</i></MudButton>
+                        </MudStack>
+                    </CellTemplate>
+                </TemplateColumn>
+            </Columns>
+            <PagerContent>
+                <MudDataGridPager T="PackageDTO" />
+            </PagerContent>
+        </MudDataGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private MudDialogInstance MudDialog { get; set; }
+
+    private void Cancel() => MudDialog.Cancel();
+}

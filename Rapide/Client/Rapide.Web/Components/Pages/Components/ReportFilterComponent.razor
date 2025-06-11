@@ -1,0 +1,142 @@
+﻿@page "/reports/{reportType}"
+
+
+@using MudBlazor
+@using Rapide.DTO
+@using Rapide.Web.Components.Pages.Components
+@using Rapide.Web.Helpers
+
+@if (IsLoading)
+{
+    <MudOverlay Visible="true" DarkBackground="true" ZIndex="9999">
+        <MudProgressCircular Color="Color.Secondary" Size="Size.Large" Class="ms-n1" Indeterminate="true" />
+    </MudOverlay>
+}
+
+<!-- #region Message Box -->
+
+<MudMessageBox @ref="mbox" Title="Confirmation" CancelText="No">
+    <MessageContent>
+        <i class="bi bi-exclamation-triangle"></i> Are you sure you want to save changes?
+    </MessageContent>
+    <YesButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Check">Yes</MudButton>
+    </YesButton>
+</MudMessageBox>
+
+<MudMessageBox @ref="mboxCustom" Title="Confirmation" CancelText="No">
+    <MessageContent>
+        <i class="bi bi-exclamation-triangle"></i> @mBoxCustomMessage
+    </MessageContent>
+    <YesButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Check">Yes</MudButton>
+    </YesButton>
+</MudMessageBox>
+
+<MudMessageBox @ref="mboxError" Title="Warning!">
+    <MessageContent>
+        <i class="bi bi-exclamation-triangle"></i> @mBoxCustomMessage
+    </MessageContent>
+    <YesButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Error" StartIcon="@Icons.Material.Filled.Check">OK</MudButton>
+    </YesButton>
+</MudMessageBox>
+
+<!-- #endregion -->
+
+<PageTitle>@reportName</PageTitle>
+
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-6">
+                <h1 class="m-0">@reportName</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="/">Home</a></li>
+                    <li class="breadcrumb-item active">Report Generator</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors" Class="mud-form-custom">
+                <div class="col-md-12">
+                    <div class="card card-secondary">
+                        <div class="card-header">
+                            <h3 class="card-title">Report Filter Information</h3>
+                        </div>
+
+                        <div class="card-body">
+                            @* <div class="row">
+                                @if (isBigThreeRoles)
+                                {
+                                    <div class="col-md-6">
+                                        <label>Report Filter<code> *</code></label>
+                                        <div class="form-group">
+                                            <MudRadioGroup T="ReportFilterTypes" Value="@selectedFilter" ValueChanged="OnSelectedOptionChanged">
+                                                <MudRadio Value="@(ReportFilterTypes.Daily)" Color="Color.Success" Size="Size.Medium">Daily</MudRadio>
+                                                <MudRadio Value="@(ReportFilterTypes.Weekly)" Color="Color.Secondary" Size="Size.Medium">Weekly</MudRadio>
+                                                <MudRadio Value="@(ReportFilterTypes.Monthly)" Color="Color.Primary" Size="Size.Medium">Monthly</MudRadio>
+                                                <MudRadio Value="@(ReportFilterTypes.Yearly)" Color="Color.Surface" Size="Size.Medium">Yearly</MudRadio>
+                                            </MudRadioGroup>
+                                        </div>
+
+                                    </div>
+                                }
+                            </div> *@
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label>Date Range Filter<code> *</code></label>
+                                    <div class="form-group">
+                                        <MudStack>
+                                            @if (isBigThreeRoles)
+                                            {
+                                                <MudDateRangePicker @ref="_pickerRange" @bind-DateRange="_dateRange"
+                                                AutoClose="true" PickerVariant="PickerVariant.Dialog">
+                                                    <PickerActions>
+                                                        <MudButton Class="mr-auto align-self-start" OnClick="@(() => _pickerRange.ClearAsync())">Clear</MudButton>
+                                                        <MudButton OnClick="@(() => _pickerRange.CloseAsync(false))">Cancel</MudButton>
+                                                        <MudButton Color="Color.Primary" OnClick="@(() => _pickerRange.CloseAsync())">Ok</MudButton>
+                                                    </PickerActions>
+                                                </MudDateRangePicker>
+                                            }
+                                            else
+                                            {
+                                                <MudDatePicker 
+                                                    Disabled="!isCashier"
+                                                    Margin="Margin.Dense" 
+                                                    @bind-Date="_date" 
+                                                    DateFormat="MM/dd/yyyy" 
+                                                    Variant="Variant.Outlined" />
+                                            }
+                                            
+                                        </MudStack>
+                                    </div>
+
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </div>
+                </div>
+            </MudForm>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6" style="padding-bottom: 10px !important;">
+                <button @onclick="OnPrintClick" type="button" class="btn btn-primary btn-block"><i class="fa fa-floppy-o"></i> Print</button>
+            </div>
+            <div class="col-md-6">
+                <button type="button" class="btn btn-danger btn-block"><i class="fa fa-ban"></i> Cancel</button>
+            </div>
+        </div>
+    </div>
+</section>

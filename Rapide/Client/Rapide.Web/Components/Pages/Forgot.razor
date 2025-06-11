@@ -1,0 +1,93 @@
+﻿@page "/forgot-password"
+@using Microsoft.AspNetCore.Authorization
+@using MudBlazor
+@using Rapide.Web.Components.Layout
+@using System.ComponentModel.DataAnnotations
+@layout ExternalLayout
+@inject NavigationManager NavigationManager;
+
+@attribute [AllowAnonymous]
+
+<div class="login-box">
+    <div class="card card-outline card-primary">
+        <div class="card-header text-center">
+            <img src="images/default-logo/default-logo.png" style="max-width: 100%; height: auto;" />
+            <p class="login-box-msg" style="padding: 0px 0px 0px 0px !important;">You are only one step a way from your new password, recover your password now.</p>
+        </div>
+        <MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors" Class="mud-form-custom">
+            <div class="card-body">
+                @if (!string.IsNullOrEmpty(ErrorMessage))
+                {
+                    <div class="col-md-12" style="padding-bottom: 15px !important;">
+                        <MudAlert Severity="Severity.Error" Variant="Variant.Filled">@ErrorMessage</MudAlert>
+                    </div>
+                }
+            
+                <div class="col-md-12">
+                    <label for="exampleInputEmail1">Email Address<code> *</code></label>
+                    <MudTextField T="string"
+                            Required="true"
+                            RequiredError="Email is required!"
+                            MaxLength="255"
+                            @bind-Value="ForgotPasswordRequestModel.Email"
+                            For="(() => ForgotPasswordRequestModel.Email)"
+                            Validation="@(new EmailAddressAttribute() {ErrorMessage = "The email address is invalid"})"
+                            Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Email"
+                            Margin="Margin.Dense" Variant="Variant.Outlined" Clearable  />
+                </div>
+                <div class="col-md-12">
+                    <label for="exampleInputPassword1">New Password<code> *</code></label>
+                    <MudTextField T="string"
+                                  @ref="pwField1"
+                                  InputType="InputType.Password"
+                                  @bind-Value="ForgotPasswordRequestModel.Password"
+                                  Validation="@(new Func<string, IEnumerable<string>>(PasswordStrength))"
+                                  Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Password"
+                                  Margin="Margin.Dense" Variant="Variant.Outlined" Clearable
+                                  Required="true" RequiredError="Password is required!" />
+                </div>
+                <div class="col-md-12">
+                    <label for="exampleInputConfirmPassword1">Confirm Password<code> *</code></label>
+                    <MudTextField T="string"
+                                  @bind-Value="ForgotPasswordRequestModel.ConfirmPassword"
+                                  InputType="InputType.Password"
+                                  Validation="@(new Func<string, string>(PasswordMatch))"
+                                  Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Password"
+                                  Margin="Margin.Dense" Variant="Variant.Outlined" Clearable
+                                  Required="true" RequiredError="Confirm Password is required!" />
+                </div>
+
+                <div class="dropdown-divider" style="margin-top: 30px;"></div>
+                
+                <div class="col-md-12">
+                    <label for="exampleInputEmail1">Supervisor Email Address<code> *</code></label>
+                    <MudTextField T="string"
+                                  Required="true"
+                                  RequiredError="Email is required!"
+                                  MaxLength="255"
+                                  @bind-Value="ForgotPasswordRequestModel.SupervisorEmail"
+                                  For="(() => ForgotPasswordRequestModel.SupervisorEmail)"
+                                  Validation="@(new EmailAddressAttribute() {ErrorMessage = "The email address is invalid"})"
+                                  Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Email"
+                                  Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+                </div>
+                <div class="col-md-12">
+                    <label for="exampleInputConfirmPassword1">Supervisor Password<code> *</code></label>
+                    <MudTextField T="string"
+                                  @bind-Value="ForgotPasswordRequestModel.SupervisorPassword"
+                                  InputType="InputType.Password"
+                                  Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Password"
+                                  Margin="Margin.Dense" Variant="Variant.Outlined" Clearable
+                                  Required="true" RequiredError="Supervisor Password is required!" />
+                </div>
+                <div class="col-md-12" style="padding: 10px;">
+                    <button @onclick="ForgotPasswordUser" class="btn btn-primary btn-block">Change Password</button>
+                </div>
+
+                <p class="col-md-12">
+                    <MudLink Href="/login">Back to Login</MudLink>
+                </p>
+            </div>
+        </MudForm>
+    </div>
+</div>

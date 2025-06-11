@@ -1,0 +1,411 @@
+﻿@page "/operations/quick-sales/add"
+@page "/operations/quick-sales/{quickSalesId}"
+
+@using MudBlazor
+@using Rapide.DTO
+@using Rapide.Web.Components.Pages.Components
+@using Rapide.Web.Helpers
+
+@if (IsLoading)
+{
+    <MudOverlay Visible="true" DarkBackground="true" ZIndex="9999">
+        <MudProgressCircular Color="Color.Secondary" Size="Size.Large" Class="ms-n1" Indeterminate="true" />
+    </MudOverlay>
+}
+<!-- #region Message Box -->
+<MudMessageBox @ref="mbox" Title="Confirmation" CancelText="No">
+    <MessageContent>
+        <i class="bi bi-exclamation-triangle"></i> Are you sure you want to save changes?
+    </MessageContent>
+    <YesButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Check">Yes</MudButton>
+    </YesButton>
+</MudMessageBox>
+
+<MudMessageBox @ref="mboxCustom" Title="Confirmation" CancelText="No">
+    <MessageContent>
+        <i class="bi bi-exclamation-triangle"></i> @mBoxCustomMessage
+    </MessageContent>
+    <YesButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Check">Yes</MudButton>
+    </YesButton>
+</MudMessageBox>
+
+<MudMessageBox @ref="mboxError" Title="Warning!">
+    <MessageContent>
+        <i class="bi bi-exclamation-triangle"></i> @mBoxCustomMessage
+    </MessageContent>
+    <YesButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Error" StartIcon="@Icons.Material.Filled.Check">OK</MudButton>
+    </YesButton>
+</MudMessageBox>
+<!-- #endregion -->
+
+<PageTitle>Manage Quick Sales</PageTitle>
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-6">
+                <h1 class="m-0">Manage Quick Sales</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="/">Home</a></li>
+                    <li class="breadcrumb-item"><a href="/operations/quick-sales">Quick Sales List</a></li>
+                    <li class="breadcrumb-item active">Manage Quick Sales</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="content">
+    <div class="container-fluid">
+
+        <div class="row">
+            <div class="col-md-6" style="padding-bottom: 10px !important;">
+                <MudChip T="string" Icon="@Icons.Material.Filled.VerifiedUser" Color="Color.Info">@JobStatusName</MudChip>
+                <MudChip T="string" Icon="@Icons.Material.Filled.Person2" Color="Color.Warning">@CustomerName</MudChip>
+                @if (!isQuickSalesLocked)
+                {
+                    <MudButton @onclick="OnQuickSalesCompletedClick"
+                               Size="@Size.Medium"
+                               Variant="Variant.Filled"
+                               Color="Color.Success"
+                               StartIcon="@Icons.Material.Filled.Approval"
+                               Disabled="!IsEditMode">Quick Sales Completed</MudButton>
+                }
+            </div>
+            <div class="col-md-6" style="padding-bottom: 10px !important;">
+                <MudStack Justify="Justify.FlexEnd" Row>
+                    <MudButton @onclick="OnNewQuickSalesClick" Size="@Size.Medium" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Create" Disabled="!IsEditMode">New</MudButton>
+                    @if (isQuickSalesLocked)
+                    {
+                        <MudButton @onclick="OnGeneratePdfClick" Size="@Size.Medium" 
+                            Variant="Variant.Filled" Color="Color.Info" 
+                            StartIcon="@Icons.Material.Filled.Print" Disabled="!IsEditMode">Print</MudButton>
+                    }
+                    <MudButton Disabled="@(isQuickSalesLocked || !IsEditMode)" @onclick="OnCancelQuickSalesClick" Size="@Size.Medium" Variant="Variant.Filled" Color="Color.Error" StartIcon="@Icons.Material.Filled.Delete">Cancel Transaction</MudButton>
+
+                    @if (isBigThreeRoles)
+                    {
+                        <MudButton @onclick="OnReOpenClick"
+                                   Size="@Size.Medium"
+                                   Variant="Variant.Filled"
+                                   Color="Color.Error"
+                                   Disabled="IsEditMode"
+                                   StartIcon="@Icons.Material.Filled.Delete">Re-OPEN</MudButton>
+                    }
+                </MudStack>
+            </div>
+
+        </div>
+
+        <div class="row">
+            <MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors" Class="mud-form-custom">
+                @* Quick Sales Information *@
+                <div class="col-md-12">
+                    @* Cards Here... *@
+                    <div class="card card-secondary">
+                        <div class="card-header">
+                            <h3 class="card-title">Quick Sales Information</h3>
+                            <div class="card-tools">
+                                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Status</label>
+                                        <MudAutocomplete T="JobStatusDTO"
+                                                         Margin="Margin.Dense"
+                                                         Disabled="true"
+                                                         @bind-Value="QuickSalesRequestModel.JobStatus"
+                                                         SearchFunc="@SearchJobStatus"
+                                                         Variant="Variant.Outlined"
+                                                         ToStringFunc="@(e=> e==null?null : e.Name)"
+                                                         Required="true" RequiredError="This field is required!"
+                                                         Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                                                         ShowProgressIndicator="true"
+                                                         Strict="false"
+                                                         Clearable="true">
+                                            <NoItemsTemplate>
+                                                <MudText Align="Align.Center" Class="px-4 py-1">
+                                                    No items found
+                                                </MudText>
+                                            </NoItemsTemplate>
+                                        </MudAutocomplete>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Reference No.<code> *</code></label>
+                                        <MudTextField T="string"
+                                                      MaxLength="100"
+                                                      Disabled="true"
+                                                      @bind-Value="QuickSalesRequestModel.ReferenceNo"
+                                                      For="(() => QuickSalesRequestModel.ReferenceNo)"
+                                                      Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Numbers"
+                                                      Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Transaction Date</label>
+                                        <MudDatePicker DateFormat="MM/dd/yyyy"
+                                                       Variant="Variant.Outlined"
+                                                       Margin="Margin.Dense"
+                                                       @bind-Date="QuickSalesRequestModel.TransactionDate" />
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Payment Reference No</label>
+                                        <MudTextField T="string"
+                                                      MaxLength="255"
+                                                      @bind-Value="QuickSalesRequestModel.PaymentReferenceNo"
+                                                      For="(() => QuickSalesRequestModel.PaymentReferenceNo)"
+                                                      Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Note"
+                                                      Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Customer</label>
+                                        <MudAutocomplete T="CustomerDTO"
+                                                         Margin="Margin.Dense"
+                                                         Value="@QuickSalesRequestModel.Customer"
+                                                         ValueChanged="@((i) => OnCustomerChanged(QuickSalesRequestModel, i))"
+                                                         SearchFunc="@SearchCustomer"
+                                                         Variant="Variant.Outlined"
+                                                         ToStringFunc="@(e=> e==null?null : $"{e.FirstName} {e.LastName}")"
+                                                         Required="true" RequiredError="This field is required!"
+                                                         Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                                                         ShowProgressIndicator="true"
+                                                         Strict="false"
+                                                         Clearable="true">
+                                            <NoItemsTemplate>
+                                                <MudText Align="Align.Center" Class="px-4 py-1">
+                                                    No items found
+                                                </MudText>
+                                            </NoItemsTemplate>
+
+                                            <AfterItemsTemplate>
+                                                <MudButton OnClick="(() => OnAddNewItemClick(DialogTypes.Customer))" Color="Color.Primary"><i class="fas fa-plus"> Add New Customer</i></MudButton>
+                                            </AfterItemsTemplate>
+                                        </MudAutocomplete>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Payment Type</label>
+                                        <MudAutocomplete T="ParameterDTO"
+                                                         Margin="Margin.Dense"
+                                                         @bind-Value="QuickSalesRequestModel.PaymentTypeParameter"
+                                                         SearchFunc="@SearchPaymentType"
+                                                         Variant="Variant.Outlined"
+                                                         ToStringFunc="@(e=> e==null?null : e.Name)"
+                                                         Required="true" RequiredError="This field is required!"
+                                                         Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                                                         ShowProgressIndicator="true"
+                                                         Strict="false"
+                                                         Clearable="true">
+                                            <NoItemsTemplate>
+                                                <MudText Align="Align.Center" Class="px-4 py-1">
+                                                    No items found
+                                                </MudText>
+                                            </NoItemsTemplate>
+                                            <AfterItemsTemplate>
+                                                <MudButton OnClick="(() => OnAddNewItemClick(DialogTypes.Payment))" Color="Color.Primary"><i class="fas fa-plus"> Add New Payment</i></MudButton>
+                                            </AfterItemsTemplate>
+                                        </MudAutocomplete>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Sales Person</label>
+                                        <MudAutocomplete T="UserDTO"
+                                                         Margin="Margin.Dense"
+                                                         @bind-Value="QuickSalesRequestModel.SalesPersonUser"
+                                                         SearchFunc="@SearchSalesPersonUser"
+                                                         Variant="Variant.Outlined"
+                                                         ToStringFunc="@(e=> e==null?null : $"{e.FirstName} {e.LastName}")"
+                                                         Required="true" RequiredError="This field is required!"
+                                                         Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                                                         ShowProgressIndicator="true"
+                                                         Strict="false"
+                                                         Clearable="true">
+                                            <NoItemsTemplate>
+                                                <MudText Align="Align.Center" Class="px-4 py-1">
+                                                    No items found
+                                                </MudText>
+                                            </NoItemsTemplate>
+
+                                            <AfterItemsTemplate>
+                                                <MudButton OnClick="(() => OnAddNewItemClick(DialogTypes.User))" Color="Color.Primary"><i class="fas fa-plus"> Add New Service Group</i></MudButton>
+                                            </AfterItemsTemplate>
+                                        </MudAutocomplete>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-footer">
+                        </div>
+                    </div>
+                </div>
+
+                @* Products Information *@
+                <div class="col-md-12">
+                    <div class="card card-secondary">
+                        <div class="card-header">
+                            <h3 class="card-title">Products</h3>
+                            <div class="card-tools">
+                                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="card-body">
+                            <div class="row">
+                                <QuickSalesProductItemComponent IsQuickSalesLocked="isQuickSalesLocked"
+                                                                QuickSalesProductParam="QuickSalesProducts"
+                                                                OnDataChanged="@(e => ProductItemHasChanged(e))" />
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                        </div>
+                    </div>
+                </div>
+
+                @* Summary *@
+                <div class="col-md-12">
+                    <div class="card card-secondary">
+                        <div class="card-header">
+                            <h3 class="card-title">Summary</h3>
+                            <div class="card-tools">
+                                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Summary</label>
+                                        <MudTextField T="string"
+                                                      Lines="3"
+                                                      MaxLength="255"
+                                                      @bind-Value="QuickSalesRequestModel.Summary"
+                                                      For="(() => QuickSalesRequestModel.Summary)"
+                                                      Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group row align-items-center">
+                                        <label class="col-sm-4 text-sm-end">Sub Total<code> *</code></label>
+                                        <div class="col-sm-8">
+                                            <MudTextField T="decimal"
+                                                          Disabled="true" Format="N2"
+                                                          Value="QuickSalesRequestModel.SubTotal"
+                                                          TextChanged="@((i) => OnSubTotalChanged(QuickSalesRequestModel, i))"
+                                                          For="(() => QuickSalesRequestModel.SubTotal)"
+                                                          Class="align-right"
+                                                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Money"
+                                                          Margin="Margin.Dense" Variant="Variant.Outlined" />
+                                        </div>
+                                    </div>
+                                    <div class="form-group row align-items-center">
+                                        <label class="col-sm-4 text-sm-end">VAT (12%)<code> *</code></label>
+                                        <div class="col-sm-8">
+                                            <MudTextField Disabled="true" Format="N2"
+                                                          @bind-Value="QuickSalesRequestModel.VAT12"
+                                                          For="(() => QuickSalesRequestModel.VAT12)"
+                                                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Money"
+                                                          Margin="Margin.Dense" Variant="Variant.Outlined" />
+                                        </div>
+                                    </div>
+                                    <div class="form-group row align-items-center">
+                                        <label class="col-sm-4 text-sm-end">Discount<code> *</code></label>
+                                        <div class="col-sm-8">
+                                            <MudNumericField T="decimal" Format="N2" Min="0"
+                                                             Value="QuickSalesRequestModel.Discount"
+                                                             ValueChanged="@((i) => OnDiscountChanged(QuickSalesRequestModel, i))"
+                                                             Immediate="true"
+                                                             Required="true" RequiredError="This field is required!"
+                                                             Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Money"
+                                                             Margin="Margin.Dense" Variant="Variant.Outlined" />
+                                        </div>
+                                    </div>
+                                    <div class="form-group row align-items-center">
+                                        <label class="col-sm-4 text-sm-end">Total Amount<code> *</code></label>
+                                        <div class="col-sm-8">
+                                            <MudTextField Disabled="true" Format="N2"
+                                                          @bind-Value="QuickSalesRequestModel.TotalAmount"
+                                                          For="(() => QuickSalesRequestModel.TotalAmount)"
+                                                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Money"
+                                                          Margin="Margin.Dense" Variant="Variant.Outlined" />
+                                        </div>
+                                    </div>
+                                    <div class="form-group row align-items-center">
+                                        <label class="col-sm-4 text-sm-end">Payment<code> *</code></label>
+                                        <div class="col-sm-8">
+                                            <MudNumericField T="decimal" Format="N2" Min="0"
+                                                             Value="QuickSalesRequestModel.Payment"
+                                                             ValueChanged="@((i) => OnPaymentChanged(QuickSalesRequestModel, i))"
+                                                             Immediate="true"
+                                                             Required="true" RequiredError="This field is required!"
+                                                             Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Money"
+                                                             Margin="Margin.Dense" Variant="Variant.Outlined" />
+                                        </div>
+                                    </div>
+                                    <div class="form-group row align-items-center">
+                                        <label class="col-sm-4 text-sm-end">Change<code> *</code></label>
+                                        <div class="col-sm-8">
+                                            <MudTextField Disabled="true" Format="N2"
+                                                          @bind-Value="QuickSalesRequestModel.Change"
+                                                          For="(() => QuickSalesRequestModel.Change)"
+                                                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Money"
+                                                          Margin="Margin.Dense" Variant="Variant.Outlined" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-footer">
+                        </div>
+                    </div>
+                </div>
+            </MudForm>
+        </div>
+
+        <div class="row">
+            @if (!isQuickSalesLocked)
+            {
+                <div class="col-md-6" style="padding-bottom: 10px !important;">
+                    <button @onclick="OnSaveClick" type="button" class="btn btn-primary btn-block"><i class="fa fa-floppy-o"></i> Save</button>
+                </div>
+
+            }
+            <div class="@(!isQuickSalesLocked ? "col-md-6" : "col-md-12")">
+                <button @onclick="OnCancelClick" type="button" class="btn btn-danger btn-block"><i class="fa fa-ban"></i> Cancel</button>
+            </div>
+
+        </div>
+    </div>
+</section>

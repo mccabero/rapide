@@ -1,0 +1,617 @@
+﻿@page "/operations/estimates/add"
+@page "/operations/estimates/{estimateId}"
+
+@using MudBlazor
+@using Rapide.DTO
+@using Rapide.Web.Components.Pages.Components
+@using Rapide.Web.Helpers
+
+@if (IsLoading)
+{
+    <MudOverlay Visible="true" DarkBackground="true" ZIndex="9999">
+        <MudProgressCircular Color="Color.Secondary" Size="Size.Large" Class="ms-n1" Indeterminate="true" />
+    </MudOverlay>
+}
+<!-- #region Message Box -->
+
+<MudMessageBox @ref="mbox" Title="Confirmation" CancelText="No">
+    <MessageContent>
+        <i class="bi bi-exclamation-triangle"></i> Are you sure you want to save changes?
+    </MessageContent>
+    <YesButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Check">Yes</MudButton>
+    </YesButton>
+</MudMessageBox>
+
+<MudMessageBox @ref="mboxCustom" Title="Confirmation" CancelText="No">
+    <MessageContent>
+        <i class="bi bi-exclamation-triangle"></i> @mBoxCustomMessage
+    </MessageContent>
+    <YesButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Check">Yes</MudButton>
+    </YesButton>
+</MudMessageBox>
+
+<MudMessageBox @ref="mboxError" Title="Warning!">
+    <MessageContent>
+        <i class="bi bi-exclamation-triangle"></i> @mBoxCustomMessage
+    </MessageContent>
+    <YesButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Error" StartIcon="@Icons.Material.Filled.Check">OK</MudButton>
+    </YesButton>
+</MudMessageBox>
+
+<!-- #endregion -->
+
+
+<PageTitle>Manage Estimate</PageTitle>
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-6">
+                <h1 class="m-0">Manage Estimate</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="/">Home</a></li>
+                    <li class="breadcrumb-item"><a href="/operations/estimates">Estimate List</a></li>
+                    <li class="breadcrumb-item active">Manage Estimate</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="content">
+    <div class="container-fluid">
+
+        <div class="row">
+            <div class="col-md-6" style="padding-bottom: 10px !important;">
+                <MudChip T="string" Icon="@Icons.Material.Filled.VerifiedUser" Color="Color.Info">@JobStatusName</MudChip>
+                <MudChip T="string" Icon="@Icons.Material.Filled.Person2" Color="Color.Warning">@CustomerName</MudChip>
+                @if (!isEstimateLocked)
+                {
+                    if (isBigThreeRoles || isOIC)
+                    {
+                        <MudButton @onclick="OnCustomerApprovedClick"
+                        Size="@Size.Medium"
+                        Variant="Variant.Filled"
+                        Color="Color.Success"
+                        StartIcon="@Icons.Material.Filled.Approval"
+                        Disabled="!IsEditMode">Convert to Job Order</MudButton>
+                    }
+                }
+            </div>
+            <div class="col-md-6" style="padding-bottom: 10px !important;">
+                <MudStack Justify="Justify.FlexEnd" Row>
+
+                    @if (!isCashier && !isViewOnly)
+                    {
+                        <MudButton @onclick="OnNewEstimateClick" Size="@Size.Medium" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Create" Disabled="!IsEditMode">New</MudButton>
+                        <MudButton Disabled="@isEstimateLocked" @onclick="OnPackageEstimateClick" Size="@Size.Medium" Variant="Variant.Filled" Color="Color.Warning" StartIcon="@Icons.Material.Filled.GifBox">Package</MudButton>
+                        <MudButton @onclick="OnGeneratePdfClick" Size="@Size.Medium" Variant="Variant.Filled" Color="Color.Info" StartIcon="@Icons.Material.Filled.Print">Print</MudButton>
+                    }
+                    @if (isBigThreeRoles)
+                    {
+                        <MudButton Disabled="@(isEstimateLocked || !IsEditMode)"
+                        @onclick="OnCancelEstimateClick"
+                        Size="@Size.Medium"
+                        Variant="Variant.Filled"
+                        Color="Color.Error"
+                        StartIcon="@Icons.Material.Filled.Delete">Cancel</MudButton>
+
+                        <MudButton @onclick="OnReOpenClick"
+                        Size="@Size.Medium"
+                        Variant="Variant.Filled"
+                        Color="Color.Error"
+                        Disabled="IsEditMode"
+                        StartIcon="@Icons.Material.Filled.Delete">Re-OPEN</MudButton>
+                    }
+
+                </MudStack>
+            </div>
+
+        </div>
+
+        <div class="row">
+            <MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors" Class="mud-form-custom">
+                @* Estimate Information *@
+                <div class="col-md-12">
+                    @* Cards Here... *@
+                    <div class="card card-secondary">
+                        <div class="card-header">
+                            <h3 class="card-title" >Estimate Information</h3>
+                            <div class="card-tools">
+                                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="card-body">                        
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Status</label>
+                                        <MudAutocomplete T="JobStatusDTO"
+                                        Margin="Margin.Dense"
+                                        Disabled="true"
+                                        @bind-Value="EstimateRequestModel.JobStatus"
+                                        SearchFunc="@SearchJobStatus"
+                                        Variant="Variant.Outlined"
+                                        ToStringFunc="@(e=> e==null?null : e.Name)"
+                                        Required="true" RequiredError="This field is required!"
+                                        Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                                        ShowProgressIndicator="true"
+                                        Strict="false"
+                                        Clearable="true">
+                                            <NoItemsTemplate>
+                                                <MudText Align="Align.Center" Class="px-4 py-1">
+                                                    No items found
+                                                </MudText>
+                                            </NoItemsTemplate>
+
+                                            <AfterItemsTemplate>
+                                                <MudButton OnClick="(() => OnAddNewItemClick(EstimateDialogType.JobStatus))" Color="Color.Primary"><i class="fas fa-plus"> Add New Job Status</i></MudButton>
+                                            </AfterItemsTemplate>
+                                        </MudAutocomplete>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Reference No.<code> *</code></label>
+                                        <MudTextField T="string"
+                                        MaxLength="100"
+                                        Disabled="true"
+                                        @bind-Value="EstimateRequestModel.ReferenceNo"
+                                        For="(() => EstimateRequestModel.ReferenceNo)"
+                                        Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Numbers"
+                                        Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Transaction Date</label>
+                                        <MudDatePicker 
+                                        DateFormat="MM/dd/yyyy" 
+                                        Variant="Variant.Outlined" 
+                                        Margin="Margin.Dense" 
+                                        @bind-Date="EstimateRequestModel.TransactionDate" />
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Expiration Date</label>
+                                        <MudDatePicker 
+                                        DateFormat="MM/dd/yyyy" 
+                                        Variant="Variant.Outlined" 
+                                        Margin="Margin.Dense" 
+                                        @bind-Date="EstimateRequestModel.ExpirationDate" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Customer</label>
+                                        <MudAutocomplete T="CustomerDTO"
+                                        Margin="Margin.Dense"
+                                        Value="@EstimateRequestModel.Customer"
+                                        ValueChanged="@((i) => OnCustomerChanged(EstimateRequestModel, i))"
+                                        SearchFunc="@SearchCustomer"
+                                        Variant="Variant.Outlined"
+                                        ToStringFunc="@(e=> e==null?null : $"{e.FirstName} {e.LastName}")"
+                                        Required="true" RequiredError="This field is required!"
+                                        Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                                        ShowProgressIndicator="true"
+                                        Strict="false"
+                                        Clearable="true">
+                                            <NoItemsTemplate>
+                                                <MudText Align="Align.Center" Class="px-4 py-1">
+                                                    No items found
+                                                </MudText>
+                                            </NoItemsTemplate>
+
+                                            <AfterItemsTemplate>
+                                                <MudButton OnClick="(() => OnAddNewItemClick(EstimateDialogType.Customer))" Color="Color.Primary"><i class="fas fa-plus"> Add New Customer</i></MudButton>
+                                            </AfterItemsTemplate>
+                                        </MudAutocomplete>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Vehicle</label>
+                                        <MudAutocomplete T="VehicleDTO"
+                                        Margin="Margin.Dense"
+                                        @bind-Value="EstimateRequestModel.Vehicle"
+                                        SearchFunc="@SearchVehicle"
+                                        Variant="Variant.Outlined"
+                                        ToStringFunc="@(e=> e==null?null : $"{e.VehicleModel.VehicleMake.Name} {e.VehicleModel.Name} ({e.PlateNo})")"
+                                        Required="true" RequiredError="This field is required!"
+                                        Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                                        ShowProgressIndicator="true"
+                                        Strict="false"
+                                        Clearable="true">
+                                            <NoItemsTemplate>
+                                                <MudText Align="Align.Center" Class="px-4 py-1">
+                                                    No items found
+                                                </MudText>
+                                            </NoItemsTemplate>
+
+                                            <AfterItemsTemplate>
+                                                <MudButton OnClick="(() => OnAddNewItemClick(EstimateDialogType.Vehicle))" Color="Color.Primary"><i class="fas fa-plus"> Add New Vehicle</i></MudButton>
+                                            </AfterItemsTemplate>
+                                        </MudAutocomplete>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Estimated Days<code> *</code></label>
+                                        <MudNumericField Min="1"
+                                        @bind-Value="EstimateRequestModel.EstimatedDays"
+                                        Required="true" RequiredError="This field is required!"
+                                        Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Numbers"
+                                        Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Service Group</label>
+                                        <MudAutocomplete T="ServiceGroupDTO"
+                                        Margin="Margin.Dense"
+                                        @bind-Value="EstimateRequestModel.ServiceGroup"
+                                        SearchFunc="@SearchServiceGroup"
+                                        Variant="Variant.Outlined"
+                                        ToStringFunc="@(e=> e==null?null : $"{e.Name}")"
+                                        Required="true" RequiredError="This field is required!"
+                                        Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                                        ShowProgressIndicator="true"
+                                        Strict="false"
+                                        Clearable="true">
+                                            <NoItemsTemplate>
+                                                <MudText Align="Align.Center" Class="px-4 py-1">
+                                                    No items found
+                                                </MudText>
+                                            </NoItemsTemplate>
+
+                                            <AfterItemsTemplate>
+                                                <MudButton OnClick="(() => OnAddNewItemClick(EstimateDialogType.ServiceGroup))" Color="Color.Primary"><i class="fas fa-plus"> Add New Service Group</i></MudButton>
+                                            </AfterItemsTemplate>
+                                        </MudAutocomplete>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Odometer<code> *</code></label>
+                                        <MudNumericField Min="0"
+                                        @bind-Value="EstimateRequestModel.Odometer"
+                                        Required="true" RequiredError="This field is required!"
+                                        Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Numbers"
+                                        Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Next Service Reminder (days)</label>
+                                        <div class="input-group">
+                                            <MudNumericField Min="0"
+                                            @bind-Value="EstimateRequestModel.NextOdometerReminder"
+                                            Required="true" RequiredError="This field is required!"
+                                            Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Numbers"
+                                            Margin="Margin.Dense" Variant="Variant.Outlined" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Customer PO</label>
+                                        <MudTextField T="string"
+                                        MaxLength="100"
+                                        @bind-Value="EstimateRequestModel.CustomerPO"
+                                        For="(() => EstimateRequestModel.CustomerPO)"
+                                        Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Person4"
+                                        Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-footer">
+                        </div>
+                    </div>
+                </div>
+
+                @if (IsPackage)
+                {
+                    <div class="row" style="padding-left: 10px !important;">
+                        @if (EstimatePackages != null)
+                        {
+                            foreach (var p in EstimatePackages)
+                            {
+                                <div>
+                                    <MudChip T="int" Value="p.Package.Id" Icon="@Icons.Material.Filled.GifBox" Size="Size.Medium" Color="Color.Success" OnClose="OnPackageRemoveClick">Package: @p.Package.Name</MudChip>
+                                </div>
+                            }
+                        }
+                    </div>
+                }
+
+                @* Service / Labor Information *@
+                <div class="col-md-12">
+                    <div class="card card-secondary">
+                        <div class="card-header">
+                            <h3 class="card-title" >Services / Labor</h3>
+                            <div class="card-tools">
+                                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="card-body">
+                            <div class="row">
+                                <EstimateServiceItemComponent IsEstimateLocked="isEstimateLocked" EstimateServicesParam="EstimateServices" OnDataChanged="@(e => ServiceItemHasChanged(e))" />
+                            </div>
+                        </div>
+
+                        <div class="card-footer">
+                        </div>
+                    </div>
+                </div>
+
+                @* Products Information *@
+                <div class="col-md-12">
+                    <div class="card card-secondary">
+                        <div class="card-header">
+                            <h3 class="card-title" >Products</h3>
+                            <div class="card-tools">
+                                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="card-body">
+                            <div class="row">
+                                    <EstimateProductItemComponent IsEstimateLocked="isEstimateLocked" EstimateProductParam="EstimateProducts" OnDataChanged="@(e => ProductItemHasChanged(e))" />
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                        </div>
+                    </div>
+                </div>
+
+                @* Service Person Involve *@
+                <div class="col-md-12">
+                    <div class="card card-secondary">
+                        <div class="card-header">
+                            <h3 class="card-title">Service Person Involve</h3>
+                            <div class="card-tools">
+                                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>Service Advisor<code> *</code></label>
+                                        <MudAutocomplete T="UserDTO"
+                                                         Margin="Margin.Dense"
+                                                         @bind-Value="EstimateRequestModel.AdvisorUser"
+                                                         SearchFunc="@SearchServiceAdvisor"
+                                                         Variant="Variant.Outlined"
+                                                         ToStringFunc="@(e=> e==null?null : $"{e.FirstName} {e.LastName}")"
+                                                         Required="true" RequiredError="This field is required!"
+                                                         Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                                                         ShowProgressIndicator="true"
+                                                         Strict="false"
+                                                         Clearable="true">
+                                            <NoItemsTemplate>
+                                                <MudText Align="Align.Center" Class="px-4 py-1">
+                                                    No items found
+                                                </MudText>
+                                            </NoItemsTemplate>
+
+                                            <AfterItemsTemplate>
+                                                <MudButton OnClick="(() => OnAddNewItemClick(EstimateDialogType.User))" Color="Color.Primary"><i class="fas fa-plus"> Add New Advisor</i></MudButton>
+                                            </AfterItemsTemplate>
+                                        </MudAutocomplete>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>Estimator<code> *</code></label>
+                                        <MudAutocomplete T="UserDTO"
+                                                         Margin="Margin.Dense"
+                                                         @bind-Value="EstimateRequestModel.EstimatorUser"
+                                                         SearchFunc="@SearchEstimator"
+                                                         Variant="Variant.Outlined"
+                                                         ToStringFunc="@(e=> e==null?null : $"{e.FirstName} {e.LastName}")"
+                                                         Required="true" RequiredError="This field is required!"
+                                                         Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                                                         ShowProgressIndicator="true"
+                                                         Strict="false"
+                                                         Clearable="true" Disabled>
+                                            <NoItemsTemplate>
+                                                <MudText Align="Align.Center" Class="px-4 py-1">
+                                                    No items found
+                                                </MudText>
+                                            </NoItemsTemplate>
+
+                                            <AfterItemsTemplate>
+                                                <MudButton OnClick="(() => OnAddNewItemClick(EstimateDialogType.User))" Color="Color.Primary"><i class="fas fa-plus"> Add New Estimator</i></MudButton>
+                                            </AfterItemsTemplate>
+                                        </MudAutocomplete>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>Approved By<code> *</code></label>
+                                        <MudAutocomplete T="UserDTO"
+                                                         Margin="Margin.Dense"
+                                                         @bind-Value="EstimateRequestModel.ApproverUser"
+                                                         SearchFunc="@SearchApprover"
+                                                         Variant="Variant.Outlined"
+                                                         ToStringFunc="@(e=> e==null?null : $"{e.FirstName} {e.LastName}")"
+                                                         Required="true" RequiredError="This field is required!"
+                                                         Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                                                         ShowProgressIndicator="true"
+                                                         Strict="false"
+                                                         Clearable="true">
+                                            <NoItemsTemplate>
+                                                <MudText Align="Align.Center" Class="px-4 py-1">
+                                                    No items found
+                                                </MudText>
+                                            </NoItemsTemplate>
+
+                                            <AfterItemsTemplate>
+                                                <MudButton OnClick="(() => OnAddNewItemClick(EstimateDialogType.User))" Color="Color.Primary"><i class="fas fa-plus"> Add New Approver</i></MudButton>
+                                            </AfterItemsTemplate>
+                                        </MudAutocomplete>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                @* Technician List *@
+                                <EstimateTechnicianComponent IsEstimateLocked="isEstimateLocked" EstimateTechnicianParam="EstimateTechnicians" />
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                        </div>
+                    </div>
+                </div>
+
+                @* Summary *@
+                 <div class="col-md-12">
+                     <div class="card card-secondary">
+                         <div class="card-header">
+                             <h3 class="card-title" >Summary</h3>
+                             <div class="card-tools">
+                                 <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                     <i class="fas fa-minus"></i>
+                                 </button>
+                             </div>
+                         </div>
+
+                         <div class="card-body">
+                             <div class="row">
+             	                <div class="col-md-6">
+	                                 <div class="form-group">
+	                                     <label>Summary</label>
+                                         <MudTextField T="string"
+                                            Lines="3"
+                                            MaxLength="255"
+                                            @bind-Value="EstimateRequestModel.Summary"
+                                            For="(() => EstimateRequestModel.Summary)"
+                                            Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+	                                 </div>
+	                             </div>
+	                             <div class="col-md-6">
+	             	                <div class="form-group row align-items-center">
+	                                     <label class="col-sm-4 text-sm-end">Sub Total<code> *</code></label>
+                                         <div class="col-sm-8">
+                                             <MudTextField 
+                                                 T="decimal"
+                                                 Disabled="true" Format="N2" 
+                                                 Value="EstimateRequestModel.SubTotal"
+                                                 TextChanged="@((i) => OnSubTotalChanged(EstimateRequestModel, i))"
+                                                 For="(() => EstimateRequestModel.SubTotal)"
+                                                 Class="align-right"
+                                                 Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Money"
+                                                 Margin="Margin.Dense" Variant="Variant.Outlined" />
+                                         </div>
+	                                 </div>
+	                                 <div class="form-group row align-items-center">
+                                         <label class="col-sm-4 text-sm-end">VAT (12%)<code> *</code></label>
+                                         <div class="col-sm-8">
+                                             <MudTextField 
+                                                 Disabled="true" Format="N2" 
+                                                 @bind-Value="EstimateRequestModel.VAT12" 
+                                                 For="(() => EstimateRequestModel.VAT12)"
+                                                 Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Money"
+                                                 Margin="Margin.Dense" Variant="Variant.Outlined" />
+                                         </div>
+                                     </div>
+                                     <div class="form-group row align-items-center">
+                                         <label class="col-sm-4 text-sm-end">Labor Discount<code> *</code></label>
+                                         <div class="col-sm-8">
+                                             <MudNumericField T="decimal" Format="N2" Min="0"
+                                                 Value="EstimateRequestModel.LaborDiscount"
+                                                 ValueChanged="@((i) => OnLaborDiscountChanged(EstimateRequestModel, i))"
+                                                 Immediate="true"
+                                                 Required="true" RequiredError="This field is required!"
+                                                 Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Money"
+                                                 Margin="Margin.Dense" Variant="Variant.Outlined" />
+                                         </div>
+                                     </div>
+                                     <div class="form-group row align-items-center">
+                                         <label class="col-sm-4 text-sm-end">Product Discount<code> *</code></label>
+                                         <div class="col-sm-8">
+                                             <MudNumericField T="decimal" Format="N2" Min="0"
+                                                 Value="EstimateRequestModel.ProductDiscount"
+                                                 ValueChanged="@((i) => OnProductDiscountChanged(EstimateRequestModel, i))"
+                                                 Immediate="true"
+                                                 Required="true" RequiredError="This field is required!"
+                                                 Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Money"
+                                                 Margin="Margin.Dense" Variant="Variant.Outlined" />
+                                         </div>
+                                     </div>
+                                     <div class="form-group row align-items-center">
+                                         <label class="col-sm-4 text-sm-end">Additional Discount<code> *</code></label>
+                                         <div class="col-sm-8">
+                                             <MudNumericField T="decimal" Format="N2" Min="0"
+                                                 Value="EstimateRequestModel.AdditionalDiscount"
+                                                 ValueChanged="@((i) => OnAdditionalDiscountChanged(EstimateRequestModel, i))"
+                                                 Immediate="true"
+                                                 Required="true" RequiredError="This field is required!"
+                                                 Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Money"
+                                                 Margin="Margin.Dense" Variant="Variant.Outlined" />
+                                         </div>
+                                     </div>
+                                     <div class="form-group row align-items-center">
+                                         <label class="col-sm-4 text-sm-end">Total Amount<code> *</code></label>
+                                         <div class="col-sm-8">
+                                             <MudTextField 
+                                                 Disabled="true" Format="N2" 
+                                                 @bind-Value="EstimateRequestModel.TotalAmount" 
+                                                 For="(() => EstimateRequestModel.TotalAmount)"
+                                                 Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Money"
+                                                 Margin="Margin.Dense" Variant="Variant.Outlined" />
+                                         </div>
+                                     </div>
+	                             </div>
+                             </div>
+                         </div>
+
+                         <div class="card-footer">
+                         </div>
+                     </div>
+                 </div>
+            </MudForm>
+         </div>
+
+        <div class="row">
+            @if (!isEstimateLocked)
+            {
+                <div class="col-md-6" style="padding-bottom: 10px !important;">
+                    <button @onclick="OnSaveClick" type="button" class="btn btn-primary btn-block"><i class="fa fa-floppy-o"></i> Save</button>
+                </div>
+                
+            }
+            <div class="@(!isEstimateLocked ? "col-md-6" : "col-md-12")">
+                <button @onclick="OnCancelClick" type="button" class="btn btn-danger btn-block"><i class="fa fa-ban"></i> Cancel</button>
+            </div>
+            
+        </div>
+    </div>
+</section>

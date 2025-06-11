@@ -1,0 +1,100 @@
+﻿@using MudBlazor
+@using Rapide.DTO
+@using Rapide.Web.Models
+
+<div class="card-body custom-mud">
+    <div class="row">
+        <div class="col-sm-12">
+            <MudTable Items="QuickSalesProductParam" Dense="true" Hover="true">
+                <HeaderContent>
+                    <MudTh Style="width: 40%">Product Name</MudTh>
+                    <MudTh>Price</MudTh>
+                    <MudTh>Qty</MudTh>
+                    <MudTh>Amount</MudTh>
+                    <MudTh></MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Product">
+                        <div class="form-group">
+                            <MudAutocomplete T="ProductDTO"
+                                             Margin="Margin.Dense"
+                                             Value="@context.Product"
+                                             ValueChanged="@((i) => OnProductChanged(context, i))"
+                                             Immediate="true"
+                                             SearchFunc="@SearchProduct"
+                                             Variant="Variant.Outlined"
+                                             ToStringFunc="@(e=> e==null?null : $"{e.Name}")"
+                                             Required="true" RequiredError="This field is required!"
+                                             Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                                             ShowProgressIndicator="true"
+                                             Strict="false"
+                                             Clearable="true">
+                                <NoItemsTemplate>
+                                    <MudText Align="Align.Center" Class="px-4 py-1">
+                                        No items found
+                                    </MudText>
+                                </NoItemsTemplate>
+
+                                <AfterItemsTemplate>
+                                    <MudButton OnClick="(() => OnAddNewItemClick())" Color="Color.Primary"><i class="fas fa-plus"> Add New Product</i></MudButton>
+                                </AfterItemsTemplate>
+                            </MudAutocomplete>
+                        </div>
+                    </MudTd>
+                    <MudTd DataLabel="Price">
+                        <div class="form-group">
+                            <MudNumericField T="decimal" Format="N2" Min="0"
+                                    Value="context.Price"
+                                    ValueChanged="@((i) => OnPriceChanged(context, i))"
+                                    For="@(() => context.Price)"
+                                    Immediate="true"
+                                    Required="true" RequiredError="This field is required!"
+                                    Margin="Margin.Dense" Variant="Variant.Outlined" />
+                        </div>
+                    </MudTd>
+                    <MudTd DataLabel="Qty">
+                        <div class="form-group">
+                            <MudNumericField T="int" Min="1"
+                                Value="context.Qty"
+                                ValueChanged="@((i) => OnQtyChanged(context, i))"
+                                Immediate="true"
+                                Required="true" RequiredError="This field is required!"
+                                Margin="Margin.Dense" Variant="Variant.Outlined" />
+                        </div>
+                    </MudTd>
+                    <MudTd DataLabel="Amount">
+                        <div class="form-group">
+                            <MudTextField Disabled="true" Format="N2"
+                                @bind-Value="context.Amount"
+                                For="(() => context.Amount)"
+                                Margin="Margin.Dense" Variant="Variant.Outlined" />
+                        </div>
+                    </MudTd>
+                    <MudTd>
+                        @if (!IsQuickSalesLocked)
+                        {
+                            <div class="form-group">
+                                <button type="button" @onclick="(() => RemoveValue(context))" class="btn btn-danger btn-block"><i class="fa fa-trash"></i></button>
+                            </div>
+                        }
+                    </MudTd>
+                </RowTemplate>
+                <PagerContent>
+                    <MudTablePager PageSizeOptions="new int[]{50, 100}" />
+                </PagerContent>
+            </MudTable>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3"></div>
+        <div class="col-md-3"></div>
+        <div class="col-md-3"></div>
+        @if (!IsQuickSalesLocked)
+        {
+            <div class="col-md-3" style="padding-top: 15px !important;">
+                <button type="button" @onclick="OnAddProductClick" class="btn btn-success btn-block"><i class="fa fa-plus-square"></i> Add Product</button>
+            </div>
+        }
+    </div>
+</div>

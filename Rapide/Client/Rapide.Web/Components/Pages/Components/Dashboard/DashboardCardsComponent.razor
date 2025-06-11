@@ -1,0 +1,174 @@
+﻿@if (IsLoading)
+{
+    <MudOverlay Visible="true" DarkBackground="true" ZIndex="9999">
+        <MudProgressCircular Color="Color.Secondary" Size="Size.Large" Class="ms-n1" Indeterminate="true" />
+    </MudOverlay>
+}
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card card-secondary">
+            <div class="card-header">
+                <h3 class="card-title">Dashboard Information</h3>
+
+                <div class="card-tools">
+                    <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label for="inputEstimatedBudget">Filter By Date:</label>
+                            <MudDateRangePicker @ref="_pickerRange" @bind-DateRange="_dateRange"
+                                                Margin="Margin.Dense" Variant="Variant.Outlined"
+                                                AutoClose="true" PickerVariant="PickerVariant.Dialog">
+                                <PickerActions>
+                                    <MudButton Class="mr-auto align-self-start" OnClick="@(() => _pickerRange.ClearAsync())">Clear</MudButton>
+                                    <MudButton OnClick="@(() => _pickerRange.CloseAsync(false))">Cancel</MudButton>
+                                    <MudButton Color="Color.Primary" OnClick="@(() => _pickerRange.CloseAsync())">Ok</MudButton>
+                                </PickerActions>
+                            </MudDateRangePicker>
+                            <input @onclick="OnCardFilterApply" value="Apply" class="btn btn-success float-left" style="margin-top: 5px;margin-bottom: 15px;">
+                        </div>
+                    </div>
+                    
+                </div>
+                
+
+                <!-- Cards here... -->
+                @* Four Cards *@
+                <div class="row">
+
+                    @* Customers *@
+                    <div class="col-lg-3 col-6">
+                        <div class="small-box bg-warning">
+                            <div class="inner">
+                                <h3>@customerCount</h3>
+
+                                <p>Customers</p>
+                            </div>
+                            <div class="icon">
+                                <i class="fa fa-users"></i>
+                            </div>
+                            <a href="/customers" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+                        </div>
+                    </div>
+
+                    @* Vehicles *@
+                    <div class="col-lg-3 col-6">
+                        <div class="small-box bg-danger">
+                            <div class="inner">
+                                <h3>@vehiclesCount</h3>
+
+                                <p>Vehicles</p>
+                            </div>
+                            <div class="icon">
+                                <i class="fa fa-car"></i>
+                            </div>
+                            <a href="/vehicles" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+                        </div>
+                    </div>
+
+                    @* Estimates *@
+                    <div class="col-lg-3 col-6">
+                        <div class="small-box bg-info">
+                            <div class="inner">
+                                <h3>@estimateCount</h3>
+                                <p>Estimates</p>
+                            </div>
+                            <div class="icon">
+                                <i class="fa fa-pencil-square-o"></i>
+                            </div>
+                            <a href="/operations/estimates" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+                        </div>
+                    </div>
+
+                    @* Completed Job Orders *@
+                    <div class="col-lg-3 col-6">
+                        <div class="small-box bg-success">
+                            <div class="inner">
+                                <h3>@jobOrdersCount</h3>
+                                <p>Job Orders</p>
+                            </div>
+                            <div class="icon">
+                                <i class="fa fa-briefcase"></i>
+                            </div>
+                            <a href="/operations/job-orders" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+                        </div>
+                    </div>
+
+                </div>
+
+                @if (isAllowOverride)
+                {
+                    @* Four Cards *@
+                    <div class="row">
+
+                        @* Total Net Sales *@
+                        <div class="col-lg-3 col-6">
+                            <div class="small-box bg-warning">
+                                <div class="inner">
+                                    <h3>Php. @(netSalesAmount.ToString("N2"))</h3>
+
+                                    <p>Total Sales</p>
+                                </div>
+                                <div class="icon">
+                                    <i class="fa fa-bar-chart"></i>
+                                </div>
+                                @* <a href="/customers" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a> *@
+                            </div>
+                        </div>
+
+                        @* Total Discounts *@
+                        <div class="col-lg-3 col-6">
+                            <div class="small-box bg-danger">
+                                <div class="inner">
+                                    <h3>Php. @(discountAmount.ToString("N2"))</h3>
+
+                                    <p>Total Discount</p>
+                                </div>
+                                <div class="icon">
+                                    <i class="fa fa-sort-numeric-desc"></i>
+                                </div>
+                                @* <a href="/vehicles" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a> *@
+                            </div>
+                        </div>
+
+                        @* Total Expenses *@
+                        <div class="col-lg-3 col-6">
+                            <div class="small-box bg-info">
+                                <div class="inner">
+                                    <h3>Php. @(expenseAmount.ToString("N2"))</h3>
+                                    <p>Expenses</p>
+                                </div>
+                                <div class="icon">
+                                    <i class="fa fa-superscript"></i>
+                                </div>
+                                @* <a href="/operations/estimates" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a> *@
+                            </div>
+                        </div>
+
+                        @* Transaction Counts *@
+                        <div class="col-lg-3 col-6">
+                            <div class="small-box bg-success">
+                                <div class="inner">
+                                    <h3>@(profitAmount.ToString("N2"))<sup style="font-size: 20px"></sup></h3>
+                                    <p>Total Profit (Under Construction)</p>
+                                </div>
+                                <div class="icon">
+                                    <i class="fa fa-adjust"></i>
+                                </div>
+                                @* <a href="/operations/job-orders" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a> *@
+                            </div>
+                        </div>
+
+                    </div>
+                }
+
+            </div>
+        </div>
+    </div>
+</div>

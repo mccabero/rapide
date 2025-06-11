@@ -1,0 +1,376 @@
+﻿@page "/configurations/products/add"
+@page "/configurations/products/{productId}"
+@using MudBlazor
+@using Rapide.DTO
+@using Rapide.Web.Helpers
+
+@if (IsLoading)
+{
+    <MudOverlay Visible="true" DarkBackground="true" ZIndex="9999">
+        <MudProgressCircular Color="Color.Secondary" Size="Size.Large" Class="ms-n1" Indeterminate="true" />
+    </MudOverlay>
+}
+
+<MudMessageBox @ref="mbox" Title="Confirmation" CancelText="No">
+    <MessageContent>
+        <i class="bi bi-exclamation-triangle"></i> Are you sure you want to save changes?
+    </MessageContent>
+    <YesButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Check">Yes</MudButton>
+    </YesButton>
+</MudMessageBox>
+
+<PageTitle>Manage Products</PageTitle>
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Manage Products</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="/">Home</a></li>
+                    <li class="breadcrumb-item"><a href="/configurations/products">Products List</a></li>
+                    <li class="breadcrumb-item active">Manage Products</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors" Class="mud-form-custom">
+                    <div class="card card-secondary">
+                        <div class="card-header">
+                            <h3 class="card-title" >Products Information</h3>
+                            <div class="card-tools">
+                                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-sm-3">
+                                    <div class="form-group">
+                                        <label>Product Group<code> *</code></label>
+                                        <MudAutocomplete T="ProductGroupDTO"
+                                        Margin="Margin.Dense"
+                                        @bind-Value="ProductRequestModel.ProductGroup"
+                                        SearchFunc="@SearchProductGroup"
+                                        Variant="Variant.Outlined"
+                                        ToStringFunc="@(e=> e==null?null : $"{e.Name}")"
+                                        ShowProgressIndicator="true"
+                                        Required="true" RequiredError="This field is required!"
+                                        Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                                        Strict="false"
+                                        Clearable="true">
+                                            <NoItemsTemplate>
+                                                <MudText Align="Align.Center" Class="px-4 py-1">
+                                                    No items found
+                                                </MudText>
+                                            </NoItemsTemplate>
+
+                                            <AfterItemsTemplate>
+                                                <MudButton OnClick="(() => OnAddNewItemClick(ProductDialogType.ProductGroup))" Color="Color.Primary"><i class="fas fa-plus"> Add New Product Group</i></MudButton>
+                                            </AfterItemsTemplate>
+                                        </MudAutocomplete>
+                                    </div>
+                                </div>
+                                <div class="col-sm-3">
+                                    <div class="form-group">
+                                        <label>Product Category<code> *</code></label>
+                                        <MudAutocomplete T="ProductCategoryDTO"
+                                        Margin="Margin.Dense"
+                                        @bind-Value="ProductRequestModel.ProductCategory"
+                                        SearchFunc="@SearchProductCategory"
+                                        Variant="Variant.Outlined"
+                                        ToStringFunc="@(e=> e==null?null : $"{e.Name}")"
+                                        ShowProgressIndicator="true"
+                                        Required="true" RequiredError="This field is required!"
+                                        Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                                        Strict="false"
+                                        Clearable="true">
+                                            <NoItemsTemplate>
+                                                <MudText Align="Align.Center" Class="px-4 py-1">
+                                                    No items found
+                                                </MudText>
+                                            </NoItemsTemplate>
+
+                                            <AfterItemsTemplate>
+                                                <MudButton OnClick="(() => OnAddNewItemClick(ProductDialogType.ProductCategory))" Color="Color.Primary"><i class="fas fa-plus"> Add New Product Category</i></MudButton>
+                                            </AfterItemsTemplate>
+                                        </MudAutocomplete>
+                                    </div>
+                                </div>
+                                <div class="col-sm-3">
+                                    <div class="form-group">
+                                        <label>Manufacturer<code> *</code></label>
+                                        <MudAutocomplete T="ManufacturerDTO"
+                                        Margin="Margin.Dense"
+                                        @bind-Value="ProductRequestModel.Manufacturer"
+                                        SearchFunc="@SearchManufacturer"
+                                        Variant="Variant.Outlined"
+                                        ToStringFunc="@(e=> e==null?null : $"{e.Name}")"
+                                        ShowProgressIndicator="true"
+                                        Required="true" RequiredError="This field is required!"
+                                        Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                                        Strict="false"
+                                        Clearable="true">
+                                            <NoItemsTemplate>
+                                                <MudText Align="Align.Center" Class="px-4 py-1">
+                                                    No items found
+                                                </MudText>
+                                            </NoItemsTemplate>
+
+                                            <AfterItemsTemplate>
+                                                <MudButton OnClick="(() => OnAddNewItemClick(ProductDialogType.Manufacturer))" Color="Color.Primary"><i class="fas fa-plus"> Add New Manufacturer</i></MudButton>
+                                            </AfterItemsTemplate>
+                                        </MudAutocomplete>
+                                    </div>
+                                </div>
+                                <div class="col-sm-3">
+                                    <div class="form-group">
+                                        <label>Unit of Measure<code> *</code></label>
+                                        <MudAutocomplete T="UnitOfMeasureDTO"
+                                        Margin="Margin.Dense"
+                                        @bind-Value="ProductRequestModel.UnitOfMeasure"
+                                        SearchFunc="@SearchUnitOfMeasure"
+                                        Variant="Variant.Outlined"
+                                        ToStringFunc="@(e=> e==null?null : $"{e.Name}")"
+                                        ShowProgressIndicator="true"
+                                        Required="true" RequiredError="This field is required!"
+                                        Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                                        Strict="false"
+                                        Clearable="true">
+                                            <NoItemsTemplate>
+                                                <MudText Align="Align.Center" Class="px-4 py-1">
+                                                    No items found
+                                                </MudText>
+                                            </NoItemsTemplate>
+
+                                            <AfterItemsTemplate>
+                                                <MudButton OnClick="(() => OnAddNewItemClick(ProductDialogType.UnitOfMeasure))" Color="Color.Primary"><i class="fas fa-plus"> Add New Unit of Measure</i></MudButton>
+                                            </AfterItemsTemplate>
+                                        </MudAutocomplete>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label>Product Name<code> *</code></label>
+                                        <MudTextField T="string"
+                                        Required="true" RequiredError="Name is required!"
+                                        MaxLength="100"
+                                        @bind-Value="ProductRequestModel.Name"
+                                        For="(() => ProductRequestModel.Name)"
+                                        Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.ProductionQuantityLimits"
+                                        Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+                                    </div>
+                                </div>
+                                <div class="col-sm-3">
+                                    <div class="form-group">
+                                        <label>Displayed Product Name<code> *</code></label>
+                                        <MudTextField T="string"
+                                        Required="true" RequiredError="Display Name is required!"
+                                        MaxLength="100"
+                                        @bind-Value="ProductRequestModel.DisplayName"
+                                        For="(() => ProductRequestModel.DisplayName)"
+                                        Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Info"
+                                        Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+                                    </div>
+                                </div>
+                                <div class="col-sm-3">
+                                    <div class="form-group">
+                                        <label>Part No.</label>
+                                        <MudTextField T="string"
+                                        MaxLength="100"
+                                        @bind-Value="ProductRequestModel.PartNo"
+                                        For="(() => ProductRequestModel.PartNo)"
+                                        Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Numbers"
+                                        Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-sm-3">
+                                    <div class="form-group">
+                                        <label>Supplier<code> *</code></label>
+                                        <MudAutocomplete T="SupplierDTO"
+                                        Margin="Margin.Dense"
+                                        @bind-Value="ProductRequestModel.Supplier"
+                                        SearchFunc="@SearchSupplier"
+                                        Variant="Variant.Outlined"
+                                        ToStringFunc="@(e=> e==null?null : $"{e.Name}")"
+                                        ShowProgressIndicator="true"
+                                        Required="true" RequiredError="This field is required!"
+                                        Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                                        Strict="false"
+                                        Clearable="true">
+                                            <NoItemsTemplate>
+                                                <MudText Align="Align.Center" Class="px-4 py-1">
+                                                    No items found
+                                                </MudText>
+                                            </NoItemsTemplate>
+
+                                            <AfterItemsTemplate>
+                                                <MudButton OnClick="(() => OnAddNewItemClick(ProductDialogType.Supplier))" Color="Color.Primary"><i class="fas fa-plus"> Add New Supplier</i></MudButton>
+                                            </AfterItemsTemplate>
+                                        </MudAutocomplete>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label>Storage Location</label>
+                                        <MudTextField T="string"
+                                        MaxLength="255"
+                                        @bind-Value="ProductRequestModel.StorageLocation"
+                                        For="(() => ProductRequestModel.StorageLocation)"
+                                        Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Storage"
+                                        Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+                                    </div>
+                                </div>
+                                <div class="col-sm-3">
+                                    <div class="form-group">
+                                        <label>Expiration Date</label>
+                                        <div class="input-group date" id="reservationdate" data-target-input="nearest">
+                                            <MudDatePicker 
+                                            DateFormat="MM/dd/yyyy" 
+                                            Variant="Variant.Outlined" 
+                                            Margin="Margin.Dense" 
+                                            @bind-Date="ProductRequestModel.ExpirationDateTime" />
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <div class="form-group">
+                                        <label>Description</label>
+                                        <MudTextField T="string"
+                                        Lines="3"
+                                        MaxLength="255"
+                                        @bind-Value="ProductRequestModel.Description"
+                                        For="(() => ProductRequestModel.Description)"
+                                        Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                        </div>
+                    </div>
+
+                    <div class="card card-secondary">
+                        <div class="card-header">
+                            <h3 class="card-title" >Price Information</h3>
+                            <div class="card-tools">
+                                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-sm-4">
+                                    <div class="form-group">
+                                        <label>Purchase Cost<code> *</code></label>
+                                        <div class="input-group">
+                                            <MudNumericField Format="N2" Min="0"
+                                            T="decimal"
+                                            Value="ProductRequestModel.PurchaseCost"
+                                            ValueChanged="@((i) => OnPurchaseCostChanged(ProductRequestModel, i))"
+                                            Required="true" RequiredError="This field is required!"
+                                            Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Numbers"
+                                            Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-4">
+                                    <div class="form-group">
+                                        <label>Markup Rate<code> *</code></label>
+                                        <div class="input-group">
+                                            <MudNumericField Format="N2" Min="0"
+                                            T="decimal"
+                                            @bind-Value="ProductRequestModel.MarkupRate"
+                                            Required="true" RequiredError="This field is required!"
+                                            Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Numbers"
+                                            Margin="Margin.Dense" Variant="Variant.Outlined" Disabled />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-4">
+                                    <div class="form-group">
+                                        <label>Selling Price<code> *</code></label>
+                                        <div class="input-group">
+                                            <MudNumericField Format="N2" Min="0"
+                                            T="decimal"
+                                            Value="ProductRequestModel.SellingPrice"
+                                            ValueChanged="@((i) => OnSellingPriceChanged(ProductRequestModel, i))"
+                                            Required="true" RequiredError="This field is required!"
+                                            Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Numbers"
+                                            Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            @if (isAllowOverride)
+                            { 
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label>Incentive (SA)<code> *</code></label>
+                                            <MudNumericField Format="N2" Min="0"
+                                                             T="decimal"
+                                                             @bind-Value="ProductRequestModel.IncentiveSA"
+                                                             Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Money"
+                                                             Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label>Incentive (Technician)<code> *</code></label>
+                                            <MudNumericField Format="N2" Min="0"
+                                                             T="decimal"
+                                                             @bind-Value="ProductRequestModel.IncentiveTech"
+                                                             Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Money"
+                                                             Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                            
+                        </div>
+                        <div class="card-footer">
+                        </div>
+                    </div>
+                </MudForm>
+                <div class="row">
+                    @if (!isViewOnly)
+                    {
+                        <div class="col-md-6" style="padding-bottom: 10px !important;">
+                            <button type="button" @onclick="OnSaveClick" class="btn btn-primary btn-block"><i class="fa fa-floppy-o"></i> Save</button>
+                        </div>
+                    }
+                    <div class="@(isViewOnly ? "col-md-12" : "col-md-6")">
+                        <button type="button" @onclick="OnCancelClick" class="btn btn-danger btn-block"><i class="fa fa-ban"></i> Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

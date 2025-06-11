@@ -1,0 +1,373 @@
+﻿@page "/operations/payments/add"
+@page "/operations/payments/{paymentId}"
+
+@using MudBlazor
+@using Rapide.DTO
+@using Rapide.Web.Components.Pages.Components
+@using Rapide.Web.Helpers
+
+@if (IsLoading)
+{
+    <MudOverlay Visible="true" DarkBackground="true" ZIndex="9999">
+        <MudProgressCircular Color="Color.Secondary" Size="Size.Large" Class="ms-n1" Indeterminate="true" />
+    </MudOverlay>
+}
+<!-- #region Message Box -->
+<MudMessageBox @ref="mbox" Title="Confirmation" CancelText="No">
+    <MessageContent>
+        <i class="bi bi-exclamation-triangle"></i> Are you sure you want to save changes?
+    </MessageContent>
+    <YesButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Check">Yes</MudButton>
+    </YesButton>
+</MudMessageBox>
+
+<MudMessageBox @ref="mboxCustom" Title="Confirmation" CancelText="No">
+    <MessageContent>
+        <i class="bi bi-exclamation-triangle"></i> @mBoxCustomMessage
+    </MessageContent>
+    <YesButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Check">Yes</MudButton>
+    </YesButton>
+</MudMessageBox>
+
+<MudMessageBox @ref="mboxError" Title="Warning!">
+    <MessageContent>
+        <i class="bi bi-exclamation-triangle"></i> @mBoxCustomMessage
+    </MessageContent>
+    <YesButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Error" StartIcon="@Icons.Material.Filled.Check">OK</MudButton>
+    </YesButton>
+</MudMessageBox>
+<!-- #endregion -->
+
+<PageTitle>Manage Payment</PageTitle>
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-6">
+                <h1 class="m-0">Manage Payment</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="/">Home</a></li>
+                    <li class="breadcrumb-item"><a href="/operations/payments">Payment List</a></li>
+                    <li class="breadcrumb-item active">Manage Payment</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="content">
+    <div class="container-fluid">
+
+        <div class="row">
+            <div class="col-md-6" style="padding-bottom: 10px !important;">
+                <MudChip T="string" Icon="@Icons.Material.Filled.VerifiedUser" Color="Color.Info">@JobStatusName</MudChip>
+                <MudChip T="string" Icon="@Icons.Material.Filled.Person2" Color="Color.Warning">@CustomerName</MudChip>
+                @if (!isPaymentLocked)
+                {
+                    <MudButton @onclick="OnPaymentCompletedClick"
+                    Size="@Size.Medium"
+                    Variant="Variant.Filled"
+                    Color="Color.Success"
+                    StartIcon="@Icons.Material.Filled.Approval"
+                    Disabled="!IsEditMode">Payment Completed</MudButton>
+                }
+            </div>
+            <div class="col-md-6" style="padding-bottom: 10px !important;">
+                <MudStack Justify="Justify.FlexEnd" Row>
+                    <MudButton @onclick="OnNewPaymentClick" Size="@Size.Medium" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Create" Disabled="!IsEditMode">New</MudButton>
+
+                    @if (!isViewOnly)
+                    {
+                        <MudButton @onclick="OnGeneratePdfClick" Size="@Size.Medium"
+                                   Variant="Variant.Filled" Color="Color.Info"
+                                   StartIcon="@Icons.Material.Filled.Print" Disabled="IsEditMode">Receipt</MudButton>
+
+                        <MudButton @onclick="OnGenerateGatePassPdfClick" Size="@Size.Medium"
+                                   Variant="Variant.Filled" Color="Color.Info"
+                                   StartIcon="@Icons.Material.Filled.Print" Disabled="IsEditMode">Gate Pass</MudButton>
+                    }
+                    
+                    @if (isBigThreeRoles)
+                    {
+                        <MudButton Disabled="@(isPaymentLocked || !IsEditMode)" 
+                                   @onclick="OnCancelPaymentClick" 
+                                   Size="@Size.Medium" 
+                                   Variant="Variant.Filled" 
+                                   Color="Color.Error" 
+                                   StartIcon="@Icons.Material.Filled.Delete">Cancel</MudButton>
+
+                        <MudButton @onclick="OnReOpenClick"
+                                   Size="@Size.Medium"
+                                   Variant="Variant.Filled"
+                                   Color="Color.Error"
+                                   Disabled="IsEditMode"
+                                   StartIcon="@Icons.Material.Filled.Delete">Re-OPEN</MudButton>
+                    }
+                </MudStack>
+            </div>
+
+        </div>
+
+        <div class="row">
+            <MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors" Class="mud-form-custom">
+                @* Payment Information *@
+                <div class="col-md-12">
+                    @* Cards Here... *@
+                    <div class="card card-secondary">
+                        <div class="card-header">
+                            <h3 class="card-title">Payment Information</h3>
+                            <div class="card-tools">
+                                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Status</label>
+                                        <MudAutocomplete T="JobStatusDTO"
+                                                         Margin="Margin.Dense"
+                                                         Disabled="true"
+                                                         @bind-Value="PaymentRequestModel.JobStatus"
+                                                         SearchFunc="@SearchJobStatus"
+                                                         Variant="Variant.Outlined"
+                                                         ToStringFunc="@(e=> e==null?null : e.Name)"
+                                                         Required="true" RequiredError="This field is required!"
+                                                         Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                                                         ShowProgressIndicator="true"
+                                                         Strict="false"
+                                                         Clearable="true">
+                                            <NoItemsTemplate>
+                                                <MudText Align="Align.Center" Class="px-4 py-1">
+                                                    No items found
+                                                </MudText>
+                                            </NoItemsTemplate>
+                                        </MudAutocomplete>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Reference No.<code> *</code></label>
+                                        <MudTextField T="string"
+                                                      MaxLength="100"
+                                                      Disabled="true"
+                                                      @bind-Value="PaymentRequestModel.ReferenceNo"
+                                                      For="(() => PaymentRequestModel.ReferenceNo)"
+                                                      Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Numbers"
+                                                      Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Transaction Date</label>
+                                        <MudDatePicker DateFormat="MM/dd/yyyy"
+                                                       Variant="Variant.Outlined"
+                                                       Margin="Margin.Dense"
+                                                       @bind-Date="PaymentRequestModel.PaymentDate" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label>Customer</label>
+                                        <MudAutocomplete T="CustomerDTO"
+                                                         Margin="Margin.Dense"
+                                                         Value="@PaymentRequestModel.Customer"
+                                                         ValueChanged="@((i) => OnCustomerChanged(PaymentRequestModel, i))"
+                                                         SearchFunc="@SearchCustomer"
+                                                         Variant="Variant.Outlined"
+                                                         ToStringFunc="@(e=> e==null?null : $"{e.FirstName} {e.LastName}")"
+                                                         Required="true" RequiredError="This field is required!"
+                                                         Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                                                         ShowProgressIndicator="true"
+                                                         Strict="false"
+                                                         Clearable="true">
+                                            <NoItemsTemplate>
+                                                <MudText Align="Align.Center" Class="px-4 py-1">
+                                                    No items found
+                                                </MudText>
+                                            </NoItemsTemplate>
+
+                                            <AfterItemsTemplate>
+                                                <MudButton OnClick="(() => OnAddNewItemClick(DialogTypes.Customer))" Color="Color.Primary"><i class="fas fa-plus"> Add New Customer</i></MudButton>
+                                            </AfterItemsTemplate>
+                                        </MudAutocomplete>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-footer">
+                        </div>
+                    </div>
+                </div>
+
+                @* Invoice Information *@
+                <div class="col-md-12">
+                    <div class="card card-secondary">
+                        <div class="card-header">
+                            <h3 class="card-title">Invoices</h3>
+                            <div class="card-tools">
+                                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="card-body">
+                            <div class="row">
+                                <PaymentInvoiceItemComponent InvoiceListParam="Invoices" />
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                        </div>
+                    </div>
+                </div>
+
+                @* Payment Information *@
+                <div class="col-md-12">
+                    <div class="card card-secondary">
+                        <div class="card-header">
+                            <h3 class="card-title">Payment Details</h3>
+                            <div class="card-tools">
+                                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="card-body">
+                            <div class="row">
+                                <PaymentDetailsItemComponent InvoiceListParam="Invoices" IsPaymentLocked="isPaymentLocked" PaymentDetailsParam="PaymentRequestModel.PaymentDetailsList" OnDataChanged="@(e => PaymentDetailsItemHasChanged(e))" />
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                        </div>
+                    </div>
+                </div>
+
+                @* Summary *@
+                <div class="col-md-12">
+                    <div class="card card-secondary">
+                        <div class="card-header">
+                            <h3 class="card-title">Payment Summary</h3>
+                            <div class="card-tools">
+                                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Remarks</label>
+                                        <MudTextField T="string"
+                                                      Lines="3"
+                                                      MaxLength="255"
+                                                      @bind-Value="PaymentRequestModel.Remarks"
+                                                      For="(() => PaymentRequestModel.Remarks)"
+                                                      Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group row align-items-center">
+                                        <label class="col-sm-4 text-sm-end">Invoice Total Amount<code> *</code></label>
+                                        <div class="col-sm-8">
+                                            <MudTextField T="decimal"
+                                                          Disabled="true" Format="N2"
+                                                          @bind-Value="PaymentRequestModel.InvoiceTotalAmount"
+                                                          For="(() => PaymentRequestModel.InvoiceTotalAmount)"
+                                                          Class="align-right"
+                                                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Money"
+                                                          Margin="Margin.Dense" Variant="Variant.Outlined" />
+                                        </div>
+                                    </div>
+                                    <div class="form-group row align-items-center">
+                                        <label class="col-sm-4 text-sm-end">VAT (12%)</label>
+                                        <div class="col-sm-8">
+                                            <MudTextField Disabled="true" Format="N2"
+                                                          @bind-Value="PaymentRequestModel.VAT12"
+                                                          For="(() => PaymentRequestModel.VAT12)"
+                                                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Money"
+                                                          Margin="Margin.Dense" Variant="Variant.Outlined" />
+                                        </div>
+                                    </div>
+                                    <div class="form-group row align-items-center">
+                                        <label class="col-sm-4 text-sm-end">Deposit Amount</label>
+                                        <div class="col-sm-8">
+                                            <MudNumericField T="decimal" Format="N2" Min="0"
+                                                             @bind-Value="PaymentRequestModel.DepositAmount"
+                                                             Immediate="true"
+                                                             Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Money"
+                                                             Margin="Margin.Dense" Variant="Variant.Outlined" Disabled />
+                                        </div>
+                                    </div>
+                                    <div class="form-group row align-items-center">
+                                        <label class="col-sm-4 text-sm-end">Amount Payable<code> *</code></label>
+                                        <div class="col-sm-8">
+                                            <MudTextField Disabled="true" Format="N2"
+                                                          @bind-Value="PaymentRequestModel.AmountPayable"
+                                                          For="(() => PaymentRequestModel.AmountPayable)"
+                                                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Money"
+                                                          Margin="Margin.Dense" Variant="Variant.Outlined" />
+                                        </div>
+                                    </div>
+                                    <div class="form-group row align-items-center">
+                                        <label class="col-sm-4 text-sm-end">Amount Paid<code> *</code></label>
+                                        <div class="col-sm-8">
+                                            <MudNumericField T="decimal" Format="N2" Min="0"
+                                                             @bind-Value="PaymentRequestModel.TotalPaidAmount"
+                                                             Immediate="true"
+                                                             Required="true" RequiredError="This field is required!"
+                                                             Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Money"
+                                                             Margin="Margin.Dense" Variant="Variant.Outlined" Disabled />
+                                        </div>
+                                    </div>
+                                    <div class="form-group row align-items-center">
+                                        <label class="col-sm-4 text-sm-end">Balance<code> *</code></label>
+                                        <div class="col-sm-8">
+                                            <MudTextField Disabled="true" Format="N2"
+                                                          @bind-Value="PaymentRequestModel.Balance"
+                                                          For="(() => PaymentRequestModel.Balance)"
+                                                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Money"
+                                                          Margin="Margin.Dense" Variant="Variant.Outlined" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-footer">
+                        </div>
+                    </div>
+                </div>
+            </MudForm>
+        </div>
+
+        <div class="row">
+            @if (!isPaymentLocked)
+            {
+                <div class="col-md-6" style="padding-bottom: 10px !important;">
+                    <button @onclick="OnSaveClick" type="button" class="btn btn-primary btn-block"><i class="fa fa-floppy-o"></i> Save</button>
+                </div>
+
+            }
+            <div class="@(!isPaymentLocked ? "col-md-6" : "col-md-12")">
+                <button @onclick="OnCancelClick" type="button" class="btn btn-danger btn-block"><i class="fa fa-ban"></i> Cancel</button>
+            </div>
+
+        </div>
+    </div>
+</section>

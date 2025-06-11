@@ -1,0 +1,113 @@
+﻿@using MudBlazor
+@using Rapide.DTO
+@using Rapide.Web.Models
+
+<div class="card-body custom-mud">
+    <div class="row">
+        <div class="col-sm-12">
+            <MudTable Items="JobOrderServicesParam" Dense="true" Hover="true">
+                <HeaderContent>
+                    <MudTh>Pkg</MudTh>
+                    @* <MudTh>Required</MudTh> *@
+                    <MudTh Style="width: 40%">Service Name</MudTh>
+                    <MudTh>Rate</MudTh>
+                    <MudTh>Hours</MudTh>
+                    <MudTh>Amount</MudTh>
+                    <MudTh></MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Pkg">
+                        <div class="form-group">
+                            <MudSwitch @bind-Value="context.IsPackage" Color="Color.Success" />
+                        </div>
+                    </MudTd>
+                    @* <MudTd DataLabel="Required">
+                        <div class="form-group">
+                            <MudSwitch @bind-Value="context.IsRequired" Color="Color.Error" />
+                        </div>
+                    </MudTd> *@
+                    <MudTd DataLabel="Service">
+                        <div class="form-group">
+                            <MudAutocomplete T="ServiceDTO"
+                                             Margin="Margin.Dense"
+                                             Value="@context.Service"
+                                             ValueChanged="@((i) => OnServiceChanged(context, i))"
+                                             Immediate="true"
+                                             SearchFunc="@SearchService"
+                                             Variant="Variant.Outlined"
+                                             ToStringFunc="@(e=> e==null?null : $"{e.Name}")"
+                                             Required="true" RequiredError="This field is required!"
+                                             Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                                             ShowProgressIndicator="true"
+                                             Strict="false"
+                                             Clearable="true">
+                                <NoItemsTemplate>
+                                    <MudText Align="Align.Center" Class="px-4 py-1">
+                                        No items found
+                                    </MudText>
+                                </NoItemsTemplate>
+
+                                <AfterItemsTemplate>
+                                    <MudButton OnClick="(() => OnAddNewItemClick())" Color="Color.Primary"><i class="fas fa-plus"> Add New Service</i></MudButton>
+                                </AfterItemsTemplate>
+                            </MudAutocomplete>
+                        </div>
+                    </MudTd>
+                    <MudTd DataLabel="Rate">
+                        <div class="form-group">
+                            <MudNumericField T="decimal" Format="N2" Min="0"
+                                    Value="context.Rate"
+                                    ValueChanged="@((i) => OnRateChanged(context, i))"
+                                    For="@(() => context.Rate)"
+                                    Immediate="true"
+                                    Required="true" RequiredError="This field is required!"
+                                    Margin="Margin.Dense" Variant="Variant.Outlined" />
+                        </div>
+                    </MudTd>
+                    <MudTd DataLabel="Hours">
+                        <div class="form-group">
+                            <MudNumericField T="decimal" Min="1"
+                                    Value="context.Hours"
+                                    ValueChanged="@((i) => OnHoursChanged(context, i))"
+                                    Immediate="true"
+                                    Required="true" RequiredError="This field is required!"
+                                    Margin="Margin.Dense" Variant="Variant.Outlined" />
+                        </div>
+                    </MudTd>
+                    <MudTd DataLabel="Amount">
+                        <div class="form-group">
+                            <MudTextField Disabled="true" Format="N2"
+                                @bind-Value="context.Amount"
+                                For="(() => context.Amount)"
+                                Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Money"
+                                Margin="Margin.Dense" Variant="Variant.Outlined" />
+                        </div>
+                    </MudTd>
+                    <MudTd>
+                        @if (!IsJobOrderLocked)
+                        {
+                            <div class="form-group">
+                                <button type="button" @onclick="(() => RemoveValue(context))" class="btn btn-danger btn-block"><i class="fa fa-trash"></i></button>
+                            </div>
+                        }
+                    </MudTd>
+                </RowTemplate>
+                <PagerContent>
+                    <MudTablePager PageSizeOptions="new int[]{50, 100}" />
+                </PagerContent>
+            </MudTable>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3"></div>
+        <div class="col-md-3"></div>
+        <div class="col-md-3"></div>
+        @if (!IsJobOrderLocked)
+        {
+            <div class="col-md-3" style="padding-top: 15px !important;">
+                <button type="button" @onclick="OnAddServiceClick" class="btn btn-success btn-block"><i class="fa fa-plus-square"></i> Add Service</button>
+            </div>
+        }
+    </div>
+</div>

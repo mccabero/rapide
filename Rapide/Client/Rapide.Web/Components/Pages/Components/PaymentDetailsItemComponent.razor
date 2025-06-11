@@ -1,0 +1,126 @@
+﻿@using MudBlazor
+@using Rapide.DTO
+@using Rapide.Web.Models
+
+<div class="card-body custom-mud">
+    <div class="row">
+        <div class="col-sm-12">
+            <MudTable Items="PaymentDetailsParam" Dense="true" Hover="true">
+                <HeaderContent>
+                    <MudTh>Is Paid?</MudTh>
+                    <MudTh Style="width: 20%">Payment Type</MudTh>
+                    <MudTh Style="width: 20%">Invoice No.</MudTh>
+                    <MudTh>Deposit</MudTh>
+                    <MudTh>Amount Paid</MudTh>
+                    <MudTh>Payment Reference No.</MudTh>
+                    <MudTh></MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Pkg">
+                        <div class="form-group">
+                            <MudSwitch @bind-Value="context.IsFullyPaid" Color="Color.Success" />
+                        </div>
+                    </MudTd>
+                    <MudTd DataLabel="PaymentType">
+                        <div class="form-group">
+                            <MudAutocomplete T="ParameterDTO"
+                                             Margin="Margin.Dense"
+                                             @bind-Value="@context.PaymentTypeParameter"
+                                             Immediate="true"
+                                             SearchFunc="@SearchParam"
+                                             Variant="Variant.Outlined"
+                                             ToStringFunc="@(e=> e==null?null : $"{e.Name}")"
+                                             Required="true" RequiredError="This field is required!"
+                                             Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                                             ShowProgressIndicator="true"
+                                             Strict="false"
+                                             Clearable="true">
+                                <NoItemsTemplate>
+                                    <MudText Align="Align.Center" Class="px-4 py-1">
+                                        No items found
+                                    </MudText>
+                                </NoItemsTemplate>
+
+                                <AfterItemsTemplate>
+                                    <MudButton OnClick="(() => OnAddNewItemClick())" Color="Color.Primary"><i class="fas fa-plus"> Add New Payment Type</i></MudButton>
+                                </AfterItemsTemplate>
+                            </MudAutocomplete>
+                        </div>
+                    </MudTd>
+                    <MudTd DataLabel="InvoiceNo">
+                        <div class="form-group">
+                            <MudAutocomplete T="InvoiceDTO"
+                                             Margin="Margin.Dense"
+                                             Value="@context.Invoice"
+                                             ValueChanged="@((i) => OnInvoiceChanged(context, i))"
+                                             Immediate="true"
+                                             SearchFunc="@SearchInvoice"
+                                             Variant="Variant.Outlined"
+                                             ToStringFunc="@(e=> e==null?null : $"{e.InvoiceNo}")"
+                                             Required="true" RequiredError="This field is required!"
+                                             Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                                             ShowProgressIndicator="true"
+                                             Strict="false"
+                                             Clearable="true">
+                                <NoItemsTemplate>
+                                    <MudText Align="Align.Center" Class="px-4 py-1">
+                                        No items found
+                                    </MudText>
+                                </NoItemsTemplate>
+                            </MudAutocomplete>
+                        </div>
+                    </MudTd>
+                    <MudTd DataLabel="PaymentReferenceNo">
+                        <div class="form-group">
+                            <MudTextField Format="N2" @bind-Value="context.DepositAmount"
+                                          For="(() => context.DepositAmount)"
+                                          Margin="Margin.Dense" Variant="Variant.Outlined" Disabled />
+                        </div>
+                    </MudTd>
+                    <MudTd DataLabel="AmountPaid">
+                        <div class="form-group">
+                            <MudNumericField T="decimal" Format="N2" Min="0"
+                                    Value="context.AmountPaid"
+                                    ValueChanged="@((i) => OnAmountPaidChanged(context, i))"
+                                    For="@(() => context.AmountPaid)"
+                                    Immediate="true"
+                                    Required="true" RequiredError="This field is required!"
+                                    Margin="Margin.Dense" Variant="Variant.Outlined" />
+                        </div>
+                    </MudTd>
+                    <MudTd DataLabel="PaymentReferenceNo">
+                        <div class="form-group">
+                            <MudTextField
+                                @bind-Value="context.PaymentReferenceNo"
+                                For="(() => context.PaymentReferenceNo)"
+                                Margin="Margin.Dense" Variant="Variant.Outlined" />
+                        </div>
+                    </MudTd>
+                    <MudTd>
+                        @if (!IsPaymentLocked)
+                        {
+                            <div class="form-group">
+                                <button type="button" @onclick="(() => RemoveValue(context))" class="btn btn-danger btn-block"><i class="fa fa-trash"></i></button>
+                            </div> 
+                        }
+                    </MudTd>
+                </RowTemplate>
+                <PagerContent>
+                    <MudTablePager PageSizeOptions="new int[]{50, 100}" />
+                </PagerContent>
+            </MudTable>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3"></div>
+        <div class="col-md-3"></div>
+        <div class="col-md-3"></div>
+        @if (!IsPaymentLocked)
+        {
+            <div class="col-md-3" style="padding-top: 15px !important;">
+                <button type="button" @onclick="OnAddServiceClick" class="btn btn-success btn-block"><i class="fa fa-plus-square"></i> Add Payment Option</button>
+            </div>
+        }
+    </div>
+</div>

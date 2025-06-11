@@ -1,0 +1,81 @@
+﻿@using MudBlazor
+@using Rapide.Web.Models
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card card-secondary">
+                    <div class="card-header small">
+                        <h3 class="card-title">Vehicle Inspection Information</h3>
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    @* Content here... *@
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <MudDataGrid Dense T="InspectionModel" @ref="dataGrid" ServerData="ServerReload" Filterable="false">
+                                    <ToolBarContent>
+                                        <MudText Typo="Typo.h6"></MudText>
+                                        <MudSpacer />
+                                        <MudTextField T="string" ValueChanged="@(s=>OnSearch(s))" Placeholder="Search" Adornment="Adornment.Start"
+                                                      AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Small" Class="mt-0"></MudTextField>
+                                    </ToolBarContent>
+                                    <Columns>
+                                        @* <PropertyColumn Property="x => x.Id" Title="Id" /> *@
+                                        <PropertyColumn Property="x => x.ReferenceNo" Title="Reference No." Filterable="false">
+                                            <CellTemplate>
+                                                <MudStack Row>
+                                                    <MudLink Href="@string.Format("/operations/job-orders/{0}", @context.Item.Id.ToString())">@context.Item.ReferenceNo</MudLink>
+                                                </MudStack>
+                                            </CellTemplate>
+                                        </PropertyColumn>
+                                        <PropertyColumn Property="x => x.Customer" Title="Customer Name" Filterable="false">
+                                            <CellTemplate>
+                                                <MudStack Row>
+                                                    <MudText>@($"{context.Item.Customer.FirstName} {context.Item.Customer.LastName}")</MudText>
+                                                </MudStack>
+                                            </CellTemplate>
+                                        </PropertyColumn>
+                                        <PropertyColumn Property="x => x.Vehicle" Title="Vehicle" Filterable="false">
+                                            <CellTemplate>
+                                                <MudStack Row>
+                                                    <MudText>@($"{context.Item.Vehicle.VehicleModel.VehicleMake.Name} {context.Item.Vehicle.VehicleModel.Name}")</MudText>
+                                                </MudStack>
+                                            </CellTemplate>
+                                        </PropertyColumn>
+                                        <PropertyColumn Property="x => x.Vehicle.PlateNo" Title="Plate No." Filterable="false">
+                                            <CellTemplate>
+                                                <MudStack Row>
+                                                    <MudLink Href="@string.Format("/vehicles/{0}", @context.Item.Vehicle.Id.ToString())">@context.Item.Vehicle.PlateNo</MudLink>
+                                                </MudStack>
+                                            </CellTemplate>
+                                        </PropertyColumn>
+                                        <TemplateColumn Title="Action" Filterable="false" Sortable="false">
+                                            <CellTemplate>
+                                                <MudStack Row>
+                                                    <MudButton Size="@Size.Medium" Variant="@Variant.Filled" Href="@string.Format("/operations/job-orders/{0}", @context.Item.Id.ToString())" Color="@Color.Primary"><i class="fa fa-pencil-square-o"></i></MudButton>
+                                                </MudStack>
+                                            </CellTemplate>
+                                        </TemplateColumn>
+                                    </Columns>
+                                    <PagerContent>
+                                        <MudDataGridPager T="InspectionModel" />
+                                    </PagerContent>
+                                </MudDataGrid>
+                            </div>
+                        </div>
+                        @* <br />
+                        <button @onclick="OnAddNewClick" class="btn btn-danger float-left">Add New Job Order </button> *@
+                    </div>
+                    <div class="card-footer">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

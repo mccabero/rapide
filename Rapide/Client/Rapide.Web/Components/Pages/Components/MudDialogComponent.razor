@@ -1,0 +1,15 @@
+﻿@using MudBlazor
+
+<MudDialog>
+    <DialogContent>
+        @if (MudDialog.Title.ToUpper() == "CUSTOMER")
+        {
+            <CustomerComponent></CustomerComponent>
+        }
+        
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit">Ok</MudButton>
+    </DialogActions>
+</MudDialog>

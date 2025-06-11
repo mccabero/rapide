@@ -1,0 +1,125 @@
+﻿@page "/configurations/suppliers/add"
+@page "/configurations/suppliers/{supplierId}"
+@using MudBlazor
+
+@if (IsLoading)
+{
+    <MudOverlay Visible="true" DarkBackground="true" ZIndex="9999">
+        <MudProgressCircular Color="Color.Secondary" Size="Size.Large" Class="ms-n1" Indeterminate="true" />
+    </MudOverlay>
+}
+
+<MudMessageBox @ref="mbox" Title="Confirmation" CancelText="No">
+    <MessageContent>
+        <i class="bi bi-exclamation-triangle"></i> Are you sure you want to save changes?
+    </MessageContent>
+    <YesButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Check">Yes</MudButton>
+    </YesButton>
+</MudMessageBox>
+
+<PageTitle>Manage Supplier</PageTitle>
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Manage Supplier</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="/">Home</a></li>
+                    <li class="breadcrumb-item"><a href="/configurations/suppliers">Supplier List</a></li>
+                    <li class="breadcrumb-item active">Manage Supplier</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card card-secondary">
+                    <div class="card-header">
+                        <h3 class="card-title" >Supplier Information</h3>
+                    </div>
+
+                    <div class="card-body">
+                        <MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors" Class="mud-form-custom">
+                            <div class="row">
+                                <div class="col-sm-4">
+                                    <div class="form-group">
+                                        <label>Supplier Name<code> *</code></label>
+                                        <MudTextField T="string"
+                                            Required="true"
+                                            RequiredError="Supplier Name is required!"
+                                            MaxLength="100"
+                                            @bind-Value="SupplierRequestModel.Name"
+                                            For="(() => SupplierRequestModel.Name)"
+                                            Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.LocalPostOffice"
+                                            Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+                                    </div>
+                                </div>
+                                <div class="col-sm-4">
+                                    <div class="form-group">
+                                        <label>Contact Person<code> *</code></label>
+                                        <MudTextField T="string"
+                                            Required="true"
+                                            RequiredError="Contact Person is required!"
+                                            MaxLength="100"
+                                            @bind-Value="SupplierRequestModel.ContactPerson"
+                                            For="(() => SupplierRequestModel.ContactPerson)"
+                                            Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Person2"
+                                            Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+                                    </div>
+                                </div>
+                                <div class="col-sm-4">
+                                    <div class="form-group">
+                                        <label>Contact Number</label>
+                                        <MudTextField T="string"
+                                            Required="true"
+                                            RequiredError="Contact Number is required!"
+                                            MaxLength="11"
+                                            Mask="@(new PatternMask("0000 000 0000"))"
+                                            @bind-Value="SupplierRequestModel.ContactNumber"
+                                            For="(() => SupplierRequestModel.ContactNumber)"
+                                            Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Phone"
+                                            Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <div class="form-group">
+                                        <label>Address</label>
+                                        <MudTextField T="string"
+                                            Lines="3"
+                                            MaxLength="255"
+                                            @bind-Value="SupplierRequestModel.Address"
+                                            For="(() => SupplierRequestModel.Address)"
+                                            Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+                                    </div>
+                                </div>
+                            </div>
+                        </MudForm>
+                    </div>
+                    <div class="card-footer">
+                    </div>
+                </div>
+                <div class="row">
+                    @if (!isViewOnly)
+                    {
+                        <div class="col-md-6" style="padding-bottom: 10px !important;">
+                            <button type="button" @onclick="OnSaveClick" class="btn btn-primary btn-block"><i class="fa fa-floppy-o"></i> Save</button>
+                        </div>
+                    }
+                    <div class="@(isViewOnly ? "col-md-12" : "col-md-6")">
+                        <button type="button" @onclick="OnCancelClick" class="btn btn-danger btn-block"><i class="fa fa-ban"></i> Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

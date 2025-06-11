@@ -1,0 +1,66 @@
+﻿@using MudBlazor
+@using Rapide.DTO
+@using Rapide.Web.Models
+
+<div class="card-body">
+    <div class="row">
+        <div class="col-sm-12">
+            <MudTable Items="EstimateTechnicianParam" Dense="true" Hover="true">
+                <HeaderContent>
+                    <MudTh Style="@(IsEstimateLocked ? "width: 100%" : "width: 90%")">Technicians</MudTh>
+                    <MudTh></MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Technician">
+                        <div class="form-group">
+                            <MudAutocomplete T="UserDTO"
+                                             Margin="Margin.Dense"
+                                             @bind-Value="@context.TechnicianUser"
+                                             SearchFunc="@SearchTechnician"
+                                             Variant="Variant.Outlined"
+                                             ToStringFunc="@(e=> e==null?null : $"{e.FirstName} {e.LastName} ({e.Role.Name}) ")"
+                                             Required="true" RequiredError="This field is required!"
+                                             Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                                             ShowProgressIndicator="true"
+                                             Strict="false"
+                                             Clearable="true">
+                                <NoItemsTemplate>
+                                    <MudText Align="Align.Center" Class="px-4 py-1">
+                                        No items found
+                                    </MudText>
+                                </NoItemsTemplate>
+
+                                <AfterItemsTemplate>
+                                    <MudButton OnClick="(() => OnAddNewItemClick())" Color="Color.Primary"><i class="fas fa-plus"> Add New User</i></MudButton>
+                                </AfterItemsTemplate>
+                            </MudAutocomplete>
+                        </div>
+                    </MudTd>
+                    <MudTd>
+                        @if (!IsEstimateLocked)
+                        {
+                            <div class="form-group">
+                                <button type="button" @onclick="(() => RemoveValue(context))" class="btn btn-danger btn-block"><i class="fa fa-trash"></i></button>
+                            </div>
+                        }
+                    </MudTd>
+                </RowTemplate>
+                <PagerContent>
+                    <MudTablePager PageSizeOptions="new int[]{50, 100}" />
+                </PagerContent>
+            </MudTable>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-3"></div>
+        <div class="col-sm-3"></div>
+        <div class="col-sm-3"></div>
+        @if (!IsEstimateLocked)
+        {
+            <div class="col-sm-3" style="padding-top: 15px !important;">
+                <button type="button" disabled="@(!IsTechnicianLimitExceeded)" @onclick="OnAddTechnicianClick" class="btn btn-success btn-block"><i class="fa fa-plus-square"></i> Add Technician</button>
+            </div>
+        }
+    </div>
+</div>

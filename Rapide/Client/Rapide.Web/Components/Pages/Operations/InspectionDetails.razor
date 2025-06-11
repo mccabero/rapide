@@ -1,0 +1,553 @@
+﻿@page "/operations/inspections/add"
+@page "/operations/inspections/{inspectionId}"
+@using Rapide.DTO
+@using Rapide.Web.Components.Pages.Components
+@using Rapide.Web.Helpers
+
+@if (IsLoading)
+{
+    <MudOverlay Visible="true" DarkBackground="true" ZIndex="9999">
+        <MudProgressCircular Color="Color.Secondary" Size="Size.Large" Class="ms-n1" Indeterminate="true" />
+    </MudOverlay>
+}
+<!-- #region Message Box -->
+
+<MudMessageBox @ref="mbox" Title="Confirmation" CancelText="No">
+    <MessageContent>
+        <i class="bi bi-exclamation-triangle"></i> Are you sure you want to save changes?
+    </MessageContent>
+    <YesButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Check">Yes</MudButton>
+    </YesButton>
+</MudMessageBox>
+
+<MudMessageBox @ref="mboxCustom" Title="Confirmation" CancelText="No">
+    <MessageContent>
+        <i class="bi bi-exclamation-triangle"></i> @mBoxCustomMessage
+    </MessageContent>
+    <YesButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Check">Yes</MudButton>
+    </YesButton>
+</MudMessageBox>
+
+<MudMessageBox @ref="mboxError" Title="Warning!">
+    <MessageContent>
+        <i class="bi bi-exclamation-triangle"></i> @mBoxCustomMessage
+    </MessageContent>
+    <YesButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Error" StartIcon="@Icons.Material.Filled.Check">OK</MudButton>
+    </YesButton>
+</MudMessageBox>
+
+<!-- #endregion -->
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-6">
+                <h1 class="m-0">Manage Inspection</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="/">Home</a></li>
+                    <li class="breadcrumb-item"><a href="/operations/inspections">Inspection List</a></li>
+                    <li class="breadcrumb-item active">Manage Inspection</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<section class="content">
+    <div class="container-fluid">
+
+        <div class="row">
+            <div class="col-md-6" style="padding-bottom: 10px !important;">
+                <MudChip T="string" Icon="@Icons.Material.Filled.VerifiedUser" Color="Color.Info">@JobStatusName</MudChip>
+                <MudChip T="string" Icon="@Icons.Material.Filled.Person2" Color="Color.Warning">@CustomerName</MudChip>
+                @if (!isInspectionLocked && !isViewOnly)
+                {
+                    <MudButton @onclick="OnConvertToEstimate"
+                    Size="@Size.Medium" 
+                    Variant="Variant.Filled" 
+                    Color="Color.Success" 
+                    StartIcon="@Icons.Material.Filled.Approval" 
+                    Disabled="!IsEditMode">Convert to Estimate</MudButton>
+                }
+            </div>
+            <div class="col-md-6" style="padding-bottom: 10px !important;">
+                <MudStack Justify="Justify.FlexEnd" Row>
+                    @if (!isViewOnly)
+                    {
+                        <MudButton @onclick="OnNewEstimateClick" Size="@Size.Medium" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Create" Disabled="!IsEditMode">New</MudButton>
+                    }
+                    @if (!isViewOnly || isCashier)
+                    {
+                        <MudButton @onclick="OnGeneratePdfClick" Size="@Size.Medium" Variant="Variant.Filled" Color="Color.Info" StartIcon="@Icons.Material.Filled.Print">Print</MudButton>
+                    }
+                    @if (isBigThreeRoles)
+                    {
+                        <MudButton Disabled="@(isInspectionLocked || !IsEditMode)"
+                                   @onclick="OnCancelEstimateClick"
+                                   Size="@Size.Medium"
+                                   Variant="Variant.Filled"
+                                   Color="Color.Error"
+                                   StartIcon="@Icons.Material.Filled.Delete">Cancel</MudButton>
+
+                        <MudButton @onclick="OnReOpenClick"
+                                   Size="@Size.Medium"
+                                   Variant="Variant.Filled"
+                                   Color="Color.Error"
+                                   Disabled="IsEditMode"
+                                   StartIcon="@Icons.Material.Filled.Delete">Re-OPEN</MudButton>
+                    }
+                </MudStack>
+            </div>
+
+        </div>
+
+        <div class="row">
+            <MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors" Class="mud-form-custom">
+                @* Inspection Information *@
+                <div class="col-md-12">
+                    @* Cards Here... *@
+                    <div class="card card-secondary">
+                        <div class="card-header">
+                            <h3 class="card-title">Inspection Information</h3>
+                            <div class="card-tools">
+                                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Status<code> *</code></label>
+                                        <MudAutocomplete T="JobStatusDTO"
+                                        Margin="Margin.Dense"
+                                        @bind-Value="InspectionRequestModel.JobStatus"
+                                        SearchFunc="@SearchJobStatus"
+                                        Variant="Variant.Outlined"
+                                        ToStringFunc="@(e=> e==null?null : e.Name)"
+                                        Required="true" RequiredError="This field is required!"
+                                        Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                                        ShowProgressIndicator="true"
+                                        Strict="false"
+                                        Clearable="true">
+                                            <NoItemsTemplate>
+                                                <MudText Align="Align.Center" Class="px-4 py-1">
+                                                    No items found
+                                                </MudText>
+                                            </NoItemsTemplate>
+
+                                            <AfterItemsTemplate>
+                                                <MudButton OnClick="(() => OnAddNewItemClick(EstimateDialogType.JobStatus))" Color="Color.Primary"><i class="fas fa-plus"> Add New Job Status</i></MudButton>
+                                            </AfterItemsTemplate>
+                                        </MudAutocomplete>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Reference No.<code> *</code></label>
+                                        <MudTextField T="string"
+                                        MaxLength="100"
+                                        Disabled="true"
+                                        @bind-Value="InspectionRequestModel.ReferenceNo"
+                                        For="(() => InspectionRequestModel.ReferenceNo)"
+                                        Required="true" RequiredError="This field is required!"
+                                        Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Numbers"
+                                        Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Transaction Date<code> *</code></label>
+                                        <MudDatePicker DateFormat="MM/dd/yyyy"
+                                        Variant="Variant.Outlined"
+                                        Margin="Margin.Dense"
+                                        Required="true" RequiredError="This field is required!"
+                                        @bind-Date="InspectionRequestModel.TransactionDate" />
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Expiration Date</label>
+                                        <MudDatePicker DateFormat="MM/dd/yyyy"
+                                        Variant="Variant.Outlined"
+                                        Margin="Margin.Dense"
+                                        @bind-Date="InspectionRequestModel.ExpirationDate" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Customer<code> *</code></label>
+                                        <MudAutocomplete T="CustomerDTO"
+                                        Margin="Margin.Dense"
+                                        Value="@InspectionRequestModel.Customer"
+                                        ValueChanged="@((i) => OnCustomerChanged(InspectionRequestModel, i))"
+                                        SearchFunc="@SearchCustomer"
+                                        Variant="Variant.Outlined"
+                                        ToStringFunc="@(e=> e==null?null : $"{e.FirstName} {e.LastName}")"
+                                        Required="true" RequiredError="This field is required!"
+                                        Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                                        ShowProgressIndicator="true"
+                                        Strict="false"
+                                        Clearable="true">
+                                            <NoItemsTemplate>
+                                                <MudText Align="Align.Center" Class="px-4 py-1">
+                                                    No items found
+                                                </MudText>
+                                            </NoItemsTemplate>
+
+                                            <AfterItemsTemplate>
+                                                <MudButton OnClick="(() => OnAddNewItemClick(EstimateDialogType.Customer))" Color="Color.Primary"><i class="fas fa-plus"> Add New Customer</i></MudButton>
+                                            </AfterItemsTemplate>
+                                        </MudAutocomplete>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Vehicle<code> *</code></label>
+                                        <MudAutocomplete T="VehicleDTO"
+                                        Margin="Margin.Dense"
+                                        @bind-Value="InspectionRequestModel.Vehicle"
+                                        SearchFunc="@SearchVehicle"
+                                        Variant="Variant.Outlined"
+                                        ToStringFunc="@(e=> e==null?null : $"{e.VehicleModel.VehicleMake.Name} {e.VehicleModel.Name} ({e.PlateNo})")"
+                                        Required="true" RequiredError="This field is required!"
+                                        Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                                        ShowProgressIndicator="true"
+                                        Strict="false"
+                                        Clearable="true">
+                                            <NoItemsTemplate>
+                                                <MudText Align="Align.Center" Class="px-4 py-1">
+                                                    No items found
+                                                </MudText>
+                                            </NoItemsTemplate>
+
+                                            <AfterItemsTemplate>
+                                                <MudButton OnClick="(() => OnAddNewItemClick(EstimateDialogType.Vehicle))" Color="Color.Primary"><i class="fas fa-plus"> Add New Vehicle</i></MudButton>
+                                            </AfterItemsTemplate>
+                                        </MudAutocomplete>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Service Group</label>
+                                        <MudAutocomplete T="ServiceGroupDTO"
+                                        Margin="Margin.Dense"
+                                        @bind-Value="InspectionRequestModel.ServiceGroup"
+                                        SearchFunc="@SearchServiceGroup"
+                                        Variant="Variant.Outlined"
+                                        ToStringFunc="@(e=> e==null?null : $"{e.Name}")"
+                                        Required="true" RequiredError="This field is required!"
+                                        Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                                        ShowProgressIndicator="true"
+                                        Strict="false"
+                                        Clearable="true">
+                                            <NoItemsTemplate>
+                                                <MudText Align="Align.Center" Class="px-4 py-1">
+                                                    No items found
+                                                </MudText>
+                                            </NoItemsTemplate>
+
+                                            <AfterItemsTemplate>
+                                                <MudButton OnClick="(() => OnAddNewItemClick(EstimateDialogType.ServiceGroup))" Color="Color.Primary"><i class="fas fa-plus"> Add New Service Group</i></MudButton>
+                                            </AfterItemsTemplate>
+                                        </MudAutocomplete>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Service Advisor<code> *</code></label>
+                                        <MudAutocomplete T="UserDTO"
+                                        Margin="Margin.Dense"
+                                        @bind-Value="InspectionRequestModel.AdvisorUser"
+                                        SearchFunc="@SearchServiceAdvisor"
+                                        Variant="Variant.Outlined"
+                                        ToStringFunc="@(e=> e==null?null : $"{e.FirstName} {e.LastName}")"
+                                        Required="true" RequiredError="This field is required!"
+                                        Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                                        ShowProgressIndicator="true"
+                                        Strict="false"
+                                        Clearable="true">
+                                            <NoItemsTemplate>
+                                                <MudText Align="Align.Center" Class="px-4 py-1">
+                                                    No items found
+                                                </MudText>
+                                            </NoItemsTemplate>
+
+                                            <AfterItemsTemplate>
+                                                <MudButton OnClick="(() => OnAddNewItemClick(EstimateDialogType.User))" Color="Color.Primary"><i class="fas fa-plus"> Add New Advisor</i></MudButton>
+                                            </AfterItemsTemplate>
+                                        </MudAutocomplete>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Odometer<code> *</code></label>
+                                        <MudNumericField Min="0"
+                                                         @bind-Value="InspectionRequestModel.Odometer"
+                                                         Required="true" RequiredError="This field is required!"
+                                                         Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Numbers"
+                                                         Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+                                    </div>
+                                    @* <div class="form-group">
+                                        <label>Approved By<code> *</code></label>
+                                        <MudAutocomplete T="UserDTO"
+                                        Margin="Margin.Dense"
+                                        @bind-Value="InspectionRequestModel.ApproverUser"
+                                        SearchFunc="@SearchApprover"
+                                        Variant="Variant.Outlined"
+                                        ToStringFunc="@(e=> e==null?null : $"{e.FirstName} {e.LastName}")"
+                                        Required="true" RequiredError="This field is required!"
+                                        Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                                        ShowProgressIndicator="true"
+                                        Strict="false"
+                                        Clearable="true">
+                                            <NoItemsTemplate>
+                                                <MudText Align="Align.Center" Class="px-4 py-1">
+                                                    No items found
+                                                </MudText>
+                                            </NoItemsTemplate>
+
+                                            <AfterItemsTemplate>
+                                                <MudButton OnClick="(() => OnAddNewItemClick(EstimateDialogType.User))" Color="Color.Primary"><i class="fas fa-plus"> Add New Approver</i></MudButton>
+                                            </AfterItemsTemplate>
+                                        </MudAutocomplete>
+                                    </div> *@
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                @* Technician List *@
+                                <InspectionTechnicianComponent IsInspectionLocked="isInspectionLocked" InspectionTechnicianParam="InspectionTechnicians" />
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label>Customer's Concern<code> *</code></label>
+                                        <MudTextField T="string"
+                                        MaxLength="100"
+                                        Lines="3"
+                                        @bind-Value="InspectionRequestModel.VehicleFindings"
+                                        For="(() => InspectionRequestModel.VehicleFindings)"
+                                        Required="true" RequiredError="This field is required!"
+                                        Margin="Margin.Dense" Variant="Variant.Outlined" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-footer">
+                        </div>
+                    </div>
+                </div>
+
+                @* Legend Information *@
+                <div class="col-md-12">
+                    <div class="card card-default">
+                        <div class="card-header">
+                            <ul class="list-inline mb-0">
+                                <li class="list-inline-item">
+                                    <i class="fas fa-circle fa-1x text-green"></i> OK
+                                </li>
+                                <li class="list-inline-item">
+                                    <i class="fas fa-circle fa-1x text-orange"></i> May require attention
+                                </li>
+                                <li class="list-inline-item">
+                                    <i class="fas fa-circle fa-1x text-red"></i> Required immediate attention
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                @* Inspection list from template *@
+                @foreach (var i in InspectionTemplate)
+                {
+                    <div class="col-md-12">
+                        <div class="card card-secondary">
+                            <div class="card-header">
+                                <h3 class="card-title">@i.Group</h3>
+                                <div class="card-tools">
+                                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                        <i class="fas fa-minus"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="card-body">
+                                @foreach (var d in i.DetailsModelList)
+                                {
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="input-radio-group d-flex">
+                                                <div class="input-group-notes">
+                                                    <div class="input-group form-group">
+                                                        <div class="input-group-prepend">
+                                                            <span class="input-group-text">@d.Id</span>
+                                                        </div>
+                                                        <input type="text" class="form-control" value="@d.Name" disabled />
+                                                    </div>
+                                                    @if (d.IsAmber || d.IsRed)
+                                                    {
+                                                        <div class="row input-notes">
+                                                            <div class="col-md-12">
+                                                                <div class="form-group">
+                                                                    <MudTextField T="string"
+                                                                    MaxLength="100"
+                                                                    Label="Remarks"
+                                                                    Lines="3"
+                                                                    @bind-Value="d.Remarks"
+                                                                    For="(() => d.Remarks)"
+                                                                    Margin="Margin.Dense" Variant="Variant.Outlined" />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    }
+
+                                                </div>
+                                                <div class="input-radios d-flex ml-3 form-group">
+                                                    <div class="icheck-primary d-inline icheck-gray px-1">
+                                                        <MudFab Size="Size.Small" Color="Color.Success" @onclick="(() => OnGreenClick(d))" StartIcon="@(d.IsGreen ? Icons.Material.Filled.Check : null)" Style="margin-right: 10px;" />
+
+                                                    </div>
+                                                    <div class="icheck-primary d-inline icheck-orange px-1">
+                                                        <MudFab Size="Size.Small" Color="Color.Warning" @onclick="(() => OnAmberClick(d))" StartIcon="@(d.IsAmber ? Icons.Material.Filled.Check : null)" Style="margin-right: 10px;" />
+
+                                                    </div>
+                                                    <div class="icheck-primary d-inline icheck-red px-1">
+                                                        <MudFab Size="Size.Small" Color="Color.Error" @onclick="(() => OnRedClick(d))" StartIcon="@(d.IsRed ? Icons.Material.Filled.Check : null)" />
+
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                        <!-- /.col -->
+
+                                    </div>
+                                }
+                            </div>
+                            <div class="card-footer">
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                @* Summary Information *@
+                <div class="col-md-12">
+                    <div class="card card-secondary">
+                        <div class="card-header">
+                            <h3 class="card-title">Summary</h3>
+                            <div class="card-tools">
+                                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label>Remarks / Diagnostic Result</label>
+                                        <MudTextField T="string"
+                                        Lines="6"
+                                        @bind-Value="InspectionRequestModel.Remarks"
+                                        For="(() => InspectionRequestModel.Remarks)"
+                                        Margin="Margin.Dense" Variant="Variant.Outlined" />
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row" style="padding-top: 15px;">
+                                <div class="col-md-12">
+                                    <MudFileUpload T="IBrowserFile" OnFilesChanged="UploadFiles" Accept=".jpg, .jpeg, .png, .bmp">
+                                        <ActivatorContent>
+                                            <MudButton Variant="Variant.Filled"
+                                            Color="Color.Primary"
+                                            StartIcon="@Icons.Material.Filled.CloudUpload">
+                                                Upload Vehicle Photos
+                                            </MudButton>
+                                        </ActivatorContent>
+                                    </MudFileUpload>
+                                </div>
+                            </div>
+
+
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="table table-striped files" id="previews">
+                                        @foreach (var f in uploadedFiles)
+                                        {
+                                            <div id="template" class="d-flex align-items-center mt-2">
+                                                <div class="btn-group" style="grid-gap: 10px;">
+                                                    @* <MudButton Size="Size.Medium" @onclick="@(() => OpenFile(Path.GetFileName(f)))" Color="@Color.Primary" Variant="Variant.Filled">
+                                                        <i class="fas fa-eye"></i>
+                                                    </MudButton> *@
+                                                    <MudButton Size="Size.Medium" @onclick="@(() => OnFileDeleteClick(f))" Color="@Color.Error" Variant="Variant.Filled">
+                                                        <i class="fas fa-trash"></i>
+                                                    </MudButton>
+                                                </div>
+                                                <div class="d-flex align-items-center px-4">
+                                                    <p class="mb-0">
+                                                        <span class="lead">@Path.GetFileName(f)</span>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="mud-image-wrapper" style="height: 75vh !important;">
+                                        <MudCarousel Class="mud-width-full" @ref="_carousel" ItemsSource="@_source"
+                                                     Style="height:100%;"
+                                                     ShowArrows="@arrows" ShowBullets="@bullets"
+                                                     EnableSwipeGesture="@enableSwipeGesture" AutoCycle="@autocycle">
+                                            <ItemTemplate>
+                                                <div class="d-flex flex-column flex-column justify-center" style="width: 40% !important; height: 90% !important; margin-left: 30% !important;">
+                                                    <MudImage ObjectFit="ObjectFit.Fill" Fluid="true" Src="@context" Class="rounded-lg" />
+                                                </div>
+                                            </ItemTemplate>
+                                        </MudCarousel>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                        </div>
+                    </div>
+                </div>
+            </MudForm>
+        </div>
+
+        <div class="row">
+            @if (!isInspectionLocked)
+            {
+                <div class="col-md-6" style="padding-bottom: 10px !important;">
+                    <button @onclick="OnSaveClick" type="button" class="btn btn-primary btn-block"><i class="fa fa-floppy-o"></i> Save</button>
+                </div>
+
+            }
+            <div class="@(!isInspectionLocked ? "col-md-6" : "col-md-12")">
+                <button @onclick="OnCancelClick" type="button" class="btn btn-danger btn-block"><i class="fa fa-ban"></i> Cancel</button>
+            </div>
+
+        </div>
+    </div>
+</section>

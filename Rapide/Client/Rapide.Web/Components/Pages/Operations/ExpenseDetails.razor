@@ -1,0 +1,283 @@
+﻿@page "/operations/expenses/add"
+@page "/operations/expenses/{expensesId}"
+
+@using MudBlazor
+@using Rapide.DTO
+@using Rapide.Web.Components.Pages.Components
+@using Rapide.Web.Helpers
+
+@if (IsLoading)
+{
+    <MudOverlay Visible="true" DarkBackground="true" ZIndex="9999">
+        <MudProgressCircular Color="Color.Secondary" Size="Size.Large" Class="ms-n1" Indeterminate="true" />
+    </MudOverlay>
+}
+
+<!-- #region Message Box -->
+
+<MudMessageBox @ref="mbox" Title="Confirmation" CancelText="No">
+    <MessageContent>
+        <i class="bi bi-exclamation-triangle"></i> Are you sure you want to save changes?
+    </MessageContent>
+    <YesButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Check">Yes</MudButton>
+    </YesButton>
+</MudMessageBox>
+
+<MudMessageBox @ref="mboxCustom" Title="Confirmation" CancelText="No">
+    <MessageContent>
+        <i class="bi bi-exclamation-triangle"></i> @mBoxCustomMessage
+    </MessageContent>
+    <YesButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Check">Yes</MudButton>
+    </YesButton>
+</MudMessageBox>
+
+<MudMessageBox @ref="mboxError" Title="Warning!">
+    <MessageContent>
+        <i class="bi bi-exclamation-triangle"></i> @mBoxCustomMessage
+    </MessageContent>
+    <YesButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Error" StartIcon="@Icons.Material.Filled.Check">OK</MudButton>
+    </YesButton>
+</MudMessageBox>
+
+<!-- #endregion -->
+
+<PageTitle>Manage Expenses</PageTitle>
+
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-6">
+                <h1 class="m-0">Manage Expenses</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="/">Home</a></li>
+                    <li class="breadcrumb-item"><a href="/operations/expenses">Expenses List</a></li>
+                    <li class="breadcrumb-item active">Manage Expenses</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<section class="content">
+    <div class="container-fluid">
+
+        <div class="row">
+            <div class="col-md-6">
+            </div>
+            <div class="col-md-6" style="padding-bottom: 10px !important;">
+                <MudStack Justify="Justify.FlexEnd" Row>
+                    @if (IsEditMode && !isViewOnly)
+                    {
+                        <MudButton @onclick="OnNewExpensesClick" Size="@Size.Medium" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Create" Disabled="!IsEditMode">New</MudButton>
+                        <MudButton @onclick="OnCancelExpensesClick" Size="@Size.Medium" Variant="Variant.Filled" Color="Color.Error" StartIcon="@Icons.Material.Filled.Delete">Cancel Transaction</MudButton>
+                    }
+                    @if (isBigThreeRoles)
+                    {
+                        <MudButton @onclick="OnReOpenClick"
+                                   Size="@Size.Medium"
+                                   Variant="Variant.Filled"
+                                   Color="Color.Error"
+                                   Disabled="IsEditMode"
+                                   StartIcon="@Icons.Material.Filled.Delete">Re-OPEN</MudButton>
+                    }
+                </MudStack>
+                </div>
+            </div>
+
+        <div class="row">
+
+            @* Expenses Information *@
+            <MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors" Class="mud-form-custom">
+                @* Expenses Information *@
+                <div class="col-md-12">
+                    <div class="card card-secondary">
+                        <div class="card-header">
+                            <h3 class="card-title">Expenses Information</h3>
+                            <div class="card-tools">
+                                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <label>Is Settled?<code> *</code></label>
+                                    <MudSwitch @bind-Value="ExpensesRequestModel.IsPaid" Color="Color.Success">@(ExpensesRequestModel.IsPaid ? "Paid" : "Unpaid")</MudSwitch>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Status<code> *</code></label>
+                                        <MudAutocomplete T="JobStatusDTO"
+                                        Margin="Margin.Dense"
+                                        Disabled="true"
+                                        @bind-Value="ExpensesRequestModel.JobStatus"
+                                        Variant="Variant.Outlined"
+                                        ToStringFunc="@(e=> e==null?null : e.Name)"
+                                        Required="true" RequiredError="This field is required!"
+                                        Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                                        ShowProgressIndicator="true"
+                                        Strict="false"
+                                        Clearable="true">
+                                            <NoItemsTemplate>
+                                                <MudText Align="Align.Center" Class="px-4 py-1">
+                                                    No items found
+                                                </MudText>
+                                            </NoItemsTemplate>
+                                        </MudAutocomplete>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Reference No.<code> *</code></label>
+                                        <MudTextField T="string"
+                                        MaxLength="100"
+                                        Disabled="true"
+                                        @bind-Value="ExpensesRequestModel.ReferenceNo"
+                                        For="(() => ExpensesRequestModel.ReferenceNo)"
+                                        Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Note"
+                                        Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Transaction Date<code> *</code></label>
+                                        <MudDatePicker DateFormat="MM/dd/yyyy"
+                                        Variant="Variant.Outlined"
+                                        Margin="Margin.Dense"
+                                        Required="true" RequiredError="This field is required!"
+                                        @bind-Date="ExpensesRequestModel.ExpenseDateTime" />
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Expenses Payment Type<code> *</code></label>
+                                        <MudAutocomplete T="ParameterDTO"
+                                        Margin="Margin.Dense"
+                                        @bind-Value="ExpensesRequestModel.PaymentTypeParameter"
+                                        SearchFunc="@SearchPaymentType"
+                                        Variant="Variant.Outlined"
+                                        ToStringFunc="@(e=> e==null?null : e.Name)"
+                                        Required="true" RequiredError="This field is required!"
+                                        Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                                        ShowProgressIndicator="true"
+                                        Strict="false"
+                                        Clearable="true">
+                                            <NoItemsTemplate>
+                                                <MudText Align="Align.Center" Class="px-4 py-1">
+                                                    No items found
+                                                </MudText>
+                                            </NoItemsTemplate>
+                                            <AfterItemsTemplate>
+                                                <MudButton OnClick="(() => OnAddNewItemClick(DialogTypes.Payment))" Color="Color.Primary"><i class="fas fa-plus"> Add New Payment</i></MudButton>
+                                            </AfterItemsTemplate>
+                                        </MudAutocomplete>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Expenses By Employee<code> *</code></label>
+                                        <MudAutocomplete T="UserDTO"
+                                        Margin="Margin.Dense"
+                                        @bind-Value="ExpensesRequestModel.ExpenseByUser"
+                                        SearchFunc="@SearchExpensesByUser"
+                                        Variant="Variant.Outlined"
+                                        ToStringFunc="@(e=> e== null ? null : $"{e.FirstName} {e.LastName}")"
+                                        Required="true" RequiredError="This field is required!"
+                                        Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                                        ShowProgressIndicator="true"
+                                        Strict="false"
+                                        Clearable="true">
+                                            <NoItemsTemplate>
+                                                <MudText Align="Align.Center" Class="px-4 py-1">
+                                                    No items found
+                                                </MudText>
+                                            </NoItemsTemplate>
+                                            <AfterItemsTemplate>
+                                                <MudButton OnClick="(() => OnAddNewItemClick(DialogTypes.User))" Color="Color.Primary"><i class="fas fa-plus"> Add New User</i></MudButton>
+                                            </AfterItemsTemplate>
+                                        </MudAutocomplete>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Payment To<code> *</code></label>
+                                        <MudTextField T="string"
+                                        MaxLength="100"
+                                        Required="true" RequiredError="This field is required!"
+                                        @bind-Value="ExpensesRequestModel.PayTo"
+                                        For="(() => ExpensesRequestModel.PayTo)"
+                                        Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Person2"
+                                        Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Expenses Amount<code> *</code></label>
+                                        <MudNumericField Format="N2" Min="0"
+                                        @bind-Value="ExpensesRequestModel.Amount"
+                                        Required="true" RequiredError="This field is required!"
+                                        Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Numbers"
+                                        Margin="Margin.Dense" Variant="Variant.Outlined" />
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Payment Reference No</label>
+                                        <MudTextField T="string"
+                                        MaxLength="255"
+                                        @bind-Value="ExpensesRequestModel.PaymentReferenceNo"
+                                        For="(() => ExpensesRequestModel.PaymentReferenceNo)"
+                                        Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Note"
+                                        Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label>Remarks</label>
+                                        <MudTextField T="string" Lines="3" MaxLength="255"
+                                        Required="true" RequiredError="This field is required!"
+                                        @bind-Value="ExpensesRequestModel.Remarks"
+                                        For="(() => ExpensesRequestModel.Remarks)"
+                                        Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                        </div>
+                    </div>
+                </div>
+            </MudForm>
+
+        </div>
+
+        <div class="row">
+            @if (!isExpensesLocked)
+            {
+                <div class="col-md-6" style="padding-bottom: 10px !important;">
+                    <button @onclick="OnSaveClick" type="button" class="btn btn-primary btn-block"><i class="fa fa-floppy-o"></i> Save</button>
+                </div>
+            }
+            
+            <div class="@(!isExpensesLocked ? "col-md-6" : "col-md-12")">
+                <button @onclick="OnCancelClick" type="button" class="btn btn-danger btn-block"><i class="fa fa-ban"></i> Cancel</button>
+            </div>
+        </div>
+    </div>
+</section>

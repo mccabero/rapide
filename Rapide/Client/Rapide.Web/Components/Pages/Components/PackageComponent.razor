@@ -1,0 +1,244 @@
+﻿@using MudBlazor
+<div class="col-md-12">
+    <div class="card card-secondary">
+        <div class="card-header">
+            <h3 class="card-title" >Packages Information</h3>
+            <div class="card-tools">
+                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                    <i class="fas fa-minus"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Package Name<code> *</code></label>
+                        <MudTextField T="string"
+                        MaxLength="100"
+                        @bind-Value="PackageRequestModelParam.Name"
+                        Required="true" RequiredError="This field is required!"
+                        For="(() => PackageRequestModelParam.Name)"
+                        Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.GifBox"
+                        Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Package Code<code> *</code></label>
+                        <MudTextField T="string"
+                        MaxLength="50"
+                        Required="true" RequiredError="This field is required!"
+                        @bind-Value="PackageRequestModelParam.Code"
+                        For="(() => PackageRequestModelParam.Code)"
+                        Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.QrCode"
+                        Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+                    </div>
+                </div>
+            </div>
+
+            @if (isAllowOverride)
+            {
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Incentive (SA)<code> *</code></label>
+                            <MudNumericField Format="N2" Min="0"
+                                             T="decimal"
+                                             @bind-Value="PackageRequestModelParam.IncentiveSA"
+                                             Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Money"
+                                             Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Incentive (Technician)<code> *</code></label>
+                            <MudNumericField Format="N2" Min="0"
+                                             T="decimal"
+                                             @bind-Value="PackageRequestModelParam.IncentiveTech"
+                                             Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Money"
+                                             Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Next Service Reminder (Days)<code> *</code></label>
+                        <MudNumericField Min="0"
+                                         @bind-Value="PackageRequestModelParam.NextServiceReminderDays"
+                                          Required="true" RequiredError="This field is required!"
+                                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Numbers"
+                                          Margin="Margin.Dense" Variant="Variant.Outlined" />
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+        <div class="card-footer">
+        </div>
+    </div>
+</div>
+
+<div class="col-md-12">
+    <div class="card card-secondary">
+        <div class="card-header">
+            <h3 class="card-title" >Line Items Printout Options</h3>
+            <div class="card-tools">
+                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                    <i class="fas fa-minus"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label>Hide Amounts?</label>
+                        <MudSwitch @bind-Value="PackageRequestModelParam.IsHideAmount" Color="Color.Success">@(PackageRequestModelParam.IsHideAmount ? "Yes" : "No")</MudSwitch>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label>Hide Services?</label>
+                        <MudSwitch @bind-Value="PackageRequestModelParam.IsHideService" Color="Color.Success">@(PackageRequestModelParam.IsHideService ? "Yes" : "No")</MudSwitch>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label>Hide Products?</label>
+                        <MudSwitch @bind-Value="PackageRequestModelParam.IsHidePartsAndMaterials" Color="Color.Success">@(PackageRequestModelParam.IsHidePartsAndMaterials ? "Yes" : "No")</MudSwitch>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label>Display Code?</label>
+                        <MudSwitch @bind-Value="PackageRequestModelParam.IsDisplayCode" Color="Color.Success">@(PackageRequestModelParam.IsDisplayCode ? "Yes" : "No")</MudSwitch>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer">
+        </div>
+    </div>
+</div>
+
+<div class="col-md-12">
+    <div class="card card-secondary">
+        <div class="card-header">
+            <h3 class="card-title" >Services / Labor</h3>
+            <div class="card-tools">
+                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                    <i class="fas fa-minus"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <div class="row">
+                <PackageServiceItemComponent PackageServicesParam="PackageServices" OnDataChanged="@(e => ServiceItemHasChanged(e))" />
+            </div>
+        </div>
+
+        <div class="card-footer">
+        </div>
+    </div>
+</div>
+
+<div class="col-md-12">
+    <div class="card card-secondary">
+        <div class="card-header">
+            <h3 class="card-title" >Products</h3>
+            <div class="card-tools">
+                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                    <i class="fas fa-minus"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <div class="row">
+                <PackageProductItemComponent PackageProductParam="PackageProducts" OnDataChanged="@(e => ProductItemHasChanged(e))" />
+            </div>
+        </div>
+        <div class="card-footer">
+        </div>
+    </div>
+</div>
+
+<div class="col-md-12">
+    <div class="card card-secondary">
+        <div class="card-header">
+            <h3 class="card-title">Summary</h3>
+            <div class="card-tools">
+                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                    <i class="fas fa-minus"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Summary</label>
+                        <MudTextField T="string"
+                                      Lines="3"
+                                      MaxLength="255"
+                                      @bind-Value="PackageRequestModelParam.Summary"
+                                      For="(() => PackageRequestModelParam.Summary)"
+                                      Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group row align-items-center">
+                        <label class="col-sm-4 text-sm-end">Sub Total<code> *</code></label>
+                        <div class="col-sm-8">
+                            @* TODO: Align not working *@
+                            <MudTextField T="decimal"
+                                          Disabled="true" Format="N2"
+                                          Value="PackageRequestModelParam.SubTotal"
+                                          TextChanged="@((i) => OnSubTotalChanged(PackageRequestModelParam, i))"
+                                          For="(() => PackageRequestModelParam.SubTotal)"
+                                          Class="align-right"
+                                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Money"
+                                          Margin="Margin.Dense" Variant="Variant.Outlined" />
+                        </div>
+                    </div>
+                    <div class="form-group row align-items-center">
+                        <label class="col-sm-4 text-sm-end">VAT (12%)<code> *</code></label>
+                        <div class="col-sm-8">
+                            <MudTextField Disabled="true" Format="N2"
+                                          @bind-Value="PackageRequestModelParam.VAT12"
+                                          For="(() => PackageRequestModelParam.VAT12)"
+                                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Money"
+                                          Margin="Margin.Dense" Variant="Variant.Outlined" />
+                        </div>
+                    </div>
+                    <div class="form-group row align-items-center">
+                        <label class="col-sm-4 text-sm-end">Total Amount<code> *</code></label>
+                        <div class="col-sm-8">
+                            <MudTextField Disabled="true" Format="N2"
+                                          @bind-Value="PackageRequestModelParam.TotalAmount"
+                                          For="(() => PackageRequestModelParam.TotalAmount)"
+                                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Money"
+                                          Margin="Margin.Dense" Variant="Variant.Outlined" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-footer">
+        </div>
+    </div>
+</div>

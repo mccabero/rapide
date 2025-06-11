@@ -1,0 +1,111 @@
+﻿@page "/configurations/parameter-groups/add"
+@page "/configurations/parameter-groups/{parameterGroupId}"
+@using MudBlazor
+
+@if (IsLoading)
+{
+    <MudOverlay Visible="true" DarkBackground="true" ZIndex="9999">
+        <MudProgressCircular Color="Color.Secondary" Size="Size.Large" Class="ms-n1" Indeterminate="true" />
+    </MudOverlay>
+}
+
+<MudMessageBox @ref="mbox" Title="Confirmation" CancelText="No">
+    <MessageContent>
+        <i class="bi bi-exclamation-triangle"></i> Are you sure you want to save changes?
+    </MessageContent>
+    <YesButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Check">Yes</MudButton>
+    </YesButton>
+</MudMessageBox>
+
+<PageTitle>Manage Parameter Group</PageTitle>
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Manage Parameter Group</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="/">Home</a></li>
+                    <li class="breadcrumb-item"><a href="/configurations/parameter-groups">Parameter Group List</a></li>
+                    <li class="breadcrumb-item active">Manage Parameter Group</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card card-secondary">
+                    <div class="card-header">
+                        <h3 class="card-title" >Parameter Group Information</h3>
+                    </div>
+
+                    <div class="card-body">
+                        <MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors" Class="mud-form-custom">
+                            <div class="row">
+                                <div class="col-sm-4">
+                                    <div class="form-group">
+                                        <label>Parameter Group Code<code> *</code></label>
+                                        <MudTextField T="string"
+                                            Required="true"
+                                            RequiredError="Code is required!"
+                                            MaxLength="100"
+                                            @bind-Value="ParameterGroupRequestModel.Code"
+                                            For="(() => ParameterGroupRequestModel.Code)"
+                                            Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Code"
+                                            Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+                                    </div>
+                                </div>
+                                <div class="col-sm-8">
+                                    <div class="form-group">
+                                        <label>Parameter Group Name<code> *</code></label>
+                                        <MudTextField T="string"
+                                            Required="true"
+                                            RequiredError="Name is required!"
+                                            MaxLength="100"
+                                            @bind-Value="ParameterGroupRequestModel.Name"
+                                            For="(() => ParameterGroupRequestModel.Name)"
+                                            Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Apartment"
+                                            Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <div class="form-group">
+                                        <label>Description</label>
+                                        <MudTextField T="string"
+                                            Lines="3"
+                                            MaxLength="255"
+                                            @bind-Value="ParameterGroupRequestModel.Description"
+                                            For="(() => ParameterGroupRequestModel.Description)"
+                                            Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+                                    </div>
+                                </div>
+                            </div>
+                        </MudForm>
+                    </div>
+                    <div class="card-footer">
+                    </div>
+                </div>
+                <div class="row">
+                    @if (!isViewOnly)
+                    {
+                        <div class="col-md-6" style="padding-bottom: 10px !important;">
+                            <button type="button" @onclick="OnSaveClick" class="btn btn-primary btn-block"><i class="fa fa-floppy-o"></i> Save</button>
+                        </div>
+                    }
+                    <div class="@(isViewOnly ? "col-md-12" : "col-md-6")">
+                        <button type="button" @onclick="OnCancelClick" class="btn btn-danger btn-block"><i class="fa fa-ban"></i> Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

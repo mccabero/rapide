@@ -1,0 +1,16 @@
+@echo off
+SETLOCAL
+
+set hostline=192.168.254.184
+set newhostline=192.168.254.185
+
+set "HOSTS=%WinDir%\System32\drivers\etc\hosts"
+set "TEMP_HOSTS=%TEMP%\%RANDOM%__hosts"
+
+echo Deleting existing hostline...
+findstr /V %hostline% "%HOSTS%" > "%TEMP_HOSTS%"
+echo   %newhostline%  pos.rapide >> "%TEMP_HOSTS%"
+
+
+move /Y "%TEMP_HOSTS%" "%HOSTS%"
+exit /B

@@ -1,0 +1,128 @@
+﻿@page "/configurations/vehicle-models/add"
+@page "/configurations/vehicle-models/{vehicleModelId}"
+@using MudBlazor
+@using Rapide.DTO
+@using Rapide.Web.Helpers
+
+@if (IsLoading)
+{
+    <MudOverlay Visible="true" DarkBackground="true" ZIndex="9999">
+        <MudProgressCircular Color="Color.Secondary" Size="Size.Large" Class="ms-n1" Indeterminate="true" />
+    </MudOverlay>
+}
+
+<MudMessageBox @ref="mbox" Title="Confirmation" CancelText="No">
+    <MessageContent>
+        <i class="bi bi-exclamation-triangle"></i> Are you sure you want to save changes?
+    </MessageContent>
+    <YesButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Check">Yes</MudButton>
+    </YesButton>
+</MudMessageBox>
+
+<PageTitle>Manage Vehicle Models</PageTitle>
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Manage Vehicle Models</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="/">Home</a></li>
+                    <li class="breadcrumb-item"><a href="/configurations/vehicle-models">Vehicle Models List</a></li>
+                    <li class="breadcrumb-item active">Manage Vehicle Models</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card card-secondary">
+                    <div class="card-header">
+                        <h3 class="card-title" >Vehicle Models Information</h3>
+                    </div>
+
+                    <div class="card-body">
+                        <MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors" Class="mud-form-custom">
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label>Vehicle Model Name<code> *</code></label>
+                                        <MudTextField T="string"
+                                        Required="true"
+                                        RequiredError="Name is required!"
+                                        MaxLength="100"
+                                        @bind-Value="VehicleModelRequestModel.Name"
+                                        For="(() => VehicleModelRequestModel.Name)"
+                                        Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.CarRepair"
+                                        Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label>Vehicle Make<code> *</code></label>
+                                        <MudAutocomplete T="VehicleMakeDTO"
+                                        Margin="Margin.Dense"
+                                        @bind-Value="VehicleModelRequestModel.VehicleMake"
+                                        SearchFunc="@SearchVehicleMake"
+                                        Variant="Variant.Outlined"
+                                        ToStringFunc="@(e=> e==null?null : e.Name)"
+                                        ShowProgressIndicator="true"
+                                        Strict="false"
+                                        Required="true" RequiredError="Vehicle Make type is required!"
+                                        Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                                        Clearable="true">
+                                            <NoItemsTemplate>
+                                                <MudText Align="Align.Center" Class="px-4 py-1">
+                                                    No items found
+                                                </MudText>
+                                            </NoItemsTemplate>
+
+                                            <AfterItemsTemplate>
+                                                <MudButton OnClick="(() => OnAddNewItemClick(VehicleModelDialogType.Make))" Color="Color.Primary"><i class="fas fa-plus"> Add New Type</i></MudButton>
+                                            </AfterItemsTemplate>
+                                        </MudAutocomplete>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <div class="form-group">
+                                        <label>Description</label>
+                                        <MudTextField T="string"
+                                        Lines="3"
+                                        MaxLength="255"
+                                        @bind-Value="VehicleModelRequestModel.Description"
+                                        For="(() => VehicleModelRequestModel.Description)"
+                                        Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+                                    </div>
+                                </div>
+                            </div>
+                        </MudForm>
+
+                    </div>
+                    <div class="card-footer">
+                    </div>
+                </div>
+                <div class="row">
+                    @if (!isViewOnly)
+                    {
+                        <div class="col-md-6" style="padding-bottom: 10px !important;">
+                            <button type="button" @onclick="OnSaveClick" class="btn btn-primary btn-block"><i class="fa fa-floppy-o"></i> Save</button>
+                        </div>
+                    }
+                    <div class="@(isViewOnly ? "col-md-12" : "col-md-6")">
+                        <button type="button" @onclick="OnCancelClick" class="btn btn-danger btn-block"><i class="fa fa-ban"></i> Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

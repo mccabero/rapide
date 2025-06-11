@@ -1,0 +1,33 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <base href="/" />
+
+    <link rel="stylesheet" href="app.css" />
+    <link rel="icon" type="image/png" href="favicon.png" />
+
+    <title>Rapide Auto Experts Service - Plaridel Bulacan</title>
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+    <link rel="stylesheet" href="AdminLTE/font-awesome-4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="AdminLTE/dist/css/adminlte.min.css">
+    <link rel="stylesheet" href="_content/MudBlazor/MudBlazor.min.css" />
+
+    <HeadOutlet />
+</head>
+
+<body class="hold-transition sidebar-mini layout-fixed">
+    <Routes @rendermode="new InteractiveServerRenderMode(prerender: false)" />
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="_framework/blazor.web.js"></script>
+    <script src="AdminLTE/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="AdminLTE/dist/js/adminlte.min.js"></script>
+    <script src="_content/MudBlazor/MudBlazor.min.js"></script>
+    <script src="js/auth-helper.js"></script>
+</body>
+
+</html>

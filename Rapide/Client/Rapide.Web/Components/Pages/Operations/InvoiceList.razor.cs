@@ -1,0 +1,308 @@
+﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.JSInterop;
+using MudBlazor;
+using Rapide.Common.Helpers;
+using Rapide.Contracts.Services;
+using Rapide.DTO;
+using Rapide.Web.Components.Utilities;
+using Rapide.Web.Helpers;
+using Rapide.Web.Models;
+using Rapide.Web.PdfReportGenerator;
+
+namespace Rapide.Web.Components.Pages.Operations
+{
+    public partial class InvoiceList
+    {
+        #region Parameters
+        #endregion
+
+        #region Dependency Injection
+        [CascadingParameter]
+        protected Task<AuthenticationState> AuthState { get; set; }
+        [Inject]
+        protected NavigationManager NavigationManager { get; set; }
+        [Inject]
+        private IInvoiceService InvoiceService { get; set; }
+        [Inject]
+        private IJobOrderService JobOrderService { get; set; }
+        [Inject]
+        private IJobOrderServiceService JobOrderServiceService { get; set; }
+        [Inject]
+        private IJobOrderProductService JobOrderProductService { get; set; }
+        [Inject]
+        private IJobOrderTechnicianService JobOrderTechnicianService { get; set; }
+        [Inject]
+        private IPackageService PackageService { get; set; }
+        [Inject]
+        private IInvoicePackageService InvoicePackageService { get; set; }
+        [Inject]
+        private IDepositService DepositService { get; set; }
+        [Inject]
+        private ISnackbar SnackbarService { get; set; }
+        [Inject]
+        private IJSRuntime JSRuntime { get; set; }
+        #endregion
+
+        #region Private Properties
+        private MudMessageBox mbox { get; set; }
+        private MudMessageBox mboxError { get; set; }
+        private string mBoxCustomMessage { get; set; }
+        private bool IsLoading { get; set; }
+        private MudDataGrid<InvoiceModel> dataGrid;
+        private string searchString;
+
+        private List<InvoiceModel> InvoiceRequestModel = new List<InvoiceModel>();
+        private bool isViewOnly = false;
+        #endregion
+
+        protected override async Task OnInitializedAsync()
+        {
+            IsLoading = true;
+            isViewOnly = TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.HR)
+                || TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.Accountant);
+
+            var dataList = await InvoiceService.GetAllInvoiceAsync();
+
+            if (dataList == null)
+            {
+                IsLoading = false;
+                return;
+            }
+
+            var depositList = await DepositService.GetAllDepositAsync();
+
+            foreach (var ul in dataList)
+            {
+                List<DepositDTO> depositData = new List<DepositDTO>();
+
+                if (depositList != null)
+                    depositData = depositList.Where(x => x.JobOrderId == ul.JobOrder.Id).ToList();
+
+                Color statusColor = Color.Primary;
+                if (ul.JobStatus.Name.Equals(Constants.JobStatus.Open))
+                    statusColor = Color.Warning;
+                else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Completed))
+                    statusColor = Color.Success;
+                else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Cancelled))
+                    statusColor = Color.Error;
+
+                InvoiceRequestModel.Add(new InvoiceModel()
+                {
+                    IsAllowedToOverride = TokenHelper.IsBigThreeRoles(await AuthState),
+                    StatusChipColor = statusColor,
+                    Id = ul.Id,
+                    IsPackage = ul.IsPackage,
+                    InvoiceNo = ul.InvoiceNo,
+                    InvoiceDate = ul.InvoiceDate,
+                    DueDate = ul.DueDate,
+                    JobOrder = new JobOrderModel()
+                    {
+                        Id = ul.JobOrder.Id,
+                        ReferenceNo = ul.JobOrder.ReferenceNo
+                    },
+                    JobStatus = new JobStatusModel()
+                    {
+                        Id = ul.JobStatus.Id,
+                        Name = ul.JobStatus.Name
+                    },
+                    Customer = new CustomerModel()
+                    { 
+                        Id = ul.Customer.Id,
+                        FirstName = ul.Customer.FirstName,
+                        LastName = ul.Customer.LastName
+                    },
+                    CustomerPO = ul.CustomerPO,
+                    AdvisorUser = new UserModel()
+                    { 
+                        Id = ul.AdvisorUser.Id,
+                        FirstName = ul.AdvisorUser.FirstName,
+                        LastName = ul.AdvisorUser.LastName,
+                        FullName = $"{ul.AdvisorUser.FirstName} {ul.AdvisorUser.LastName}"
+                    },
+                    Summary = ul.Summary,
+                    SubTotal = ul.SubTotal,
+                    VAT12 = ul.VAT12,
+                    LaborDiscount = ul.LaborDiscount,
+                    ProductDiscount = ul.ProductDiscount,
+                    AdditionalDiscount = ul.AdditionalDiscount,
+                    TotalAmount = ul.TotalAmount,
+                    DepositAmount = depositData.Sum(x => x.DepositAmount)
+                });
+            }
+
+            IsLoading = false;
+            StateHasChanged();
+            await base.OnInitializedAsync();
+        }
+
+        private async Task<GridData<InvoiceModel>> ServerReload(GridState<InvoiceModel> state)
+        {
+            IEnumerable<InvoiceModel> data = new List<InvoiceModel>();
+            data = InvoiceRequestModel.OrderByDescending(x => x.InvoiceDate);
+
+            await Task.Delay(300);
+            data = data.Where(element =>
+            {
+                if (string.IsNullOrWhiteSpace(searchString))
+                    return true;
+                if (element.InvoiceNo.ToString().Contains(searchString, StringComparison.OrdinalIgnoreCase))
+                    return true;
+                if ($"{element.Customer.FirstName} {element.Customer.LastName}".Contains(searchString, StringComparison.OrdinalIgnoreCase))
+                    return true;
+                if (element.JobOrder.ReferenceNo.ToString().Contains(searchString, StringComparison.OrdinalIgnoreCase))
+                    return true;
+                if (element.DueDate.ToString().Contains(searchString, StringComparison.OrdinalIgnoreCase))
+                    return true;
+                if (element.TotalAmount.ToString().Contains(searchString, StringComparison.OrdinalIgnoreCase))
+                    return true;
+                if (element.InvoiceDate.ToString().Contains(searchString, StringComparison.OrdinalIgnoreCase))
+                    return true;
+                if (element.DepositAmount.ToString().Contains(searchString, StringComparison.OrdinalIgnoreCase))
+                    return true;
+
+                return false;
+            }).ToArray();
+
+            var totalItems = data.Count();
+
+            var sortDefinition = state.SortDefinitions.FirstOrDefault();
+            if (sortDefinition != null)
+            {
+                switch (sortDefinition.SortBy)
+                {
+                    case nameof(InvoiceModel.InvoiceNo):
+                        data = data.OrderByDirection(
+                            sortDefinition.Descending ? SortDirection.Descending : SortDirection.Ascending,
+                            o => o.InvoiceNo
+                        );
+                        break;
+                    case nameof(InvoiceModel.Customer):
+                        data = data.OrderByDirection(
+                            sortDefinition.Descending ? SortDirection.Descending : SortDirection.Ascending,
+                            o => o.Customer.FirstName
+                        );
+                        break;
+                    case nameof(InvoiceModel.JobOrder):
+                        data = data.OrderByDirection(
+                            sortDefinition.Descending ? SortDirection.Descending : SortDirection.Ascending,
+                            o => o.JobOrder.ReferenceNo
+                        );
+                        break;
+                    case nameof(InvoiceModel.DueDate):
+                        data = data.OrderByDirection(
+                            sortDefinition.Descending ? SortDirection.Descending : SortDirection.Ascending,
+                            o => o.DueDate
+                        );
+                        break;
+                    case nameof(InvoiceModel.InvoiceDate):
+                        data = data.OrderByDirection(
+                            sortDefinition.Descending ? SortDirection.Descending : SortDirection.Ascending,
+                            o => o.InvoiceDate
+                        );
+                        break;
+                    case nameof(InvoiceModel.TotalAmount):
+                        data = data.OrderByDirection(
+                            sortDefinition.Descending ? SortDirection.Descending : SortDirection.Ascending,
+                            o => o.TotalAmount
+                        );
+                        break;
+                    case nameof(InvoiceModel.DepositAmount):
+                        data = data.OrderByDirection(
+                            sortDefinition.Descending ? SortDirection.Descending : SortDirection.Ascending,
+                            o => o.DepositAmount
+                        );
+                        break;
+
+                }
+            }
+
+            var pagedData = data.Skip(state.Page * state.PageSize).Take(state.PageSize).ToArray();
+
+            return new GridData<InvoiceModel>
+            {
+                TotalItems = totalItems,
+                Items = pagedData
+            };
+        }
+
+        private Task OnSearch(string text)
+        {
+            searchString = text;
+            return dataGrid.ReloadServerData();
+        }
+
+        private void OnAddClick()
+        {
+            NavigationManager.NavigateToCustom("/operations/invoices/add");
+        }
+
+        private async Task OnDeleteClick(InvoiceModel model)
+        {
+            try
+            {
+                // validate if model status is not OPEN then prevent deletion
+                if (!model.JobStatus.Name.Equals(Constants.JobStatus.Open))
+                {
+                    mBoxCustomMessage = "Completed / Converted invoice cannot be deleted.";
+                    await mboxError.ShowAsync();
+
+                    return;
+                }
+
+                if (model != null)
+                {
+                    bool? result = await mbox.ShowAsync();
+                    var proceed = result == null ? false : true;
+
+                    if (proceed)
+                    {
+                        IsLoading = true;
+
+                        var invoicePackageToDelete = await InvoicePackageService.GetAllInvoicePackageByInvoiceIdAsync(model.Id);
+                        if (invoicePackageToDelete != null)
+                        {
+                            foreach (var ip in invoicePackageToDelete)
+                            {
+                                await InvoicePackageService.DeleteAsync(ip.Id);
+                            }
+                        }
+
+                        await InvoiceService.DeleteAsync(model.Id);
+                        SnackbarService.Add("Invoice Successfuly Deleted!", Severity.Normal, config => { config.ShowCloseIcon = true; });
+
+                        IsLoading = false;
+                        StateHasChanged();
+
+                        NavigationManager.NavigateToCustom("/operations/invoices", true);
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                mBoxCustomMessage = "Unable to delete the this record. This might be used in another transaction.";
+                await mboxError.ShowAsync();
+
+                IsLoading = false;
+                StateHasChanged();
+                return;
+            }
+        }
+
+        private async Task OnGeneratePdfClick(int invoiceId)
+        {
+            //var InvoiceRequestModel = await InvoiceService.GetInvoiceByIdAsync(invoiceId);
+
+            //if (InvoiceRequestModel == null)
+            //    return;
+
+            //InvoiceRequestModel.ProductList = await JobOrderProductService.GetAllJobOrderProductByJobOrderIdAsync(InvoiceRequestModel.JobOrder.Id);
+            //InvoiceRequestModel.ServiceList = await JobOrderServiceService.GetAllJobOrderServiceByJobOrderIdAsync(InvoiceRequestModel.JobOrder.Id);
+            //InvoiceRequestModel.TechnicianList = await JobOrderTechnicianService.GetAllJobOrderTechnicianByJobOrderIdAsync(InvoiceRequestModel.JobOrder.Id);
+            //InvoiceRequestModel.PackageList = await InvoicePackageService.GetAllInvoicePackageByInvoiceIdAsync(InvoiceRequestModel.Id);
+
+            //InvoiceReportGenerator.ImageFile = FileHelper.GetRapideLogo();
+            //await InvoiceReportGenerator.Generate(InvoiceRequestModel, JSRuntime);
+        }
+    }
+}

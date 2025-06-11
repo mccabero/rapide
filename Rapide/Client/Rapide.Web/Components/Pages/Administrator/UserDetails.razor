@@ -1,0 +1,278 @@
+﻿@page "/administrators/users/add"
+@page "/administrators/users/{userId}"
+@using Microsoft.EntityFrameworkCore
+@using MudBlazor
+@using Rapide.DTO
+@using System.ComponentModel.DataAnnotations
+
+@if (IsLoading)
+{
+    <MudOverlay Visible="true" DarkBackground="true" ZIndex="9999">
+        <MudProgressCircular Color="Color.Secondary" Size="Size.Large" Class="ms-n1" Indeterminate="true" />
+    </MudOverlay>
+}
+
+<MudMessageBox @ref="mbox" Title="Confirmation" CancelText="No">
+    <MessageContent>
+        <i class="bi bi-exclamation-triangle"></i> Are you sure you want to save changes?
+    </MessageContent>
+    <YesButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Check">Yes</MudButton>
+    </YesButton>
+</MudMessageBox>
+
+<PageTitle>Manage User Account</PageTitle>
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Manage User Account</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="/">Home</a></li>
+                    <li class="breadcrumb-item"><a href="/administrators/users">User Account List</a></li>
+                    <li class="breadcrumb-item active">Manage User Account</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="content">
+    <div class="container-fluid">
+        @if (IsError)
+        {
+            <div class="row">
+                <div class="col-md-12" style="margin-bottom: 15px !important;">
+                    <MudAlert Severity="Severity.Error" Variant="Variant.Filled">@ErrorMessage</MudAlert>
+                </div>
+            </div>
+        }
+
+        <div class="row">
+            <div class="col-md-12">
+                @* User Information *@
+                <div class="card card-secondary">
+                    <div class="card-header small">
+                        <h3 class="card-title">User Information</h3>
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    @* Content here... *@
+                    <div class="card-body">
+                        <MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors" Class="mud-form-custom">
+                            <div class="row">
+                                <div class="col-sm-4">
+                                    <div class="form-group">
+                                        <label>First Name<code> *</code></label>
+                                        <MudTextField T="string"
+                                                Required="true"
+                                                RequiredError="First name is required!"
+                                                MaxLength="100"
+                                                @bind-Value="UserRequestModel.FirstName"
+                                                For="(() => UserRequestModel.FirstName)"
+                                                Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Person"
+                                                Margin="Margin.Dense" Variant="Variant.Outlined" Clearable  />
+                                    </div>
+                                </div>
+                                <div class="col-sm-4">
+                                    <div class="form-group">
+                                        <label>Middle Name</label>
+                                        <MudTextField T="string"
+                                                Required="false"
+                                                MaxLength="100"
+                                                @bind-Value="UserRequestModel.MiddleName"
+                                                For="(() => UserRequestModel.MiddleName)"
+                                                Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Person"
+                                                Margin="Margin.Dense" Variant="Variant.Outlined" Clearable  />
+                                    </div>
+                                </div>
+                                <div class="col-sm-4">
+                                    <div class="form-group">
+                                        <label>Last Name<code> *</code></label>
+                                        <MudTextField T="string"
+                                                Required="true"
+                                                RequiredError="Last name is required!"
+                                                MaxLength="100"
+                                                @bind-Value="UserRequestModel.LastName"
+                                                For="(() => UserRequestModel.LastName)"
+                                                Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Person"
+                                                Margin="Margin.Dense" Variant="Variant.Outlined" Clearable  />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-sm-4">
+                                    <div class="form-group">
+                                        <label>Mobile Number</label>
+                                        <MudTextField T="string"
+                                                Required="false"
+                                                MaxLength="11"
+                                                @bind-Value="UserRequestModel.MobileNumber"
+                                                For="(() => UserRequestModel.MobileNumber)"
+                                                Mask="@(new PatternMask("0000 000 0000"))"
+                                                Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Phone"
+                                                Margin="Margin.Dense" Variant="Variant.Outlined" Clearable  />
+                                    </div>
+                                </div>
+                                <div class="col-sm-4">
+                                    <div class="form-group">
+                                        <label for="exampleInputEmail1">Email address<code> *</code></label>
+                                        <MudTextField T="string"
+                                                Required="true"
+                                                RequiredError="Email is required!"
+                                                MaxLength="255"
+                                                @bind-Value="UserRequestModel.Email"
+                                                For="(() => UserRequestModel.Email)"
+                                                Validation="@(new EmailAddressAttribute() {ErrorMessage = "The email address is invalid"})"
+                                                Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Email"
+                                                Margin="Margin.Dense" Variant="Variant.Outlined" Clearable  />
+                                    </div>
+                                </div>
+                                <div class="col-sm-4" style="padding-left: 15px !important;">
+                                    <div class="form-group">
+                                        <label style="margin-bottom: 3px !important;">Gender<code> *</code></label>
+                                        <MudRadioGroup Required="true" RequiredError="Gender is required!" @bind-Value="UserRequestModel.Gender">
+                                            <MudRadio Value="1" Color="Color.Primary" Dense="true">Male</MudRadio>
+                                            <MudRadio Value="0" Color="Color.Secondary" Dense="false">Female</MudRadio>
+                                        </MudRadioGroup>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-sm-4">
+                                    <div class="form-group">
+                                        <label for="exampleInputPassword1">Password<code> *</code></label>
+                                        <MudTextField T="string" 
+                                            @ref="pwField1"
+                                            InputType="InputType.Password"
+                                            @bind-Value="UserRequestModel.PasswordHash"
+                                            Validation="@(new Func<string, IEnumerable<string>>(PasswordStrength))"
+                                            Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Password"
+                                            Margin="Margin.Dense" Variant="Variant.Outlined" Clearable  
+                                            Required="true" RequiredError="Password is required!" />
+                                    </div>
+                                </div>
+                                <div class="col-sm-4">
+                                    <div class="form-group">
+                                        <label for="exampleInputConfirmPassword1">Confirm Password<code> *</code></label>
+                                        <MudTextField T="string"
+                                            @bind-Value="UserRequestModel.ConfirmPasswordHash"
+                                            InputType="InputType.Password"
+                                            Validation="@(new Func<string, string>(PasswordMatch))"
+                                            Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Password"
+                                            Margin="Margin.Dense" Variant="Variant.Outlined" Clearable 
+                                            Required="true" RequiredError="Confirm Password is required!"/>
+                                    </div>
+                                </div>
+                                <div class="col-sm-4">
+                                    <div class="form-group">
+                                        <label>Primary User Role<code> *</code></label>
+                                        <MudAutocomplete T="RoleDTO"
+                                                         Margin="Margin.Dense"
+                                                         Value="UserRequestModel.Role"
+                                                         ValueChanged="@((i) => OnUserRoleChanged(UserRequestModel, i))"
+                                                         SearchFunc="@SearchRole"
+                                                         Variant="Variant.Outlined"
+                                                         ToStringFunc="@(e=> e==null?null : $"{e.Name}")"
+                                                         ShowProgressIndicator="true"
+                                                         Strict="false"
+                                                         Required="true" RequiredError="User Role is required!"
+                                                         Clearable="true">
+                                            <NoItemsTemplate>
+                                                <MudText Align="Align.Center" Class="px-4 py-1">
+                                                    No items found
+                                                </MudText>
+                                            </NoItemsTemplate>
+
+                                            <AfterItemsTemplate>
+                                                <MudButton OnClick="(() => OnAddNewItemClick())" Color="Color.Primary"><i class="fas fa-plus"> Add New Customer</i></MudButton>
+                                            </AfterItemsTemplate>
+                                        </MudAutocomplete>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>Birthday<code> *</code></label>
+                                        <MudDatePicker DateFormat="MM/dd/yyyy"
+                                                       Required="true" RequiredError="This field is required!"
+                                                       Variant="Variant.Outlined"
+                                                       Margin="Margin.Dense"
+                                                       @bind-Date="UserRequestModel.Birthday"  />
+                                    </div>
+                                </div>
+                                <div class="col-sm-1">
+                                    <div class="form-group">
+                                        <label style="margin-bottom: 3px !important;">Is Active?<code> *</code></label>
+                                        <MudSwitch @bind-Value="UserRequestModel.IsActive" Color="Color.Success">@(UserRequestModel.IsActive ? "Active" : "Inactive")</MudSwitch>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6"></div>
+                            </div>
+                        </MudForm>
+                    </div>
+
+                    <div class="card-footer">
+                    </div>
+                </div>
+
+                @* Additional Roles Information *@
+                <div class="card card-secondary">
+                    <div class="card-header small">
+                        <h3 class="card-title">Additional Roles Information</h3>
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    @* Content here... *@
+                    <div class="card-body">
+                        <MudDropContainer T="RoleDropItem" Items="roleItems" ItemsSelector="@((item,dropzone) => item.Place == dropzone)" ItemDropped="ItemUpdated" Class="d-flex flex-column flex-grow-1">
+                            <ChildContent>
+                                <div class="d-flex flex-wrap justify-space-between">
+                                    <MudDropZone T="RoleDropItem" Identifier="Available" CanDrop="@((item) => true)" Class="rounded-lg mud-alert-text-warning pa-4 ma-4 flex-grow-1">
+                                        <MudText Typo="Typo.button" Class="ma-2">Available Roles</MudText>
+                                    </MudDropZone>
+                                    <MudDropZone T="RoleDropItem" Identifier="Assigned" CanDrop="@((item) => true)" Class="rounded-lg mud-alert-text-success pa-4 ma-4 flex-grow-1">
+                                        <MudText Typo="Typo.button" Class="ma-2">Assigned Roles</MudText>
+                                    </MudDropZone>
+                                </div>
+                            </ChildContent>
+                            <ItemRenderer>
+                                <MudPaper Elevation="25" Class="pa-4 ma-2">@context.Name</MudPaper>
+                            </ItemRenderer>
+                        </MudDropContainer>
+                    </div>
+
+                    <div class="card-footer">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6" style="padding-bottom: 10px !important;">
+                        <button type="button" @onclick="OnSaveClick" class="btn btn-primary btn-block"><i class="fa fa-floppy-o"></i> Save</button>
+                    </div>
+                    <div class="col-md-6">
+                        <button type="button" @onclick="OnCancelClick" class="btn btn-danger btn-block"><i class="fa fa-ban"></i> Cancel</button>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+</section>

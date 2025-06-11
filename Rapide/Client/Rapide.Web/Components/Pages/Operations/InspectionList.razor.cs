@@ -1,0 +1,306 @@
+﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.JSInterop;
+using MudBlazor;
+using Newtonsoft.Json;
+using Rapide.Common.Helpers;
+using Rapide.Contracts.Services;
+using Rapide.Services;
+using Rapide.Web.Components.Utilities;
+using Rapide.Web.Helpers;
+using Rapide.Web.Models;
+using Rapide.Web.PdfReportGenerator;
+
+namespace Rapide.Web.Components.Pages.Operations
+{
+    public partial class InspectionList
+    {
+        #region Parameters
+        #endregion
+
+        #region Dependency Injection
+        [CascadingParameter]
+        protected Task<AuthenticationState> AuthState { get; set; }
+        [Inject]
+        protected NavigationManager NavigationManager { get; set; }
+        [Inject]
+        private IJSRuntime JSRuntime { get; set; }
+        [Inject]
+        private ISnackbar SnackbarService { get; set; }
+
+        [Inject]
+        private IInspectionService InspectionService { get; set; }
+        [Inject]
+        private IInspectionTechnicianService InspectionTechnicianService { get; set; }
+        [Inject]
+        private ICompanyInfoService CompanyInfoService { get; set; }
+        #endregion
+
+        #region Private Properties
+        private MudMessageBox mboxCustom { get; set; }
+        private string mBoxCustomMessage { get; set; }
+        private MudMessageBox mboxError { get; set; }
+        private MudMessageBox mbox { get; set; }
+        private bool IsLoading { get; set; }
+
+        private MudDataGrid<InspectionModel> dataGrid;
+        private string searchString;
+        private List<InspectionModel> InspectionRequestModel = new List<InspectionModel>();
+        private bool isViewOnly = false;
+        private bool isCashier = false;
+        #endregion
+
+        protected override async Task OnInitializedAsync()
+        {
+            IsLoading = true;
+            isCashier = TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.Cashier);
+            isViewOnly = TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.HR)
+                || TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.Cashier)
+                 || TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.Accountant);
+
+            var dataList = await InspectionService.GetAllInspectionAsync();
+
+            if (dataList == null)
+            {
+                IsLoading = false;
+                return;
+            }
+
+            foreach (var ul in dataList)
+            {
+                
+                Color statusColor = Color.Primary;
+                if (ul.JobStatus.Name.Equals(Constants.JobStatus.Open))
+                    statusColor = Color.Warning;
+                else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Converted))
+                    statusColor = Color.Success;
+                else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Cancelled))
+                    statusColor = Color.Error;
+
+                InspectionRequestModel.Add(new InspectionModel()
+                {
+                    IsAllowedToOverride = TokenHelper.IsBigThreeRoles(await AuthState),
+                    StatusChipColor = statusColor,
+                    Id = ul.Id,
+                    ReferenceNo = ul.ReferenceNo,
+                    DiagnosticResult = ul.DiagnosticResult,
+                    ExpirationDate = ul.ExpirationDate,
+                    InspectionDetails = ul.InspectionDetails,
+                    Odometer = ul.Odometer,
+                    Remarks = ul.Remarks,
+                    VehicleFindings = ul.VehicleFindings,
+                    TransactionDate = ul.TransactionDate,
+                    Customer = ul.Customer.Map<CustomerModel>(),
+                    JobStatus = ul.JobStatus.Map<JobStatusModel>(),
+                    InspectorUser = new UserModel()
+                    { 
+                        Id = ul.InspectorUser.Id,
+                        FirstName = ul.InspectorUser.FirstName,
+                        LastName = ul.InspectorUser.LastName
+                    },
+                    Vehicle = new VehiclesModel()
+                    {
+                        Id = ul.Vehicle.Id,
+                        VehicleModel = new VehicleModelModel()
+                        {
+                            Id = ul.Vehicle.VehicleModel.Id,
+                            Name = ul.Vehicle.VehicleModel.Name,
+                            VehicleMake = new VehicleMakeModel()
+                            {
+                                Id = ul.Vehicle.VehicleModel.VehicleMake.Id,
+                                Name = ul.Vehicle.VehicleModel.VehicleMake.Name,
+                                Description = ul.Vehicle.VehicleModel.VehicleMake.Description
+                            }
+                        },
+                        PlateNo = ul.Vehicle.PlateNo
+                    }
+                });
+            }
+
+            IsLoading = false;
+            StateHasChanged();
+            await base.OnInitializedAsync();
+        }
+
+        private void OnAddClick()
+        {
+            NavigationManager.NavigateToCustom("/operations/inspections/add");
+        }
+
+        private async Task<GridData<InspectionModel>> ServerReload(GridState<InspectionModel> state)
+        {
+            IEnumerable<InspectionModel> data = new List<InspectionModel>();
+            data = InspectionRequestModel.OrderByDescending(x => x.TransactionDate);
+
+            await Task.Delay(300);
+            data = data.Where(element =>
+            {
+                if (string.IsNullOrWhiteSpace(searchString))
+                    return true;
+                if (element.ReferenceNo.ToString().Contains(searchString, StringComparison.OrdinalIgnoreCase))
+                    return true;
+                if ($"{element.Customer.FirstName} {element.Customer.LastName}".Contains(searchString, StringComparison.OrdinalIgnoreCase))
+                    return true;
+                if ($"{element.Vehicle.VehicleModel.VehicleMake.Name} {element.Vehicle.VehicleModel.Name}".Contains(searchString, StringComparison.OrdinalIgnoreCase))
+                    return true;
+                if (element.TransactionDate.ToString().Contains(searchString, StringComparison.OrdinalIgnoreCase))
+                    return true;
+                if (element.Vehicle.PlateNo.ToString().Contains(searchString, StringComparison.OrdinalIgnoreCase))
+                    return true;
+                if ($"{element.InspectorUser.FirstName} {element.InspectorUser.LastName}".Contains(searchString, StringComparison.OrdinalIgnoreCase))
+                    return true;
+
+                return false;
+            }).ToArray();
+
+            var totalItems = data.Count();
+
+            var sortDefinition = state.SortDefinitions.FirstOrDefault();
+            if (sortDefinition != null)
+            {
+                switch (sortDefinition.SortBy)
+                {
+                    case nameof(InspectionModel.Id):
+                        data = data.OrderByDirection(
+                            sortDefinition.Descending ? SortDirection.Descending : SortDirection.Ascending,
+                            o => o.Id
+                        );
+                        break;
+                    case nameof(InspectionModel.Customer.FirstName):
+                        data = data.OrderByDirection(
+                            sortDefinition.Descending ? SortDirection.Descending : SortDirection.Ascending,
+                            o => o.Customer.FirstName
+                        );
+                        break;
+                    case nameof(InspectionModel.TransactionDate):
+                        data = data.OrderByDirection(
+                            sortDefinition.Descending ? SortDirection.Descending : SortDirection.Ascending,
+                            o => o.TransactionDate
+                        );
+                        break;
+                    case nameof(InspectionModel.Vehicle.PlateNo):
+                        data = data.OrderByDirection(
+                            sortDefinition.Descending ? SortDirection.Descending : SortDirection.Ascending,
+                            o => o.Vehicle.PlateNo
+                        );
+                        break;
+
+                }
+            }
+
+            var pagedData = data.Skip(state.Page * state.PageSize).Take(state.PageSize).ToArray();
+
+            return new GridData<InspectionModel>
+            {
+                TotalItems = totalItems,
+                Items = pagedData
+            };
+        }
+
+        private Task OnSearch(string text)
+        {
+            searchString = text;
+            return dataGrid.ReloadServerData();
+        }
+
+        private async Task OnDeleteClick(InspectionModel model)
+        {
+            try
+            {
+                if (model != null)
+                {
+                    // validate if model status is not OPEN then prevent deletion
+                    if (!model.JobStatus.Name.Equals(Constants.JobStatus.Open))
+                    {
+                        mBoxCustomMessage = "Completed / Converted estimate cannot be deleted.";
+                        await mboxError.ShowAsync();
+
+                        return;
+                    }
+
+                    bool? result = await mbox.ShowAsync();
+                    var proceed = result == null ? false : true;
+
+                    if (proceed)
+                    {
+                        IsLoading = true;
+
+                        // delete technicians first
+                        var technicianList = await InspectionTechnicianService.GetAllInspectionTechnicianByInspectionIdAsync(model.Id);
+                        if (technicianList != null)
+                        {
+                            foreach (var tl in technicianList)
+                            {
+                                await InspectionTechnicianService.DeleteAsync(tl.Id);
+                            }
+                        }
+
+                        await InspectionService.DeleteAsync(model.Id);
+                        SnackbarService.Add("Inspection Successfuly Deleted!", Severity.Normal, config => { config.ShowCloseIcon = true; });
+
+                        IsLoading = false;
+                        StateHasChanged();
+
+                        NavigationManager.NavigateToCustom("/operations/inspections", true);
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                mBoxCustomMessage = "Unable to delete the this record. This might be used in another transaction.";
+                await mboxError.ShowAsync();
+
+                IsLoading = false;
+                StateHasChanged();
+                return;
+            }
+        }
+
+        private async Task OnGeneratePdfClick(int inspectionId)
+        {
+            IsLoading = true;
+
+            var companyInfo = await CompanyInfoService.GetAllAsync();
+            var companyData = (companyInfo == null && !companyInfo.Any())
+                ? new()
+                : companyInfo.FirstOrDefault();
+
+            var inspectionData = await InspectionService.GetInspectionByIdAsync(inspectionId);
+            var inspectionTemplate = JsonConvert.DeserializeObject<IList<InspectionGroupModel>>(inspectionData.InspectionDetails).ToList();
+
+            var inspectionTemplateSequenced = new List<InspectionGroupModel>();
+            foreach (var it in inspectionTemplate)
+            {
+                if (it.Group.ToUpper() == "LIGHTS")
+                    it.Sequence = 1;
+                if (it.Group.ToUpper() == "FLUIDS")
+                    it.Sequence = 2;
+                if (it.Group.ToUpper() == "PMS")
+                    it.Sequence = 3;
+                if (it.Group.ToUpper() == "BATTERY")
+                    it.Sequence = 4;
+                if (it.Group.ToUpper() == "BELTS")
+                    it.Sequence = 5;
+                if (it.Group.ToUpper() == "BRAKES")
+                    it.Sequence = 6;
+                if (it.Group.ToUpper() == "TIRES")
+                    it.Sequence = 7;
+                if (it.Group.ToUpper() == "DRIVE TRAIN")
+                    it.Sequence = 8;
+                if (it.Group.ToUpper() == "SUSPENSIONS")
+                    it.Sequence = 9;
+
+                inspectionTemplateSequenced.Add(it);
+            }
+
+            var technicians = await InspectionTechnicianService.GetAllInspectionTechnicianByInspectionIdAsync(inspectionId);
+            inspectionData.TechnicianList = technicians;
+
+            InspectionReportGenerator.ImageFile = FileHelper.GetRapideLogo();
+            InspectionReportGenerator.ImageFileCompany = FileHelper.GetCompanyLogo();
+            await InspectionReportGenerator.Generate(inspectionData, JSRuntime, inspectionTemplateSequenced, companyData);
+
+            IsLoading = false;
+        }
+    }
+}

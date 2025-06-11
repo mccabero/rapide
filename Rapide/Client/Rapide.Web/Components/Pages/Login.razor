@@ -1,0 +1,58 @@
+﻿@page "/login"
+@using Microsoft.AspNetCore.Authorization
+@using MudBlazor
+@using Rapide.Web.Components.Layout
+@using System.ComponentModel.DataAnnotations
+@layout ExternalLayout
+@inject NavigationManager NavigationManager;
+
+@attribute [AllowAnonymous]
+
+<div class="login-box">
+    <div class="card card-outline card-primary">
+        <div class="card-header text-center">
+            <img src="images/default-logo/default-logo.png" style="max-width: 100%; height: auto;" />
+            <p class="login-box-msg" style="padding: 0px 0px 0px 0px !important;">Sign in to start your session</p>
+        </div>
+        <div class="card-body">
+            @if (!string.IsNullOrEmpty(ErrorMessage))
+            {
+                <div class="col-md-12" style="padding-bottom: 15px !important;">
+                    <MudAlert Severity="Severity.Error" Variant="Variant.Filled">@ErrorMessage</MudAlert>
+                </div>
+            }
+            
+            <div class="col-md-12">
+                <label for="exampleInputEmail1">Email address<code> *</code></label>
+                <MudTextField T="string"
+                        Required="true"
+                        RequiredError="Email is required!"
+                        MaxLength="255"
+                        @bind-Value="LoginRequestModel.Email"
+                        For="(() => LoginRequestModel.Email)"
+                        Validation="@(new EmailAddressAttribute() {ErrorMessage = "The email address is invalid"})"
+                        Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Email"
+                        Margin="Margin.Dense" Variant="Variant.Outlined" Clearable  />
+            </div>
+            <div class="col-md-12">
+                <label for="exampleInputPassword1">Password<code> *</code></label>
+                <MudTextField T="string"
+                              @ref="pwField1"
+                              InputType="InputType.Password"
+                              @bind-Value="LoginRequestModel.Password"
+                              Validation="@(new Func<string, IEnumerable<string>>(PasswordStrength))"
+                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Password"
+                              Margin="Margin.Dense" Variant="Variant.Outlined" Clearable
+                              Required="true" RequiredError="Password is required!" />
+            </div>
+
+            <div class="col-md-12" style="padding-top: 20px;">
+                <button class="btn btn-primary btn-block">Sign In</button>
+            </div>
+
+            <p class="col-md-12" style="padding-top: 10px;">
+                <MudLink Href="/forgot-password">Forgot Password?</MudLink>
+            </p>
+        </div>
+    </div>
+</div>

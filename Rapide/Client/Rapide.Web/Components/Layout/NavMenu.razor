@@ -1,0 +1,86 @@
+﻿@using MudBlazor
+@using Rapide.Web.Components.Utilities
+<link href="https://use.fontawesome.com/releases/v5.14.0/css/all.css" rel="stylesheet">
+
+<!-- Main Sidebar Container -->
+<aside class="main-sidebar sidebar-light-primary elevation-2">
+    <!-- Brand Logo -->
+    <a href="/" class="brand-link">
+        <img src="images/default-logo/default-logo.png" style="max-width: 100%; height: auto;" />
+    </a>
+
+    <div class="sidebar">
+        <nav class="mt-2">
+            <MudNavMenu Class="mud-width-full">
+                @* <MudDivider Class="my-2" /> *@
+                <MudNavLink Href="/" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
+                <MudNavLink Href="/customers" Icon="@Icons.Material.Filled.Receipt">Customers</MudNavLink>
+                <MudNavLink Href="/vehicles" Icon="@Icons.Material.Filled.Storage">Vehicles</MudNavLink>
+                <MudNavGroup Title="Operations" Icon="@Icons.Material.Filled.DeveloperBoard">
+                    <MudNavLink Href="/operations/inspections" Icon="@Icons.Material.Filled.Checklist" IconColor="Color.Success">Inspection</MudNavLink>
+                    <MudNavLink Href="/operations/estimates" Icon="@Icons.Material.Filled.PlaylistAddCheckCircle" IconColor="Color.Info">Estimate</MudNavLink>
+                    <MudNavLink Href="/operations/job-orders" Icon="@Icons.Material.Filled.WorkHistory" IconColor="Color.Success">Job Order</MudNavLink>
+                    <MudNavLink Href="/operations/jobs-board" Icon="@Icons.Material.Filled.Scoreboard" IconColor="Color.Info">Jobs Board</MudNavLink>
+                    <MudNavLink Href="/operations/invoices" Icon="@Icons.Material.Filled.Newspaper" IconColor="Color.Success">Invoice</MudNavLink>
+                    <MudNavLink Href="/operations/deposits" Icon="@Icons.Material.Filled.Approval" IconColor="Color.Info">Deposit</MudNavLink>
+                    <MudNavLink Href="/operations/payments" Icon="@Icons.Material.Filled.Money" IconColor="Color.Info">Payment</MudNavLink>
+                    <MudNavLink Href="/operations/quick-sales" Icon="@Icons.Material.Filled.PointOfSale" IconColor="Color.Success">Quick Sales</MudNavLink>
+                    @if (isBigThreeRoles || isOIC)
+                    {
+                        <MudNavLink Href="/operations/expenses" Icon="@Icons.Material.Filled.MoneyOff" IconColor="Color.Info">Expenses</MudNavLink>
+                    }
+
+                </MudNavGroup>
+                <MudNavGroup Title="Management" Icon="@Icons.Material.Filled.ManageHistory">
+                    <MudNavLink Href="/configurations/packages" Icon="@Icons.Material.Filled.AllInbox" IconColor="Color.Success">Packages</MudNavLink>
+                    <MudNavLink Href="/configurations/services" Icon="@Icons.Material.Filled.DesignServices" IconColor="Color.Info">Services</MudNavLink>
+                    <MudNavLink Href="/configurations/products" Icon="@Icons.Material.Filled.ProductionQuantityLimits" IconColor="Color.Success">Products</MudNavLink>
+                    <MudNavLink Href="/configurations/suppliers" Icon="@Icons.Material.Filled.PersonPin" IconColor="Color.Info">Suppliers</MudNavLink>
+                    <MudNavLink Href="/configurations/manufacturers" Icon="@Icons.Material.Filled.AddLink" IconColor="Color.Success">Manufacturers</MudNavLink>
+                </MudNavGroup>
+                <MudNavGroup Title="Configuration" Icon="@Icons.Material.Filled.Settings">
+                    <MudNavLink Href="/configurations/service-categories" Icon="@Icons.Material.Filled.DesignServices" IconColor="Color.Success">Service Categories</MudNavLink>
+                    <MudNavLink Href="/configurations/service-groups" Icon="@Icons.Material.Filled.DesignServices" IconColor="Color.Success">Service Groups</MudNavLink>
+                    <MudNavLink Href="/configurations/vehicle-makes" Icon="@Icons.Material.Filled.DirectionsCarFilled" IconColor="Color.Info">Vehicle Makes</MudNavLink>
+                    <MudNavLink Href="/configurations/vehicle-models" Icon="@Icons.Material.Filled.DirectionsCarFilled" IconColor="Color.Info">Vehicle Models</MudNavLink>
+                    <MudNavLink Href="/configurations/product-groups" Icon="@Icons.Material.Filled.ProductionQuantityLimits" IconColor="Color.Success">Product Groups</MudNavLink>
+                    <MudNavLink Href="/configurations/product-categories" Icon="@Icons.Material.Filled.ProductionQuantityLimits" IconColor="Color.Success">Product Categories</MudNavLink>
+                    <MudNavLink Href="/configurations/parameter-groups" Icon="@Icons.Material.Filled.GroupWork" IconColor="Color.Info">Parameter Groups</MudNavLink>
+                    <MudNavLink Href="/configurations/parameters" Icon="@Icons.Material.Filled.GroupWork" IconColor="Color.Info">Parameters</MudNavLink>
+                    <MudNavLink Href="/configurations/unit-of-measures" Icon="@Icons.Material.Filled.Scale" IconColor="Color.Success">Unit of Measures</MudNavLink>
+                    <MudNavLink Href="/configurations/job-statuses" Icon="@Icons.Material.Filled.SignalWifiStatusbarNull" IconColor="Color.Success">Job Statuses</MudNavLink>
+                </MudNavGroup>
+                @if (isCashier || isBigThreeRoles || isOIC)
+                { 
+                    <MudNavGroup Title="Reports" Icon="@Icons.Material.Filled.DocumentScanner">
+                        <MudNavLink Href="@($"/reports/{Constants.ReportType.SalesReport}")" Icon="@Icons.Material.Filled.Newspaper" IconColor="Color.Success">Daily Sales</MudNavLink>
+                        <MudNavLink Href="@($"/reports/{Constants.ReportType.SalesSummaryReport}")" Icon="@Icons.Material.Filled.Newspaper" IconColor="Color.Success">Monthly Sales Summary</MudNavLink>
+
+                        @if (isBigThreeRoles)
+                        {
+                            <MudNavLink Href="@($"/reports/{Constants.ReportType.IncentivesTech}")" Icon="@Icons.Material.Filled.Newspaper" IconColor="Color.Success">Incentives Tech</MudNavLink>
+                            <MudNavLink Href="@($"/reports/{Constants.ReportType.IncentivesSA}")" Icon="@Icons.Material.Filled.Newspaper" IconColor="Color.Success">Incentives SA</MudNavLink>
+                            <MudNavLink Href="@($"/reports/{Constants.ReportType.CommissionsTech}")" Icon="@Icons.Material.Filled.Newspaper" IconColor="Color.Success">Commissions Tech</MudNavLink>
+                            <MudNavLink Href="@($"/reports/{Constants.ReportType.CommissionsSA}")" Icon="@Icons.Material.Filled.Newspaper" IconColor="Color.Success">Commissions SA</MudNavLink>
+                            <MudNavLink Href="@($"/reports/{Constants.ReportType.CreditCardPayment}")" Icon="@Icons.Material.Filled.Newspaper" IconColor="Color.Success">Credit Card Payment</MudNavLink>
+                        }
+    @*                     
+                        <MudNavLink Href="@($"/reports/{Constants.ReportType.Customers}")" Icon="@Icons.Material.Filled.Newspaper" IconColor="Color.Info">Customers</MudNavLink>
+                        <MudNavLink Href="@($"/reports/{Constants.ReportType.Vehicles}")" Icon="@Icons.Material.Filled.Newspaper" IconColor="Color.Info">Vehicles</MudNavLink>
+                        <MudNavLink Href="@($"/reports/{Constants.ReportType.Expenses}")" Icon="@Icons.Material.Filled.Newspaper" IconColor="Color.Info">Expenses</MudNavLink> *@
+                    </MudNavGroup>
+                }
+
+                @if (isBigThreeRoles)
+                {
+                    <MudNavGroup Title="Administrators" Icon="@Icons.Material.Filled.AdminPanelSettings">
+                        <MudNavLink Href="/administrators/company" Icon="@Icons.Material.Filled.Work" IconColor="Color.Info">Company Information</MudNavLink>
+                        <MudNavLink Href="/administrators/users" Icon="@Icons.Material.Filled.SupervisedUserCircle" IconColor="Color.Success">User Accounts</MudNavLink>
+                        <MudNavLink Href="/administrators/user-roles" Icon="@Icons.Material.Filled.VerifiedUser" IconColor="Color.Info">User Roles</MudNavLink>
+                    </MudNavGroup>
+                }
+                
+            </MudNavMenu>
+        </nav>
+    </div>
+</aside>

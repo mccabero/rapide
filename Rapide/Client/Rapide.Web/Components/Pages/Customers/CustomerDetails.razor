@@ -1,0 +1,74 @@
+﻿@page "/customers/add"
+@page "/customers/{customerId}"
+@using Rapide.Web.Components.Pages.Components
+
+<PageTitle>Manage Customer Details</PageTitle>
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Manage Customer</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="/">Home</a></li>
+                    <li class="breadcrumb-item"><a href="/customers">Customer List</a></li>
+                    <li class="breadcrumb-item active">Manage Customer</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12 col-sm-12">
+                <div class="card card-primary card-outline card-outline-tabs">
+                    <div class="card-header p-0 border-bottom-0">
+                        <ul class="nav nav-tabs" id="custom-tabs-four-tab" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" id="custom-tabs-four-customer-tab" data-toggle="pill" href="#custom-tabs-four-customer" role="tab" aria-controls="custom-tabs-four-customer" aria-selected="true">Customer</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="custom-tabs-four-vehicle-tab" data-toggle="pill" href="#custom-tabs-four-vehicle" role="tab" aria-controls="custom-tabs-four-vehicle" aria-selected="false">Vehicles</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="custom-tabs-four-estimate-tab" data-toggle="pill" href="#custom-tabs-four-estimate" role="tab" aria-controls="custom-tabs-four-estimate" aria-selected="false">Estimates</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="custom-tabs-four-service-tab" data-toggle="pill" href="#custom-tabs-four-service" role="tab" aria-controls="custom-tabs-four-service" aria-selected="false">Service History</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="custom-tabs-four-sales-tab" data-toggle="pill" href="#custom-tabs-four-sales" role="tab" aria-controls="custom-tabs-four-sales" aria-selected="false">Sales Invoice History</a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="card-body">
+                        <div class="tab-content" id="custom-tabs-four-tabContent">
+                            <div class="tab-pane fade show active" id="custom-tabs-four-customer" role="tabpanel" aria-labelledby="custom-tabs-four-customer-tab">
+                                <div class="row">
+                                    <CustomerComponent CustomerId="@CustomerId" IsReadOnly="isReadOnly" />
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="custom-tabs-four-vehicle" role="tabpanel" aria-labelledby="custom-tabs-four-vehicle-tab">
+                                <CustomerVehiclesComponent CustomerIdParam="@CustomerId" />
+                            </div>
+                            <div class="tab-pane fade" id="custom-tabs-four-estimate" role="tabpanel" aria-labelledby="custom-tabs-four-estimate-tab">
+                                <CustomerEstimateComponent CustomerIdParam="@CustomerId" />
+                            </div>
+                            <div class="tab-pane fade" id="custom-tabs-four-service" role="tabpanel" aria-labelledby="custom-tabs-four-service-tab">
+                                <CustomerJobOrderComponent CustomerIdParam="@CustomerId" />
+                            </div>
+                            <div class="tab-pane fade" id="custom-tabs-four-sales" role="tabpanel" aria-labelledby="custom-tabs-four-sales-tab">
+                                <CustomerSalesHistoryComponent CustomerIdParam="@CustomerId" />
+                            </div>
+                        </div>
+                    </div>
+                    <!-- /.card -->
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

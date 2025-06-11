@@ -1,0 +1,321 @@
+﻿@using MudBlazor
+@using System.ComponentModel.DataAnnotations
+
+@if (IsLoading)
+{
+    <MudOverlay Visible="true" DarkBackground="true" ZIndex="9999">
+        <MudProgressCircular Color="Color.Secondary" Size="Size.Large" Class="ms-n1" Indeterminate="true" />
+    </MudOverlay>
+}
+
+<MudMessageBox @ref="mbox" Title="Confirmation" CancelText="No">
+    <MessageContent>
+        <i class="bi bi-exclamation-triangle"></i> Are you sure you want to save changes?
+    </MessageContent>
+    <YesButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Check">Yes</MudButton>
+    </YesButton>
+</MudMessageBox>
+<MudMessageBox @ref="mboxError" Title="Warning!">
+    <MessageContent>
+        <i class="bi bi-exclamation-triangle"></i> @mBoxCustomMessage
+    </MessageContent>
+    <YesButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Error" StartIcon="@Icons.Material.Filled.Check">OK</MudButton>
+    </YesButton>
+</MudMessageBox>
+
+<div class="col-md-12">
+    <MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors" Class="mud-form-custom">
+        @* Personal Information *@
+        <div class="card card-secondary">
+            <div class="card-header">
+                <h3 class="card-title" >Personal Information</h3>
+                <div class="card-tools">
+                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>First Name<code> *</code></label>
+                            <MudTextField T="string"
+                            Required="true"
+                            RequiredError="First name is required!"
+                            MaxLength="100"
+                            @bind-Value="CustomerRequestModel.FirstName"
+                            For="(() => CustomerRequestModel.FirstName)"
+                            Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Person"
+                            Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Middle Name</label>
+                            <MudTextField T="string"
+                            MaxLength="100"
+                            @bind-Value="CustomerRequestModel.MiddleName"
+                            For="(() => CustomerRequestModel.MiddleName)"
+                            Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Person"
+                            Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Last Name<code> *</code></label>
+                            <MudTextField T="string"
+                            Required="true"
+                            RequiredError="Last name is required!"
+                            MaxLength="100"
+                            @bind-Value="CustomerRequestModel.LastName"
+                            For="(() => CustomerRequestModel.LastName)"
+                            Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Person"
+                            Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Customer Code<code> *</code></label>
+                            <MudTextField T="string"
+                            Required="true" RequiredError="Customer Code is required!"
+                            MaxLength="100"
+                            Disabled="true"
+                            @bind-Value="CustomerRequestModel.CustomerCode"
+                            For="(() => CustomerRequestModel.CustomerCode)"
+                            Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.PersonOutline"
+                            Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Birthday</label>
+                            <MudDatePicker DateFormat="MM/dd/yyyy"
+                            Variant="Variant.Outlined"
+                            Margin="Margin.Dense"
+                            @bind-Date="CustomerRequestModel.Birthday" />
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Gender<code> *</code></label>
+                            <MudRadioGroup @bind-Value="CustomerRequestModel.Gender">
+                                <MudRadio Value="1" Color="Color.Primary" Dense="true">Male</MudRadio>
+                                <MudRadio Value="0" Color="Color.Secondary" Dense="false">Female</MudRadio>
+                            </MudRadioGroup>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-1">
+                        <div class="form-group">
+                            <label>Is Active?</label>
+                            <MudSwitch @bind-Value="CustomerRequestModel.IsActive" Color="Color.Success" />
+                        </div>
+                    </div>
+                    <div class="col-md-11">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-footer">
+            </div>
+        </div>
+
+        @* Contact Information *@
+        <div class="card card-secondary">
+            <div class="card-header">
+                <h3 class="card-title" >Contact Information</h3>
+                <div class="card-tools">
+                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="exampleInputEmail1">Email address</label>
+                            <MudTextField T="string"
+                            MaxLength="255"
+                            @bind-Value="CustomerRequestModel.Email"
+                            For="(() => CustomerRequestModel.Email)"
+                            Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Email"
+                            Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Mobile Number<code> *</code></label>
+                            <MudTextField T="string"
+                            Required="true" RequiredError="Mobile Number is Required"
+                            MaxLength="11"
+                            @bind-Value="CustomerRequestModel.MobileNumber"
+                            For="(() => CustomerRequestModel.MobileNumber)"
+                            Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Phone"
+                            Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <div class="form-group">
+                                <label>Home Address</label>
+                                <MudTextField T="string"
+                                Lines="3"
+                                MaxLength="255"
+                                @bind-Value="CustomerRequestModel.HomeAddress"
+                                For="(() => CustomerRequestModel.HomeAddress)"
+                                Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="exampleInputEmail1">Company Name</label>
+                            <MudTextField T="string"
+                            MaxLength="100"
+                            @bind-Value="CustomerRequestModel.CompanyName"
+                            For="(() => CustomerRequestModel.CompanyName)"
+                            Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Build"
+                            Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Company Contact Number</label>
+                            <MudTextField T="string"
+                            MaxLength="11"
+                            @bind-Value="CustomerRequestModel.CompanyNo"
+                            For="(() => CustomerRequestModel.CompanyNo)"
+                            Mask="@(new PatternMask("0000 000 0000"))"
+                            Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Phone"
+                            Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <div class="form-group">
+                                <label>Company Address</label>
+                                <MudTextField T="string"
+                                Lines="3"
+                                MaxLength="255"
+                                @bind-Value="CustomerRequestModel.CompanyAddress"
+                                For="(() => CustomerRequestModel.CompanyAddress)"
+                                Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-footer">
+            </div>
+        </div>
+
+        @* Other Information *@
+        <div class="card card-secondary">
+            <div class="card-header">
+                <h3 class="card-title" >Other Information</h3>
+                <div class="card-tools">
+                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Labor Discount Rate<code> *</code></label>
+                            <div class="input-group">
+                                <MudNumericField Format="N2" Min="0"
+                                @bind-Value="CustomerRequestModel.LaborDiscountRate"
+                                Required="true" RequiredError="This field is required!"
+                                Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Numbers"
+                                Margin="Margin.Dense" Variant="Variant.Outlined" />
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Product Discount Rate<code> *</code></label>
+                            <div class="input-group">
+                                <MudNumericField Format="N2" Min="0"
+                                @bind-Value="CustomerRequestModel.ProductDiscountRate"
+                                Required="true" RequiredError="This field is required!"
+                                Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Numbers"
+                                Margin="Margin.Dense" Variant="Variant.Outlined" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>Is VAT Exempt?</label>
+                            <MudSwitch @bind-Value="CustomerRequestModel.IsVATExempt" Color="Color.Success" />
+                        </div>
+                    </div>
+
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>Is Allow Withholding Tax?</label>
+                            <MudSwitch @bind-Value="CustomerRequestModel.IsAllowWithholidingTax" Color="Color.Success" />
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <div class="form-group">
+                                <label>Customer Notes / Remarks</label>
+                                <MudTextField T="string"
+                                Lines="3"
+                                MaxLength="255"
+                                @bind-Value="CustomerRequestModel.Notes"
+                                For="(() => CustomerRequestModel.Notes)"
+                                Margin="Margin.Dense" Variant="Variant.Outlined" Clearable />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+            </div>
+        </div>
+    </MudForm>
+
+    <div class="row">
+        @if (!IsReadOnly)
+        {
+            <div class="col-md-6" style="padding-bottom: 10px !important;">
+                <button type="button" @onclick="OnSaveClick" class="btn btn-primary btn-block"><i class="fa fa-floppy-o"></i> Save</button>
+            </div>
+        }
+
+        <div class="@(IsReadOnly ? "col-md-12" : "col-md-6")">
+            <button type="button" @onclick="OnCancelClick" class="btn btn-danger btn-block"><i class="fa fa-ban"></i> Cancel</button>
+        </div>
+    </div>
+</div>
