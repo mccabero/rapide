@@ -498,7 +498,25 @@ namespace Rapide.Web.Components.Pages.Operations
             PaymentRequestModel.DepositAmount = 0;
             if (depositInfo != null)
             {
-                PaymentRequestModel.DepositAmount = depositInfo.Where(x => x.IsRefund == false).Sum(x => x.DepositAmount);
+                PaymentRequestModel.DepositAmount = depositInfo.Where(x => x.JobStatusId == jobStatusOpen.Id).Sum(x => x.DepositAmount);
+
+                foreach (var di in depositInfo)
+                {
+                    PaymentRequestModel.PaymentDetailsList.Add(
+                        new PaymentDetailsDTO()
+                        {
+                            Payment = PaymentRequestModel,
+                            PaymentId = PaymentRequestModel.Id,
+                            PaymentTypeParameter = di.PaymentTypeParameter,
+                            PaymentTypeParameterId = di.PaymentTypeParameterId,
+                            Invoice = PaymentRequestModel.InvoiceList.FirstOrDefault(),
+                            InvoiceId = PaymentRequestModel.InvoiceList.FirstOrDefault().Id,
+                            IsFullyPaid = true,
+                            DepositAmount = 0,
+                            AmountPaid = di.DepositAmount,
+                            PaymentReferenceNo = di.PaymentReferenceNo
+                        });
+                }
             }
             
 
