@@ -105,7 +105,8 @@ namespace Rapide.Web.Components.Pages.Components
             if (string.IsNullOrEmpty(filter))
                 return ProductList;
 
-            return ProductList.Where(i => i.Name.Contains(filter, StringComparison.InvariantCultureIgnoreCase)).ToList();
+            return ProductList.Where(i => i.Name.Contains(filter, StringComparison.InvariantCultureIgnoreCase)
+                || i.PartNo != null && i.PartNo.Contains(filter, StringComparison.InvariantCultureIgnoreCase)).ToList();
         }
     }
 }

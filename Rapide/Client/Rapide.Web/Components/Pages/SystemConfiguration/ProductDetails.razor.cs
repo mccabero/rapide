@@ -83,6 +83,9 @@ namespace Rapide.Web.Components.Pages.SystemConfiguration
 
         private void OnPurchaseCostChanged(ProductDTO dto, decimal i)
         {
+            if (i <= 0)
+                return;
+
             ProductRequestModel.PurchaseCost = i;
             ProductRequestModel.MarkupRate = i / ProductRequestModel.PurchaseCost;
 
@@ -91,6 +94,9 @@ namespace Rapide.Web.Components.Pages.SystemConfiguration
 
         private void OnSellingPriceChanged(ProductDTO dto, decimal i)
         {
+            if (i <= 0)
+                return;
+
             ProductRequestModel.MarkupRate = i / ProductRequestModel.PurchaseCost;
             ProductRequestModel.SellingPrice = i;
             

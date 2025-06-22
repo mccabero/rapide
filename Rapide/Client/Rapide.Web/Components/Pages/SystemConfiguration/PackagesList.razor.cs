@@ -97,6 +97,8 @@ namespace Rapide.Web.Components.Pages.SystemConfiguration
                     return true;
                 if (element.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase))
                     return true;
+                if (element.Code.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+                    return true;
                
                 return false;
             }).ToArray();
@@ -118,6 +120,12 @@ namespace Rapide.Web.Components.Pages.SystemConfiguration
                         data = data.OrderByDirection(
                             sortDefinition.Descending ? SortDirection.Descending : SortDirection.Ascending,
                             o => o.Name
+                        );
+                        break;
+                    case nameof(PackageModel.Code):
+                        data = data.OrderByDirection(
+                            sortDefinition.Descending ? SortDirection.Descending : SortDirection.Ascending,
+                            o => o.Code
                         );
                         break;
                    
