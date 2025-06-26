@@ -294,7 +294,7 @@ namespace Rapide.Web.Components.Pages.Operations
             }
 
             var technicians = await InspectionTechnicianService.GetAllInspectionTechnicianByInspectionIdAsync(inspectionId);
-            inspectionData.TechnicianList = technicians;
+            inspectionData.TechnicianList = technicians.Where(x => x.TechnicianUser.Role.Name == "SENIOR TECHNICIAN").ToList();
 
             InspectionReportGenerator.ImageFile = FileHelper.GetRapideLogo();
             InspectionReportGenerator.ImageFileCompany = FileHelper.GetCompanyLogo();

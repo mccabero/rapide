@@ -300,7 +300,11 @@ namespace Rapide.Web.Components.Pages.Operations
 
             EstimateRequestModel.ProductList = await EstimateProductService.GetAllEstimateProductByEstimateIdAsync(EstimateRequestModel.Id);
             EstimateRequestModel.ServiceList = await EstimateServiceService.GetAllEstimateServiceByEstimateIdAsync(EstimateRequestModel.Id);
-            EstimateRequestModel.TechnicianList = await EstimateTechnicianService.GetAllEstimateTechnicianByEstimateIdAsync(EstimateRequestModel.Id);
+            
+            var technicians = await EstimateTechnicianService.GetAllEstimateTechnicianByEstimateIdAsync(EstimateRequestModel.Id);
+            EstimateRequestModel.TechnicianList = technicians.Where(x => x.TechnicianUser.Role.Name == "SENIOR TECHNICIAN").ToList();
+
+
             EstimateRequestModel.PackageList = await EstimatePackageService.GetAllEstimatePackageByEstimateIdAsync(EstimateRequestModel.Id);
 
             EstimateReportGenerator.ImageFile = FileHelper.GetRapideLogo();

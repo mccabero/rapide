@@ -6,6 +6,7 @@ using Rapide.Contracts.Services;
 using Rapide.DTO;
 using Rapide.Entities;
 using System.Linq.Expressions;
+using System.Threading.Tasks.Dataflow;
 
 namespace Rapide.Services
 {
@@ -153,9 +154,11 @@ namespace Rapide.Services
                 PaymentId = dto.PaymentId,
                 PaymentTypeParameterId = dto.PaymentTypeParameterId,
                 InvoiceId = dto.InvoiceId,
-                DepositAmount = dto.DepositAmount,
+                //DepositAmount = dto.DepositAmount,
                 AmountPaid = dto.AmountPaid,
                 IsFullyPaid = dto.IsFullyPaid,
+                IsDeposit = dto.IsDeposit,
+                PaymentDate = dto.PaymentDate,
                 PaymentReferenceNo = dto.PaymentReferenceNo,
                 CreatedById = dto.CreatedById,
                 CreatedDateTime = dto.CreatedDateTime,

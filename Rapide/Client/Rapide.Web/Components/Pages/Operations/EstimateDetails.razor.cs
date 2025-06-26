@@ -1063,7 +1063,12 @@ namespace Rapide.Web.Components.Pages.Operations
 
             EstimateReportGenerator.ImageFile = FileHelper.GetRapideLogo();
             EstimateReportGenerator.ImageFileCompany = FileHelper.GetCompanyLogo();
-            await EstimateReportGenerator.Generate(EstimateRequestModel, JSRuntime, companyData);
+
+            var model = EstimateRequestModel;
+            var technicians = await EstimateTechnicianService.GetAllEstimateTechnicianByEstimateIdAsync(EstimateRequestModel.Id);
+            model.TechnicianList = technicians.Where(x => x.TechnicianUser.Role.Name == "SENIOR TECHNICIAN").ToList();
+
+            await EstimateReportGenerator.Generate(model, JSRuntime, companyData);
 
             IsLoading = false;
         }

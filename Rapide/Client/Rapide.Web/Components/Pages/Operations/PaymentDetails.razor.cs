@@ -183,28 +183,28 @@ namespace Rapide.Web.Components.Pages.Operations
                         }
                     }
 
-                    if (PaymentRequestModel.PaymentDetailsList.Where(x => x.DepositAmount > 0).Any())
-                    {
-                        var depositInfo = PaymentRequestModel.PaymentDetailsList.Where(x => x.DepositAmount > 0);
-                        if (depositInfo != null && depositInfo.Any())
-                        {
-                            var joId = depositInfo.FirstOrDefault()!.Invoice.JobOrderId;
-                            var depositData = await DepositService.GetAllDepositByJobOrderIdAsync(joId);
+                    //if (PaymentRequestModel.PaymentDetailsList.Where(x => x.DepositAmount > 0).Any())
+                    //{
+                    //    var depositInfo = PaymentRequestModel.PaymentDetailsList.Where(x => x.DepositAmount > 0);
+                    //    if (depositInfo != null && depositInfo.Any())
+                    //    {
+                    //        var joId = depositInfo.FirstOrDefault()!.Invoice.JobOrderId;
+                    //        var depositData = await DepositService.GetAllDepositByJobOrderIdAsync(joId);
 
-                            if (depositData != null && depositData.Any())
-                            {
-                                var depositToUpdate = depositData.FirstOrDefault();
+                    //        if (depositData != null && depositData.Any())
+                    //        {
+                    //            var depositToUpdate = depositData.FirstOrDefault();
 
-                                var jobStatusCompleted = JobStatusList.Where(x => x.Name.Equals(Constants.JobStatus.Completed)).FirstOrDefault();
+                    //            var jobStatusCompleted = JobStatusList.Where(x => x.Name.Equals(Constants.JobStatus.Completed)).FirstOrDefault();
 
-                                depositToUpdate.JobStatus = jobStatusCompleted;
-                                depositToUpdate.JobStatusId = jobStatusCompleted.Id;
+                    //            depositToUpdate.JobStatus = jobStatusCompleted;
+                    //            depositToUpdate.JobStatusId = jobStatusCompleted.Id;
 
-                                await DepositService.UpdateAsync(depositToUpdate);
-                            }
-                        }
+                    //            await DepositService.UpdateAsync(depositToUpdate);
+                    //        }
+                    //    }
 
-                    }
+                    //}
 
                     bool isEditMode = !string.IsNullOrEmpty(PaymentId);
 
@@ -226,8 +226,9 @@ namespace Rapide.Web.Components.Pages.Operations
                             t.PaymentId = created.Id;
                             t.PaymentTypeParameterId = t.PaymentTypeParameter.Id;
                             t.InvoiceId = t.Invoice.Id;
-                            t.DepositAmount = t.DepositAmount;
-
+                            //t.DepositAmount = t.DepositAmount;
+                            t.IsDeposit = t.IsDeposit;
+                            t.PaymentDate = t.PaymentDate;
                             t.CreatedById = TokenHelper.GetCurrentUserId(await AuthState);
                             t.CreatedDateTime = DateTime.Now;
                             t.UpdatedById = TokenHelper.GetCurrentUserId(await AuthState);
@@ -278,7 +279,7 @@ namespace Rapide.Web.Components.Pages.Operations
             {
                 foreach (var i in completedInvoice)
                 {
-                    var amountPaid = completedInvoice.Sum(x => x.AmountPaid) + completedInvoice.Sum(x => x.DepositAmount);
+                    var amountPaid = completedInvoice.Sum(x => x.AmountPaid);
                     var invoiceAmount = i.Invoice.TotalAmount;
 
                     if (amountPaid >= invoiceAmount)
@@ -318,7 +319,9 @@ namespace Rapide.Web.Components.Pages.Operations
                 p.PaymentTypeParameterId = p.PaymentTypeParameter.Id;
                 p.InvoiceId = p.Invoice.Id;
                 p.IsFullyPaid = p.IsFullyPaid;
-                p.DepositAmount = p.DepositAmount;
+                //p.DepositAmount = p.DepositAmount;
+                p.IsDeposit = p.IsDeposit;
+                p.PaymentDate = p.PaymentDate;
 
                 p.CreatedById = TokenHelper.GetCurrentUserId(await AuthState);
                 p.CreatedDateTime = DateTime.Now;
@@ -467,13 +470,13 @@ namespace Rapide.Web.Components.Pages.Operations
         private void PaymentDetailsItemHasChanged(List<PaymentDetailsDTO> e)
         {
             PaymentRequestModel.PaymentDetailsList = e;
-            PaymentRequestModel.DepositAmount = e.Sum(x => x.DepositAmount);
+            PaymentRequestModel.DepositAmount = e.Where(x => x.IsDeposit == true).Sum(x => x.AmountPaid);
 
             var invoiceAmount = e.GroupBy(x => x.Invoice.Id).Select(x => x.First()).Sum(x => x.Invoice.TotalAmount);
             PaymentRequestModel.InvoiceTotalAmount = invoiceAmount;
             PaymentRequestModel.AmountPayable = invoiceAmount;
 
-            var totalAmountPaid = e.Sum(x => x.AmountPaid);
+            var totalAmountPaid = e.Where(x => x.IsDeposit == false).Sum(x => x.AmountPaid);
             PaymentRequestModel.TotalPaidAmount = totalAmountPaid + PaymentRequestModel.DepositAmount;
 
             PaymentRequestModel.Balance = invoiceAmount - totalAmountPaid - PaymentRequestModel.DepositAmount;
@@ -512,7 +515,9 @@ namespace Rapide.Web.Components.Pages.Operations
                             Invoice = PaymentRequestModel.InvoiceList.FirstOrDefault(),
                             InvoiceId = PaymentRequestModel.InvoiceList.FirstOrDefault().Id,
                             IsFullyPaid = true,
-                            DepositAmount = 0,
+                            IsDeposit = true,
+                            PaymentDate = di.TransactionDateTime.Value,
+                            //DepositAmount = 0,
                             AmountPaid = di.DepositAmount,
                             PaymentReferenceNo = di.PaymentReferenceNo
                         });

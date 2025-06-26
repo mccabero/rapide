@@ -15,7 +15,11 @@
 
         public bool IsFullyPaid { get; set; }
 
-        public decimal DepositAmount { get; set; }
+        //public decimal DepositAmount { get; set; }
+
+        public bool IsDeposit { get; set; }
+
+        public DateTime? PaymentDate { get; set; }
 
         public decimal AmountPaid { get; set; }
 

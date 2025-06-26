@@ -1012,7 +1012,12 @@ namespace Rapide.Web.Components.Pages.Operations
 
             JobOrderReportGenerator.ImageFile = FileHelper.GetRapideLogo();
             JobOrderReportGenerator.ImageFileCompany = FileHelper.GetCompanyLogo();
-            await JobOrderReportGenerator.Generate(JobOrderRequestModel, JSRuntime, companyData);
+
+            var model = JobOrderRequestModel;
+            var technicians = await JobOrderTechnicianService.GetAllJobOrderTechnicianByJobOrderIdAsync(JobOrderRequestModel.Id);
+            model.TechnicianList = technicians.Where(x => x.TechnicianUser.Role.Name == "SENIOR TECHNICIAN").ToList();
+
+            await JobOrderReportGenerator.Generate(model, JSRuntime, companyData);
 
             IsLoading = false;
         }

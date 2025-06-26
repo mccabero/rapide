@@ -10,7 +10,8 @@
                     <MudTh>Is Paid?</MudTh>
                     <MudTh Style="width: 20%">Payment Type</MudTh>
                     <MudTh Style="width: 20%">Invoice No.</MudTh>
-                    <MudTh>Deposit</MudTh>
+                    <MudTh>Is Deposit</MudTh>
+                    <MudTh>Payment Date</MudTh>
                     <MudTh>Amount Paid</MudTh>
                     <MudTh>Payment Reference No.</MudTh>
                     <MudTh></MudTh>
@@ -33,6 +34,7 @@
                                              Required="true" RequiredError="This field is required!"
                                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
                                              ShowProgressIndicator="true"
+                                             Disabled="@context.IsDeposit"
                                              Strict="false"
                                              Clearable="true">
                                 <NoItemsTemplate>
@@ -60,6 +62,7 @@
                                              Required="true" RequiredError="This field is required!"
                                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
                                              ShowProgressIndicator="true"
+                                             Disabled="@context.IsDeposit"
                                              Strict="false"
                                              Clearable="true">
                                 <NoItemsTemplate>
@@ -70,13 +73,27 @@
                             </MudAutocomplete>
                         </div>
                     </MudTd>
-                    <MudTd DataLabel="PaymentReferenceNo">
+                    <MudTd DataLabel="IsDeposit">
+                        <div class="form-group">
+                            <MudSwitch @bind-Value="context.IsDeposit" Disabled="@context.IsDeposit" Color="Color.Success" />
+                        </div>
+                    </MudTd>
+                    <MudTd DataLabel="PaymentDate">
+                        <div class="form-group">
+                            <MudDatePicker DateFormat="MM/dd/yyyy"
+                                           Variant="Variant.Outlined"
+                                           Margin="Margin.Dense"
+                                           Disabled="@context.IsDeposit"
+                                           @bind-Date="context.PaymentDate" />
+                        </div>
+                    </MudTd>
+                    @* <MudTd DataLabel="PaymentReferenceNo">
                         <div class="form-group">
                             <MudTextField Format="N2" @bind-Value="context.DepositAmount"
                                           For="(() => context.DepositAmount)"
                                           Margin="Margin.Dense" Variant="Variant.Outlined" Disabled />
                         </div>
-                    </MudTd>
+                    </MudTd> *@
                     <MudTd DataLabel="AmountPaid">
                         <div class="form-group">
                             <MudNumericField T="decimal" Format="N2" Min="0"
@@ -85,6 +102,7 @@
                                     For="@(() => context.AmountPaid)"
                                     Immediate="true"
                                     Required="true" RequiredError="This field is required!"
+                                    Disabled="@context.IsDeposit"
                                     Margin="Margin.Dense" Variant="Variant.Outlined" />
                         </div>
                     </MudTd>
@@ -93,6 +111,7 @@
                             <MudTextField
                                 @bind-Value="context.PaymentReferenceNo"
                                 For="(() => context.PaymentReferenceNo)"
+                                Disabled="@context.IsDeposit"
                                 Margin="Margin.Dense" Variant="Variant.Outlined" />
                         </div>
                     </MudTd>

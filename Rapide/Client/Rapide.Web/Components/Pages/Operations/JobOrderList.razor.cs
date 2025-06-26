@@ -284,8 +284,10 @@ namespace Rapide.Web.Components.Pages.Operations
 
             JobOrderRequestModel.ProductList = await JobOrderProductService.GetAllJobOrderProductByJobOrderIdAsync(JobOrderRequestModel.Id);
             JobOrderRequestModel.ServiceList = await JobOrderServiceService.GetAllJobOrderServiceByJobOrderIdAsync(JobOrderRequestModel.Id);
-            JobOrderRequestModel.TechnicianList = await JobOrderTechnicianService.GetAllJobOrderTechnicianByJobOrderIdAsync(JobOrderRequestModel.Id);
             JobOrderRequestModel.PackageList = await JobOrderPackageService.GetAllJobOrderPackageByJobOrderIdAsync(JobOrderRequestModel.Id);
+
+            var technicians = await JobOrderTechnicianService.GetAllJobOrderTechnicianByJobOrderIdAsync(JobOrderRequestModel.Id);
+            JobOrderRequestModel.TechnicianList = technicians.Where(x => x.TechnicianUser.Role.Name == "SENIOR TECHNICIAN").ToList();
 
             JobOrderReportGenerator.ImageFile = FileHelper.GetRapideLogo();
             JobOrderReportGenerator.ImageFileCompany = FileHelper.GetCompanyLogo();

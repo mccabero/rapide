@@ -23,9 +23,14 @@ namespace Rapide.Entities
         [Required]
         public bool IsFullyPaid { get; set; }
 
+        //[Required]
+        //[DataType("decimal(18, 2)")]
+        //public decimal DepositAmount { get; set; }
+
         [Required]
-        [DataType("decimal(18, 2)")]
-        public decimal DepositAmount { get; set; }
+        public bool IsDeposit { get; set; }
+
+        public DateTime? PaymentDate { get; set; }
 
         [Required]
         [DataType("decimal(18, 2)")]

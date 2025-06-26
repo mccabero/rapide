@@ -82,13 +82,13 @@ namespace Rapide.Web.Components.Pages.Components
 
         private async Task OnInvoiceChanged(PaymentDetailsDTO element, InvoiceDTO i)
         {
-            var depositList = await DepositService.GetAllDepositAsync();
-            if (depositList != null)
-            {
-                var depositInfo = depositList.Where(x => x.JobStatusId == 1 && x.JobOrderId == i.JobOrder.Id).ToList();
+            //var depositList = await DepositService.GetAllDepositAsync();
+            //if (depositList != null)
+            //{
+            //    var depositInfo = depositList.Where(x => x.JobStatusId == 1 && x.JobOrderId == i.JobOrder.Id).ToList();
 
-                element.DepositAmount = depositInfo.Any() ? depositInfo.FirstOrDefault().DepositAmount : 0;
-            }
+            //    element.DepositAmount = depositInfo.Any() ? depositInfo.FirstOrDefault().DepositAmount : 0;
+            //}
            
 
             element.Invoice = i;
