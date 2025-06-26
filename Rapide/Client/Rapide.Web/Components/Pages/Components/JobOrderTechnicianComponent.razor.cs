@@ -31,7 +31,7 @@ namespace Rapide.Web.Components.Pages.Components
         {
             var users = await UserService.GetAllUserRoleAsync();
             UserList = users.Where(x => x.Role.Name.ToUpper().Contains("TECHNICIAN") && x.IsActive == true).ToList();
-            IsTechnicianLimitExceeded = JobOrderTechnicianParam.Count <= 6;
+            IsTechnicianLimitExceeded = JobOrderTechnicianParam.Count <= 10;
 
             StateHasChanged();
             await base.OnInitializedAsync();
@@ -42,7 +42,7 @@ namespace Rapide.Web.Components.Pages.Components
         
         private void OnAddTechnicianClick()
         {
-            if (JobOrderTechnicianParam.Count == 6)
+            if (JobOrderTechnicianParam.Count == 10)
             {
                 IsTechnicianLimitExceeded = true;
                 

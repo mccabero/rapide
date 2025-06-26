@@ -42,7 +42,7 @@ namespace Rapide.Web.Components.Pages.Components
         
         private void OnAddTechnicianClick()
         {
-            if (InspectionTechnicianParam.Count == 6)
+            if (InspectionTechnicianParam.Count == 10)
             {
                 IsTechnicianLimitExceeded = true;
                 
