@@ -127,10 +127,12 @@ namespace Rapide.Web.Components.Pages.Operations
                 IsEditMode = !isPaymentLocked;
 
                 // Update footer figures
+                var paidAmount = PaymentRequestModel.PaymentDetailsList.Sum(x => x.AmountPaid);
                 var invoiceAmount = PaymentRequestModel.PaymentDetailsList.GroupBy(x => x.Invoice.Id).Select(x => x.First()).Sum(x => x.Invoice.TotalAmount);
                 PaymentRequestModel.InvoiceTotalAmount = invoiceAmount;
                 PaymentRequestModel.AmountPayable = invoiceAmount;
-                PaymentRequestModel.Balance = invoiceAmount - PaymentRequestModel.TotalPaidAmount;
+                PaymentRequestModel.Balance = invoiceAmount - paidAmount;
+                PaymentRequestModel.TotalPaidAmount = paidAmount;
             }
             else
             {
@@ -501,7 +503,7 @@ namespace Rapide.Web.Components.Pages.Operations
             PaymentRequestModel.DepositAmount = 0;
             if (depositInfo != null)
             {
-                PaymentRequestModel.DepositAmount = depositInfo.Where(x => x.JobStatusId == jobStatusOpen.Id).Sum(x => x.DepositAmount);
+                PaymentRequestModel.DepositAmount = depositInfo.Sum(x => x.DepositAmount);
 
                 foreach (var di in depositInfo)
                 {

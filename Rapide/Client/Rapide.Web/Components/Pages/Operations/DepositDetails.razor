@@ -105,8 +105,8 @@
                                     <div class="form-group">
                                         <label>Status<code> *</code></label>
                                         <MudAutocomplete T="JobStatusDTO"
+                                                         SearchFunc="@SearchJobStatus"
                                                          Margin="Margin.Dense"
-                                                         Disabled="true"
                                                          @bind-Value="DepositRequestModel.JobStatus"
                                                          Variant="Variant.Outlined"
                                                          ToStringFunc="@(e=> e==null?null : e.Name)"

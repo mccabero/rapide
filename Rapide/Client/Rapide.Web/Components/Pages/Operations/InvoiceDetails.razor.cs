@@ -167,8 +167,58 @@ namespace Rapide.Web.Components.Pages.Operations
                 PaymentRequestModel.UpdatedById = TokenHelper.GetCurrentUserId(await AuthState);
                 PaymentRequestModel.UpdatedDateTime = DateTime.Now;
 
+                // Insert deposit per customer:
+                var depositInfo = await DepositService.GetAllDepositByCustomerIdAsync(PaymentRequestModel.CustomerId);
+                PaymentRequestModel.DepositAmount = 0;
+                if (depositInfo != null)
+                {
+                    PaymentRequestModel.DepositAmount = depositInfo.Sum(x => x.DepositAmount);
+                    PaymentRequestModel.PaymentDetailsList = new List<PaymentDetailsDTO>();
+
+                    foreach (var di in depositInfo)
+                    {
+                        var invoiceByJo = invoiceList.Where(x => x.JobOrderId == di.JobOrderId);
+                        
+                        if (invoiceByJo == null || !invoiceByJo.Any())
+                            return;
+
+                        var paymentDetails = new PaymentDetailsDTO()
+                        {
+                            Payment = PaymentRequestModel,
+                            PaymentId = PaymentRequestModel.Id,
+                            PaymentTypeParameter = di.PaymentTypeParameter,
+                            PaymentTypeParameterId = di.PaymentTypeParameterId,
+                            Invoice = invoiceByJo.FirstOrDefault(),
+                            InvoiceId = invoiceByJo.FirstOrDefault().Id,
+                            IsFullyPaid = true,
+                            IsDeposit = true,
+                            PaymentDate = di.TransactionDateTime.Value,
+                            //DepositAmount = 0,
+                            AmountPaid = di.DepositAmount,
+                            PaymentReferenceNo = di.PaymentReferenceNo
+                        };
+
+                        PaymentRequestModel.PaymentDetailsList.Add(paymentDetails);
+                    }
+                }
+
                 // call create endpoint here...
                 var created = await PaymentService.CreateAsync(PaymentRequestModel);
+
+                // Save payment details
+                foreach (var t in PaymentRequestModel.PaymentDetailsList)
+                {
+                    t.PaymentId = created.Id;
+                    t.PaymentTypeParameterId = t.PaymentTypeParameter.Id;
+                    t.InvoiceId = t.Invoice.Id;
+
+                    t.CreatedById = TokenHelper.GetCurrentUserId(await AuthState);
+                    t.CreatedDateTime = DateTime.Now;
+                    t.UpdatedById = TokenHelper.GetCurrentUserId(await AuthState);
+                    t.UpdatedDateTime = DateTime.Now;
+
+                    await PaymentDetailsService.CreateAsync(t);
+                }
 
                 // update the status to converted
                 var convertedStatus = jobStatus.Where(x => x.Name.Equals(Constants.JobStatus.Converted)).FirstOrDefault();
@@ -177,21 +227,6 @@ namespace Rapide.Web.Components.Pages.Operations
                 InvoiceRequestModel.JobStatusId = convertedStatus.Id;
 
                 await InvoiceService.UpdateAsync(InvoiceRequestModel);
-
-                //// Save payment details
-                //foreach (var t in PaymentRequestModel.PaymentDetailsList)
-                //{
-                //    t.PaymentId = created.Id;
-                //    t.PaymentTypeParameterId = t.PaymentTypeParameter.Id;
-                //    t.InvoiceId = t.Invoice.Id;
-
-                //    t.CreatedById = TokenHelper.GetCurrentUserId(await AuthState);
-                //    t.CreatedDateTime = DateTime.Now;
-                //    t.UpdatedById = TokenHelper.GetCurrentUserId(await AuthState);
-                //    t.UpdatedDateTime = DateTime.Now;
-
-                //    await PaymentDetailsService.CreateAsync(t);
-                //}
 
                 IsLoading = false;
                 ReloadInvoiceRequestModel();

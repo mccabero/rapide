@@ -135,26 +135,26 @@
                                     <div class="form-group">
                                         <label>Status</label>
                                         <MudAutocomplete T="JobStatusDTO"
-                                        Margin="Margin.Dense"
-                                        Disabled="true"
-                                        @bind-Value="EstimateRequestModel.JobStatus"
-                                        SearchFunc="@SearchJobStatus"
-                                        Variant="Variant.Outlined"
-                                        ToStringFunc="@(e=> e==null?null : e.Name)"
-                                        Required="true" RequiredError="This field is required!"
-                                        Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
-                                        ShowProgressIndicator="true"
-                                        Strict="false"
-                                        Clearable="true">
-                                            <NoItemsTemplate>
-                                                <MudText Align="Align.Center" Class="px-4 py-1">
-                                                    No items found
-                                                </MudText>
-                                            </NoItemsTemplate>
+                                            Margin="Margin.Dense"
+                                            Disabled="true"
+                                            @bind-Value="EstimateRequestModel.JobStatus"
+                                            SearchFunc="@SearchJobStatus"
+                                            Variant="Variant.Outlined"
+                                            ToStringFunc="@(e=> e==null?null : e.Name)"
+                                            Required="true" RequiredError="This field is required!"
+                                            Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                                            ShowProgressIndicator="true"
+                                            Strict="false"
+                                            Clearable="true">
+                                                <NoItemsTemplate>
+                                                    <MudText Align="Align.Center" Class="px-4 py-1">
+                                                        No items found
+                                                    </MudText>
+                                                </NoItemsTemplate>
 
-                                            <AfterItemsTemplate>
-                                                <MudButton OnClick="(() => OnAddNewItemClick(EstimateDialogType.JobStatus))" Color="Color.Primary"><i class="fas fa-plus"> Add New Job Status</i></MudButton>
-                                            </AfterItemsTemplate>
+                                                <AfterItemsTemplate>
+                                                    <MudButton OnClick="(() => OnAddNewItemClick(EstimateDialogType.JobStatus))" Color="Color.Primary"><i class="fas fa-plus"> Add New Job Status</i></MudButton>
+                                                </AfterItemsTemplate>
                                         </MudAutocomplete>
                                     </div>
                                 </div>

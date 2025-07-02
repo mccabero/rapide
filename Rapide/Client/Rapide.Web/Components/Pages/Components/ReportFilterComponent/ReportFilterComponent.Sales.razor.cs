@@ -1,4 +1,5 @@
 ﻿using Rapide.DTO;
+using Rapide.Web.Components.Utilities;
 using Rapide.Web.Helpers;
 using Rapide.Web.PdfReportGenerator.Reports;
 
@@ -23,7 +24,12 @@ namespace Rapide.Web.Components.Pages.Components
 
             // Convert filter from invoice to payment:
             var payments = await PaymentService.GetAllPaymentAsync();
-            var filteredPayments = payments.Where(x => ((DateTime)x.PaymentDate!).Date >= ((DateTime)_dateRange.Start!).Date && ((DateTime)x.PaymentDate!).Date <= ((DateTime)_dateRange.End!).Date).ToList();
+            var filteredPayments = payments
+                .Where(x => x.JobStatus.Name.Equals(Constants.JobStatus.Completed))
+                .Where(x => ((DateTime)x.PaymentDate!).Date >= ((DateTime)_dateRange.Start!).Date 
+                        && ((DateTime)x.PaymentDate!).Date <= ((DateTime)_dateRange.End!).Date)
+                .ToList();
+            
             var invoiceFromPayments = filteredPayments.Select(x => x.InvoiceList);
             var paymentDetails = await PaymentDetailsService.GetAllPaymentDetailsAsync();
 

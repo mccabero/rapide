@@ -98,10 +98,12 @@
                                                 </MudStack>
                                             </CellTemplate>
                                         </PropertyColumn>
-                                        <PropertyColumn Property="x => x.JobOrder" Title="Job Order">
+                                        
+                                        <PropertyColumn Property="x => x.PaymentTypeParameter.Name" Title="Payment Type" />
+                                        <PropertyColumn Property="x => x.TransactionDateTime" Title="Transaction Date">
                                             <CellTemplate>
                                                 <MudStack Row>
-                                                    <MudLink Href="@string.Format("/operations/job-orders/{0}", @context.Item.JobOrder.Id.ToString())">@context.Item.JobOrder.ReferenceNo</MudLink>
+                                                    <MudText>@(((DateTime)context.Item.TransactionDateTime!).ToShortDateString())</MudText>
                                                 </MudStack>
                                             </CellTemplate>
                                         </PropertyColumn>
