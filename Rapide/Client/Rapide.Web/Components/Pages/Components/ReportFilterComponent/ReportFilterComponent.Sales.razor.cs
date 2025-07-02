@@ -1,4 +1,5 @@
 ﻿using Rapide.DTO;
+using Rapide.Services;
 using Rapide.Web.Components.Utilities;
 using Rapide.Web.Helpers;
 using Rapide.Web.PdfReportGenerator.Reports;
@@ -36,11 +37,17 @@ namespace Rapide.Web.Components.Pages.Components
             var invoiceNew = paymentDetails.Where(x => filteredPayments.Any(y => y.Id == x.PaymentId)).ToList();
             var invoiceIds = invoice.Where(x => invoiceNew.Any(y => y.InvoiceId == x.Id)).ToList();
 
-            //var filteredInvoice = invoice.Where(x => ((DateTime)x.InvoiceDate!).Date >= ((DateTime)_dateRange.Start!).Date && ((DateTime)x.InvoiceDate!).Date <= ((DateTime)_dateRange.End!).Date).ToList();
             var filteredInvoice = invoiceIds;
 
-            var filteredExpenses = expenses.Where(x => ((DateTime)x.ExpenseDateTime!).Date >= ((DateTime)_dateRange.Start!).Date && ((DateTime)x.ExpenseDateTime!).Date <= ((DateTime)_dateRange.End!).Date).ToList();
-            var filteredQuickSales = quickSales.Where(x => ((DateTime)x.TransactionDate!).Date >= ((DateTime)_dateRange.Start!).Date && ((DateTime)x.TransactionDate!).Date <= ((DateTime)_dateRange.End!).Date).ToList();
+            var filteredExpenses = expenses
+                .Where(x => ((DateTime)x.ExpenseDateTime!).Date >= ((DateTime)_dateRange.Start!).Date 
+                    && ((DateTime)x.ExpenseDateTime!).Date <= ((DateTime)_dateRange.End!).Date)
+                .ToList();
+
+            var filteredQuickSales = quickSales
+                .Where(x => ((DateTime)x.TransactionDate!).Date >= ((DateTime)_dateRange.Start!).Date 
+                    && ((DateTime)x.TransactionDate!).Date <= ((DateTime)_dateRange.End!).Date)
+                .ToList();
 
             var invoiceToCheck = filteredInvoice.Except(invoiceIds).ToList();
             if (invoiceToCheck.Any())
@@ -143,7 +150,14 @@ namespace Rapide.Web.Components.Pages.Components
                 return;
             }
 
-            await SalesReportGenerator.Generate(invoiceList, JSRuntime, companyData, preparedBy, filteredExpenses, quickSalesList, isCashier);
+            // Get deposit data
+            var depositData = await DepositService.GetAllDepositAsync();
+            var filteredDeposit = depositData
+                .Where(x => ((DateTime)x.TransactionDateTime!).Date >= ((DateTime)_dateRange.Start!).Date
+                    && ((DateTime)x.TransactionDateTime!).Date <= ((DateTime)_dateRange.End!).Date)
+                .ToList();
+
+            await SalesReportGenerator.Generate(invoiceList, JSRuntime, companyData, preparedBy, filteredExpenses, quickSalesList, filteredDeposit, isCashier);
         }
     }
 }

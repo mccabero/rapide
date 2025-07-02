@@ -15,6 +15,8 @@ namespace Rapide.Web.PdfReportGenerator.Reports
         private static CompanyInfoDTO companyInfo { get; set; }
         private static List<ExpensesDTO> expenses { get; set; }
         private static List<QuickSalesDTO> quickSales { get; set; }
+        private static List<DepositDTO> depositInfo { get; set; }
+
         private static bool isCashier { get; set; }
 
         public static async Task Generate(
@@ -24,6 +26,7 @@ namespace Rapide.Web.PdfReportGenerator.Reports
             string preparedBy,
             List<ExpensesDTO> expensesData,
             List<QuickSalesDTO> quickSalesData,
+            List<DepositDTO> depositData,
             bool isCashierInfo)
         {
             invoice = invoiceData;
@@ -31,6 +34,7 @@ namespace Rapide.Web.PdfReportGenerator.Reports
             expenses = expensesData;
             quickSales = quickSalesData;
             isCashier = isCashierInfo;
+            depositInfo = depositData;
 
             QuestPDF.Settings.License = LicenseType.Community;
 
@@ -452,6 +456,8 @@ namespace Rapide.Web.PdfReportGenerator.Reports
                             
                             c.Item().AlignRight().PaddingTop(3).Text("EXPENSES (ES):").FontSize(6);
                             c.Item().AlignRight().PaddingTop(3).Text("DISCOUNT:").FontSize(6);
+                            
+                            c.Item().AlignRight().PaddingTop(3).Text("Deposit (All Types):").FontSize(6);
 
                             c.Item().AlignRight().PaddingTop(10).Text("CASH ONHAND:");
                             c.Item().AlignRight().PaddingTop(3).Text("Overall Diff:").FontSize(6).FontColor(Colors.Red.Darken4);
@@ -495,6 +501,9 @@ namespace Rapide.Web.PdfReportGenerator.Reports
                             var totalExpense = expenses.Sum(x => x.Amount);
                             c.Item().AlignRight().PaddingTop(3).Text($"-{totalExpense.ToString("N2")}").FontSize(6);
                             c.Item().AlignRight().PaddingTop(3).Text($"-{discountTotalFooter.ToString("N2")}").FontSize(6);
+
+                            // Deposit?
+                            c.Item().AlignRight().PaddingTop(3).Text($"{depositInfo.Sum(x => x.DepositAmount).ToString("N2")}").FontSize(6);
 
                             cashOnHand = cashOnHand - totalExpense;
                             

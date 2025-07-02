@@ -67,6 +67,8 @@ namespace Rapide.Web.Components.Pages.Components
         private IQuickSalesProductService QuickSalesProductService { get; set; }
         [Inject]
         private IParameterService ParameterService { get; set; }
+        [Inject]
+        private IDepositService DepositService { get; set; }
         #endregion
 
         #region Private Properties
