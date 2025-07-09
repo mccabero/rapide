@@ -10,6 +10,7 @@ namespace Rapide.Web.DI
         {
             return services
                     .AddMemoryCache()
+                    .AddTransient<IPettyCashService, PettyCashService>()
                     .AddTransient<ICompanyInfoService, CompanyInfoService>()
                     .AddTransient<IInspectionTechnicianService, InspectionTechnicianService>()
                     .AddTransient<IInspectionService, InspectionService>()

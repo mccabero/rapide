@@ -48,5 +48,7 @@ namespace Rapide.Repositories.DBContext
         public virtual DbSet<Inspection> Inspection { get; set; }
         public virtual DbSet<InspectionTechnician> InspectionTechnician { get; set; }
         public virtual DbSet<CompanyInfo> CompanyInfo { get; set; }
+        public virtual DbSet<PettyCash> PettyCash { get; set; }
+        public virtual DbSet<PettyCashDetails> PettyCashDetails { get; set; }
     }
 }

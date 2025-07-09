@@ -8,6 +8,7 @@ namespace Rapide.Web.DI
         public static IServiceCollection AddRepositories(this IServiceCollection services)
         {
             return services
+                .AddTransient<IPettyCashRepo, PettyCashRepo>()
                 .AddTransient<ICompanyInfoRepo, CompanyInfoRepo>()
                 .AddTransient<IInspectionTechnicianRepo, InspectionTechnicianRepo>()
                 .AddTransient<IInspectionRepo, InspectionRepo>()
