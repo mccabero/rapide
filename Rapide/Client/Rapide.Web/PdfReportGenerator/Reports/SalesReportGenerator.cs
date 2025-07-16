@@ -456,7 +456,8 @@ namespace Rapide.Web.PdfReportGenerator.Reports
                             
                             c.Item().AlignRight().PaddingTop(3).Text("EXPENSES (ES):").FontSize(6);
                             c.Item().AlignRight().PaddingTop(3).Text("DISCOUNT:").FontSize(6);
-                            
+
+                            c.Item().AlignRight().PaddingTop(3).Text("Quick Sales:").FontSize(6);
                             c.Item().AlignRight().PaddingTop(3).Text("Deposit (All Types):").FontSize(6);
 
                             c.Item().AlignRight().PaddingTop(10).Text("CASH ONHAND:");
@@ -501,6 +502,9 @@ namespace Rapide.Web.PdfReportGenerator.Reports
                             var totalExpense = expenses.Sum(x => x.Amount);
                             c.Item().AlignRight().PaddingTop(3).Text($"-{totalExpense.ToString("N2")}").FontSize(6);
                             c.Item().AlignRight().PaddingTop(3).Text($"-{discountTotalFooter.ToString("N2")}").FontSize(6);
+
+                            // Quick Sales?
+                            c.Item().AlignRight().PaddingTop(3).Text($"{quickSales.Sum(x => x.TotalAmount).ToString("N2")}").FontSize(6);
 
                             // Deposit?
                             c.Item().AlignRight().PaddingTop(3).Text($"{depositInfo.Sum(x => x.DepositAmount).ToString("N2")}").FontSize(6);
