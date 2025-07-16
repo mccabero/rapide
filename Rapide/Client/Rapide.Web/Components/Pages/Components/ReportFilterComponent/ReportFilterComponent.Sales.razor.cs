@@ -90,6 +90,7 @@ namespace Rapide.Web.Components.Pages.Components
                 i.JobOrder = await JobOrderService.GetJobOrderByIdAsync(jobOrderId);
                 i.JobOrder.ProductList = await JobOrderProductService.GetAllJobOrderProductByJobOrderIdAsync(jobOrderId);
                 i.JobOrder.ServiceList = await JobOrderServiceService.GetAllJobOrderServiceByJobOrderIdAsync(jobOrderId);
+                i.JobOrder.TechnicianList = await JobOrderTechnicianService.GetAllJobOrderTechnicianByJobOrderIdAsync(jobOrderId);
 
                 // payments
                 i.PaymentDetailsList = await PaymentDetailsService.GetAllPaymentDetailsByInvoiceIdAsync(i.Id);

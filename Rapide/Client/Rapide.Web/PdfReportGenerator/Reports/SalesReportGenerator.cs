@@ -412,7 +412,7 @@ namespace Rapide.Web.PdfReportGenerator.Reports
                         var totalQuickSalesGCash = quickSales.Where(x => x.PaymentTypeParameter.Name.ToUpper() == "GCASH").Sum(x => x.TotalAmount);
                         var totalQuickSalesAll = quickSales.Sum(x => x.TotalAmount);
 
-                        grandTotal = grandTotal + totalQuickSalesAll + discountTotalFooter;
+                        grandTotal = grandTotal + totalQuickSalesAll;
 
                         footer.Cell().Element(CellStyle).Text("");
                         footer.Cell().Element(CellStyle).Text("");

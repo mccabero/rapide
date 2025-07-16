@@ -1,4 +1,5 @@
 ﻿using Rapide.DTO;
+using Rapide.Web.Components.Utilities;
 using Rapide.Web.Helpers;
 using Rapide.Web.PdfReportGenerator.Reports;
 
@@ -19,7 +20,35 @@ namespace Rapide.Web.Components.Pages.Components
             var packageListData = await PackageService.GetAllPackageAsync();
             var technicians = users.Where(x => x.Role.Name.ToUpper().Contains("TECHNICIAN") && x.IsActive == true).ToList();
 
-            var filteredInvoice = invoice.Where(x => x.InvoiceDate >= _dateRange.Start && x.InvoiceDate <= _dateRange.End).ToList();
+            // Convert filter from invoice to payment:
+            var payments = await PaymentService.GetAllPaymentAsync();
+            var filteredPayments = payments
+                .Where(x => x.JobStatus.Name.Equals(Constants.JobStatus.Completed))
+                .Where(x => ((DateTime)x.PaymentDate!).Date >= ((DateTime)_dateRange.Start!).Date
+                        && ((DateTime)x.PaymentDate!).Date <= ((DateTime)_dateRange.End!).Date)
+                .ToList();
+
+            var invoiceFromPayments = filteredPayments.Select(x => x.InvoiceList);
+            var paymentDetails = await PaymentDetailsService.GetAllPaymentDetailsAsync();
+
+            var invoiceNew = paymentDetails.Where(x => filteredPayments.Any(y => y.Id == x.PaymentId)).ToList();
+            var invoiceIds = invoice.Where(x => invoiceNew.Any(y => y.InvoiceId == x.Id)).ToList();
+
+            var filteredInvoice = invoiceIds;
+
+            var invoiceToCheck = filteredInvoice.Except(invoiceIds).ToList();
+            if (invoiceToCheck.Any())
+            {
+                IsLoading = false;
+                StateHasChanged();
+
+                var invoiceToCheckList = string.Join(", ", invoiceToCheck.Select(x => x.InvoiceNo));
+
+                mBoxCustomMessage = $"Error generating report. Please check invoices: [{invoiceToCheckList}]";
+                await mboxError.ShowAsync();
+
+                return;
+            }
 
             if (!filteredInvoice.Any())
             {

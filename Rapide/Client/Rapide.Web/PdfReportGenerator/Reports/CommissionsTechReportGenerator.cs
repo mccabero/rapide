@@ -165,7 +165,7 @@ namespace Rapide.Web.PdfReportGenerator.Reports
                         // loop technicians here from user list
                         foreach (var t in technicians)
                         {
-                            header.Cell().Element(CellStyle).PaddingTop(1).Text(t.FirstName.ToUpper());
+                            header.Cell().Element(CellStyle).PaddingTop(1).PaddingLeft(15).Text(t.FirstName.ToUpper());
                         }
                         
                         header.Cell().Element(CellStyle).PaddingLeft(20).PaddingTop(1).Text($"TOTAL");
@@ -179,8 +179,16 @@ namespace Rapide.Web.PdfReportGenerator.Reports
                         }
                     });
 
-                    foreach (var i in invoice)
+                    var paymentData = invoice
+                        .SelectMany(x => x.PaymentDetailsList)
+                        .ToList()
+                        .DistinctBy(y => y.InvoiceId).ToList().OrderBy(x => x.Payment.PaymentDate)
+                        .ToList();
+
+                    foreach (var pd in paymentData)
                     {
+                        var i = invoice.Where(x => x.Id == pd.InvoiceId).FirstOrDefault();
+
                         // Loop invoice here
                         table.Cell().Element(CellStyle).Text(i.InvoiceDate.Value.ToShortDateString());
                         table.Cell().Element(CellStyle).Text($"{i.JobOrder.Vehicle.VehicleModel.VehicleMake.Name} {i.JobOrder.Vehicle.VehicleModel.Name} {i.JobOrder.Vehicle.YearModel}");
@@ -197,10 +205,10 @@ namespace Rapide.Web.PdfReportGenerator.Reports
                                 ? invoiceAmountForCommission
                                 : 0;
 
-                            table.Cell().Element(CellStyle).PaddingRight(35).Text(commAmount > 0 ? commAmount.ToString("N2") : "-").AlignRight();
+                            table.Cell().Element(CellStyle).PaddingRight(15).Text(commAmount > 0 ? commAmount.ToString("N2") : "-").AlignRight();
                         }
                        
-                        table.Cell().Element(CellStyle).PaddingRight(10).Text(i.TotalAmount.ToString("N2")).AlignRight();
+                        table.Cell().Element(CellStyle).PaddingRight(5).Text(i.TotalAmount.ToString("N2")).AlignRight();
 
                     }
 
@@ -256,7 +264,7 @@ namespace Rapide.Web.PdfReportGenerator.Reports
                                     totalAmount += invoiceAmountForCommission;
                             }
 
-                            table.Cell().Element(CellStyle).PaddingRight(25).Text(totalAmount > 0 ? totalAmount.ToString("N2") : "-").AlignRight();
+                            table.Cell().Element(CellStyle).PaddingRight(10).Text(totalAmount > 0 ? totalAmount.ToString("N2") : "-").AlignRight();
                         }
 
                         table.Cell().Element(CellStyle).PaddingRight(10).Text(grandTotal.ToString("N2")).AlignRight();
