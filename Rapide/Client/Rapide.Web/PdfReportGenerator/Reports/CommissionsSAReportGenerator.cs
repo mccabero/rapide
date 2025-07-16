@@ -1,4 +1,5 @@
-﻿using Microsoft.JSInterop;
+﻿using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.JSInterop;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
@@ -179,8 +180,18 @@ namespace Rapide.Web.PdfReportGenerator.Reports
                         }
                     });
 
-                    foreach (var i in invoice)
+                    // Print by payment instead of invoice.
+                    var paymentData = invoice
+                        .SelectMany(x => x.PaymentDetailsList)
+                        .ToList()
+                        .DistinctBy(y => y.InvoiceId).ToList().OrderBy(x => x.Payment.PaymentDate)
+                        .ToList();
+
+
+                    foreach (var pd in paymentData)
                     {
+                        var i = invoice.Where(x => x.Id == pd.InvoiceId).FirstOrDefault();
+
                         // Loop invoice here
                         table.Cell().Element(CellStyle).Text(i.InvoiceDate.Value.ToShortDateString());
                         table.Cell().Element(CellStyle).Text($"{i.JobOrder.Vehicle.VehicleModel.VehicleMake.Name} {i.JobOrder.Vehicle.VehicleModel.Name} {i.JobOrder.Vehicle.YearModel}");
