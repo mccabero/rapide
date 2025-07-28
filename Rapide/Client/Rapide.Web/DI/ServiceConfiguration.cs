@@ -43,6 +43,7 @@ namespace Rapide.Web.DI
                     .AddTransient<IServiceCategoryService, ServiceCategoryService>()
                     .AddTransient<IServiceGroupService, ServiceGroupService>()
                     .AddTransient<IManufacturerService, ManufacturerService>()
+                    .AddTransient<IMembershipService, MembershipService>()
                     .AddTransient<IProductCategoryService, ProductCategoryService>()
                     .AddTransient<IProductGroupService, ProductGroupService>()
                     .AddTransient<IProductService, ProductService>()

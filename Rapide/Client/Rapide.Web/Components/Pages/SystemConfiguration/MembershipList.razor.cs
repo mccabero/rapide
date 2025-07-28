@@ -1,25 +1,27 @@
 ﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
 using MudBlazor;
 using Rapide.Common.Helpers;
 using Rapide.Contracts.Services;
 using Rapide.Services;
+using Rapide.Web.Components.Utilities;
 using Rapide.Web.Helpers;
 using Rapide.Web.Models;
 
-namespace Rapide.Web.Components.Pages.Administrator
+namespace Rapide.Web.Components.Pages.SystemConfiguration
 {
-    public partial class UserList
+    public partial class MembershipList
     {
         #region Parameters
         #endregion
 
         #region Dependency Injection
+        [CascadingParameter]
+        protected Task<AuthenticationState> AuthState { get; set; }
         [Inject]
         protected NavigationManager NavigationManager { get; set; }
         [Inject]
-        private IUserService UserService { get; set; }
-        [Inject]
-        private IUserRolesService UserRolesService { get; set; }
+        private IMembershipService? MembershipService { get; set; }
         [Inject]
         private ISnackbar SnackbarService { get; set; }
         #endregion
@@ -28,73 +30,74 @@ namespace Rapide.Web.Components.Pages.Administrator
         private MudMessageBox mbox { get; set; }
         private bool IsLoading { get; set; }
 
-        private MudDataGrid<UserModel> dataGrid;
-        private string searchString = null;
-        private List<UserModel> users = new List<UserModel>();
+        private MudDataGrid<MembershipModel> dataGrid;
+        private string searchString;
+        private List<MembershipModel> MembershipRequestModel = new List<MembershipModel>();
 
         private string mBoxCustomMessage { get; set; }
         private MudMessageBox mboxError { get; set; }
+
+        private bool isBigThreeRoles = false;
+        private bool isViewOnly = false;
         #endregion
 
         protected override async Task OnInitializedAsync()
         {
             IsLoading = true;
-            var dataList = await UserService.GetAllUserRoleAsync();
+            isBigThreeRoles = TokenHelper.IsBigThreeRoles(await AuthState);
+            isViewOnly = TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.HR)
+                || TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.Accountant);
 
-            if (dataList == null)
-            {
+            var datalist = await MembershipService.GetAllMembershipAsync();
+
+            if (datalist == null) 
+            { 
                 IsLoading = false;
                 return;
             }
 
-            foreach (var ul in dataList)
+            foreach (var ul in datalist)
             {
-                users.Add(new UserModel()
+                MembershipRequestModel.Add(new MembershipModel()
                 {
+                    Customer = ul.Customer.Map<CustomerModel>(),
                     Id = ul.Id,
-                    FirstName = ul.FirstName,
-                    MiddleName = ul.MiddleName,
-                    LastName = ul.LastName,
-                    Email = ul.Email,
-                    MobileNumber = ul.MobileNumber,
-                    FullName = $"{ul.FirstName} {ul.MiddleName} {ul.LastName}",
-                    Gender = (int)ul.Gender,
-                    Address = ul.Address,
+                    MembershipNo = ul.MembershipNo,
+                    MembershipDate = ul.MembershipDate,
+                    ExpiryDate = ul.ExpiryDate,
                     IsActive = ul.IsActive,
-                    RoleId = (int)ul.RoleId,
-                    Role = ul?.Role?.Map<RoleModel>()
+                    CreatedDateTime = ul.CreatedDateTime,
                 });
             }
 
             IsLoading = false;
             StateHasChanged();
-            base.OnInitializedAsync();
+            await base.OnInitializedAsync();
         }
 
-        protected override Task OnAfterRenderAsync(bool firstRender)
+        private async Task<GridData<MembershipModel>> ServerReload(GridState<MembershipModel> state)
         {
-            return base.OnAfterRenderAsync(firstRender);
-        }
-
-        private async Task<GridData<UserModel>> ServerReload(GridState<UserModel> state)
-        {
-            IEnumerable<UserModel> data = new List<UserModel>();
-            data = users.OrderByDescending(x => x.Id);
+            IEnumerable<MembershipModel> data = new List<MembershipModel>();
+            data = MembershipRequestModel.OrderByDescending(x => x.Id);
 
             await Task.Delay(300);
             data = data.Where(element =>
             {
                 if (string.IsNullOrWhiteSpace(searchString))
                     return true;
-                if (element.FullName.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+                if (element.Id.ToString().Contains(searchString, StringComparison.OrdinalIgnoreCase))
                     return true;
-                if ($"{element.FirstName} {element.LastName}".Contains(searchString, StringComparison.OrdinalIgnoreCase))
+                if (element.MembershipNo.Contains(searchString, StringComparison.OrdinalIgnoreCase))
                     return true;
-                if (element.Email.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+                if (element.Customer.FirstName.Contains(searchString, StringComparison.OrdinalIgnoreCase))
                     return true;
-                if (element.Role.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+                if (element.Customer.LastName.Contains(searchString, StringComparison.OrdinalIgnoreCase))
                     return true;
-                if (element.MobileNumber.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+                if (element.Customer.MiddleName.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+                    return true;
+                if (element.Customer.MobileNumber.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+                    return true;
+                if (element.Customer.Email.Contains(searchString, StringComparison.OrdinalIgnoreCase))
                     return true;
 
                 return false;
@@ -107,41 +110,48 @@ namespace Rapide.Web.Components.Pages.Administrator
             {
                 switch (sortDefinition.SortBy)
                 {
-                    case nameof(UserModel.FirstName):
+                    case nameof(MembershipModel.Id):
                         data = data.OrderByDirection(
                             sortDefinition.Descending ? SortDirection.Descending : SortDirection.Ascending,
-                            o => o.FirstName
+                            o => o.Id
                         );
                         break;
-                    case nameof(UserModel.FullName):
+                    case nameof(MembershipModel.Customer.FirstName):
                         data = data.OrderByDirection(
                             sortDefinition.Descending ? SortDirection.Descending : SortDirection.Ascending,
-                            o => o.FullName
+                            o => o.Id
                         );
                         break;
-                    case nameof(UserModel.Email):
+                    case nameof(MembershipModel.Customer.MiddleName):
                         data = data.OrderByDirection(
                             sortDefinition.Descending ? SortDirection.Descending : SortDirection.Ascending,
-                            o => o.Email
+                            o => o.Id
                         );
                         break;
-                    case nameof(UserModel.MobileNumber):
+                    case nameof(MembershipModel.Customer.LastName):
                         data = data.OrderByDirection(
                             sortDefinition.Descending ? SortDirection.Descending : SortDirection.Ascending,
-                            o => o.MobileNumber
+                            o => o.Id
                         );
                         break;
-                    case nameof(UserModel.Role.Name):
+                    case nameof(MembershipModel.Customer.MobileNumber):
                         data = data.OrderByDirection(
                             sortDefinition.Descending ? SortDirection.Descending : SortDirection.Ascending,
-                            o => o.Role.Name
+                            o => o.Id
+                        );
+                        break;
+                    case nameof(MembershipModel.Customer.Email):
+                        data = data.OrderByDirection(
+                            sortDefinition.Descending ? SortDirection.Descending : SortDirection.Ascending,
+                            o => o.Id
                         );
                         break;
                 }
             }
 
             var pagedData = data.Skip(state.Page * state.PageSize).Take(state.PageSize).ToArray();
-            return new GridData<UserModel>
+
+            return new GridData<MembershipModel>
             {
                 TotalItems = totalItems,
                 Items = pagedData
@@ -156,14 +166,14 @@ namespace Rapide.Web.Components.Pages.Administrator
 
         private void OnAddClick()
         {
-            NavigationManager.NavigateToCustom("/administrators/users/add");
+            NavigationManager.NavigateToCustom("/configurations/memberships/add");
         }
 
-        private async Task OnDeleteClick(UserModel user)
+        private async Task OnDeleteClick(MembershipModel uom)
         {
             try
             {
-                if (user != null)
+                if (uom != null)
                 {
                     bool? result = await mbox.ShowAsync();
                     var proceed = result == null ? false : true;
@@ -172,21 +182,13 @@ namespace Rapide.Web.Components.Pages.Administrator
                     {
                         IsLoading = true;
 
-                        // Delete Products
-                        var userRolesList = await UserRolesService.GetUserRolesByUserIdAsync(user.Id);
-                        if (userRolesList != null)
-                        {
-                            foreach (var p in userRolesList)
-                                await UserRolesService.DeleteAsync(p.Id);
-                        }
-
-                        await UserService.DeleteAsync(user.Id);
-                        SnackbarService.Add("User Successfuly Deleted!", Severity.Normal, config => { config.ShowCloseIcon = true; });
+                        await MembershipService.DeleteAsync(uom.Id);
+                        SnackbarService.Add("Membership Successfully Deleted!", Severity.Normal, config => { config.ShowCloseIcon = true; });
 
                         IsLoading = false;
                         StateHasChanged();
 
-                        NavigationManager.NavigateToCustom("/administrators/users", true);
+                        NavigationManager.NavigateToCustom("/configurations/memberships", true);
                     }
                 }
             }

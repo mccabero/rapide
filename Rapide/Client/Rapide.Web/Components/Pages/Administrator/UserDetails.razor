@@ -221,6 +221,19 @@
                                 </div>
                                 <div class="col-sm-6"></div>
                             </div>
+                            <div class="col-sm">
+                                <div class="form-group">
+                                    <label>Address</label>
+                                    <MudTextField T="string"
+                                    MaxLength="100"
+                                    @bind-Value="UserRequestModel.Address"
+                                    For="(() => UserRequestModel.Address)"
+                                    Adornment="Adornment.Start"
+                                    AdornmentIcon="@Icons.Material.Filled.House"
+                                    Variant="Variant.Outlined"
+                                    Margin="Margin.Dense" />
+                                </div>
+                            </div>
                         </MudForm>
                     </div>
 
