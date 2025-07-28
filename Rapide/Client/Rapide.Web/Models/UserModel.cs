@@ -24,6 +24,8 @@
 
         public DateTime Birthday { get; set; }
 
+        public string? Address { get; set; }
+
         public bool IsActive { get; set; }
 
         public RoleModel Role { get; set; }

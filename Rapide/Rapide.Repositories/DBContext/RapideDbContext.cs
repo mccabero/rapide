@@ -17,6 +17,7 @@ namespace Rapide.Repositories.DBContext
         public virtual DbSet<VehicleMake> VehicleMake { get; set; }
         public virtual DbSet<VehicleModel> VehicleModel { get; set; }
         public virtual DbSet<Manufacturer> Manufacturer { get; set; }
+        public virtual DbSet<Membership> Membership { get; set; }
         public virtual DbSet<ServiceGroup> ServiceGroup { get; set; }
         public virtual DbSet<ServiceCategory> ServiceCategory { get; set; }
         public virtual DbSet<Service> Service { get; set; }

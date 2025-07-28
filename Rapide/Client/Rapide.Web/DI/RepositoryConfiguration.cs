@@ -41,6 +41,7 @@ namespace Rapide.Web.DI
                 .AddTransient<IServiceCategoryRepo, ServiceCategoryRepo>()
                 .AddTransient<IServiceGroupRepo, ServiceGroupRepo>()
                 .AddTransient<IManufacturerRepo, ManufacturerRepo>()
+                .AddTransient<IMembershipRepo, MembershipRepo>()
                 .AddTransient<IProductCategoryRepo, ProductCategoryRepo>()
                 .AddTransient<IProductGroupRepo, ProductGroupRepo>()
                 .AddTransient<IProductRepo, ProductRepo>()

@@ -54,10 +54,14 @@ h1:focus {
     margin-bottom: 1vh !important;
 }
 
+.membership-input input:disabled {
+    background-color: #eeeeee !important;
+    color: #444444 !important;
+}
+
 .card-header .small {
     height: 5vh !important;
 }
-
 
 .card-title {
     font-size: medium !important;

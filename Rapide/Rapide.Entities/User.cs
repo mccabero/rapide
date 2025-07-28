@@ -41,6 +41,8 @@ namespace Rapide.Entities
         [Required]
         public DateTime Birthday { get; set; }
 
+        public string? Address { get; set; }
+
         [Required]
         public bool IsActive { get; set; }
     }

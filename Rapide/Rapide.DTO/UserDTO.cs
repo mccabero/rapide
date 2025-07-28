@@ -10,6 +10,7 @@
         public string? Salt { get; set; }
 
         public RoleDTO Role { get; set; }
+
         public int RoleId { get; set; }
 
         public int Gender { get; set; }
@@ -24,8 +25,10 @@
 
         public DateTime? Birthday { get; set; }
 
-        public bool IsActive { get; set; }
+        public string? Address { get; set; }
 
+        public bool IsActive { get; set; }
+        
         public virtual List<UserRolesDTO> UserRoles { get; set; }
     }
 }
