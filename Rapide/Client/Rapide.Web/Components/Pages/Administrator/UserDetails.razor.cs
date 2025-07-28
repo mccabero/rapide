@@ -48,7 +48,7 @@ namespace Rapide.Web.Components.Pages.Administrator
         #region Private Properties
         private List<RoleDTO> Roles { get; set; } = new();
         private MudMessageBox mbox { get; set; }
-        private UserDTO MembershipRequestModel { get; set; } = new();
+        private UserDTO UserRequestModel { get; set; } = new();
         private bool IsLoading { get; set; }
         private bool IsError { get; set; } = false;
         private string ErrorMessage { get; set; } = string.Empty;
@@ -74,15 +74,15 @@ namespace Rapide.Web.Components.Pages.Administrator
             if (isEditMode)
             {
                 // Get user data by id
-                MembershipRequestModel = await UserService.GetUserRoleByIdAsync(int.Parse(UserId));
-                MembershipRequestModel.PasswordHash = CryptographyHelper.Decrypt(MembershipRequestModel.PasswordHash, CryptographyHelper.GetEncryptionKey());
-                MembershipRequestModel.ConfirmPasswordHash = MembershipRequestModel.PasswordHash;
+                UserRequestModel = await UserService.GetUserRoleByIdAsync(int.Parse(UserId));
+                UserRequestModel.PasswordHash = CryptographyHelper.Decrypt(UserRequestModel.PasswordHash, CryptographyHelper.GetEncryptionKey());
+                UserRequestModel.ConfirmPasswordHash = UserRequestModel.PasswordHash;
 
-                MembershipRequestModel.UserRoles = await UserRolesService.GetUserRolesByUserIdAsync(int.Parse(UserId));
+                UserRequestModel.UserRoles = await UserRolesService.GetUserRolesByUserIdAsync(int.Parse(UserId));
 
-                if (MembershipRequestModel.UserRoles != null)
+                if (UserRequestModel.UserRoles != null)
                 {
-                    foreach (var ur in MembershipRequestModel.UserRoles)
+                    foreach (var ur in UserRequestModel.UserRoles)
                     {
                         var multipleRoles = roleItems.Where(x => x.Id == ur.RoleId);
                         if (multipleRoles != null && multipleRoles.Any())
@@ -93,7 +93,7 @@ namespace Rapide.Web.Components.Pages.Administrator
                 }
 
 
-                var assignedRoles = roleItems.Where(x => x.Id == MembershipRequestModel.RoleId);
+                var assignedRoles = roleItems.Where(x => x.Id == UserRequestModel.RoleId);
                 if (assignedRoles != null && assignedRoles.Any())
                 {
                     roleItems.Where(x => x.Id == assignedRoles.FirstOrDefault().Id).FirstOrDefault().Place = "Assigned";
@@ -102,7 +102,7 @@ namespace Rapide.Web.Components.Pages.Administrator
             }
             else 
             {
-                MembershipRequestModel.Birthday = DateTime.Now;
+                UserRequestModel.Birthday = DateTime.Now;
             }
 
             IsLoading = false;
@@ -137,10 +137,10 @@ namespace Rapide.Web.Components.Pages.Administrator
             {
                 try
                 {
-                    MembershipRequestModel.RoleId = MembershipRequestModel.Role.Id;
+                    UserRequestModel.RoleId = UserRequestModel.Role.Id;
 
                     #region Validation
-                    if (string.IsNullOrEmpty(MembershipRequestModel.PasswordHash) || string.IsNullOrEmpty(MembershipRequestModel.ConfirmPasswordHash))
+                    if (string.IsNullOrEmpty(UserRequestModel.PasswordHash) || string.IsNullOrEmpty(UserRequestModel.ConfirmPasswordHash))
                     {
                         ErrorMessage = "Password or confirm password field is empty.";
                         IsError = true;
@@ -170,22 +170,22 @@ namespace Rapide.Web.Components.Pages.Administrator
                     IsLoading = true;
                     bool isEditMode = !string.IsNullOrEmpty(UserId);
                     
-                    MembershipRequestModel.Salt = Rapide.Common.Helpers.CryptographyHelper.GenerateSalt();
-                    MembershipRequestModel.PasswordHash =
+                    UserRequestModel.Salt = Rapide.Common.Helpers.CryptographyHelper.GenerateSalt();
+                    UserRequestModel.PasswordHash =
                         Rapide.Common.Helpers.CryptographyHelper.Encrypt(
-                            MembershipRequestModel.PasswordHash,
+                            UserRequestModel.PasswordHash,
                             Rapide.Common.Helpers.CryptographyHelper.GetEncryptionKey());
 
                     if (!isEditMode) // create mode
                     {
-                        MembershipRequestModel.CreatedById = TokenHelper.GetCurrentUserId(await AuthState);
-                        MembershipRequestModel.CreatedDateTime = DateTime.Now;
-                        MembershipRequestModel.UpdatedById = TokenHelper.GetCurrentUserId(await AuthState);
-                        MembershipRequestModel.UpdatedDateTime = DateTime.Now;
+                        UserRequestModel.CreatedById = TokenHelper.GetCurrentUserId(await AuthState);
+                        UserRequestModel.CreatedDateTime = DateTime.Now;
+                        UserRequestModel.UpdatedById = TokenHelper.GetCurrentUserId(await AuthState);
+                        UserRequestModel.UpdatedDateTime = DateTime.Now;
 
 
                         // call create endpoint here...
-                        var created = await UserService.CreateAsync(MembershipRequestModel);
+                        var created = await UserService.CreateAsync(UserRequestModel);
 
                         // Save roles
                         var assignedRoles = roleItems.Where(x => x.Place == "Assigned");
@@ -215,13 +215,13 @@ namespace Rapide.Web.Components.Pages.Administrator
                     {
                         int userId = int.Parse(UserId);
 
-                        MembershipRequestModel.UpdatedById = TokenHelper.GetCurrentUserId(await AuthState);
-                        MembershipRequestModel.UpdatedDateTime = DateTime.Now;
+                        UserRequestModel.UpdatedById = TokenHelper.GetCurrentUserId(await AuthState);
+                        UserRequestModel.UpdatedDateTime = DateTime.Now;
 
-                        MembershipRequestModel.Role = null;
+                        UserRequestModel.Role = null;
 
                         // call update endpoint here...
-                        await UserService.UpdateAsync(MembershipRequestModel);
+                        await UserService.UpdateAsync(UserRequestModel);
 
                         // Detele all current services? Update also include insert inside
                         var userRolesByUser = await UserRolesService.GetUserRolesByUserIdAsync(userId);
@@ -278,7 +278,7 @@ namespace Rapide.Web.Components.Pages.Administrator
 
         private bool ValidateRequiredField()
         {
-            var user = MembershipRequestModel;
+            var user = UserRequestModel;
 
             if (user.RoleId == 0)
                 return false;
@@ -297,8 +297,8 @@ namespace Rapide.Web.Components.Pages.Administrator
 
         private bool ValidateConfirmPassword()
         {
-            return MembershipRequestModel.PasswordHash
-                .Equals(MembershipRequestModel.ConfirmPasswordHash);
+            return UserRequestModel.PasswordHash
+                .Equals(UserRequestModel.ConfirmPasswordHash);
         }
 
         private IEnumerable<string> PasswordStrength(string pw)
@@ -351,7 +351,7 @@ namespace Rapide.Web.Components.Pages.Administrator
         private async Task OnUserRoleChanged(UserDTO element, RoleDTO dto)
         {
             ReloadAllUserRoles();
-            MembershipRequestModel.Role = dto;
+            UserRequestModel.Role = dto;
             
             var assignedRoles = roleItems.Where(x => x.Id == dto.Id);
             if (assignedRoles != null && assignedRoles.Any())

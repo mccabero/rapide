@@ -75,8 +75,8 @@
                                                 Required="true"
                                                 RequiredError="First name is required!"
                                                 MaxLength="100"
-                                                @bind-Value="MembershipRequestModel.FirstName"
-                                                For="(() => MembershipRequestModel.FirstName)"
+                                                @bind-Value="UserRequestModel.FirstName"
+                                                For="(() => UserRequestModel.FirstName)"
                                                 Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Person"
                                                 Margin="Margin.Dense" Variant="Variant.Outlined" Clearable  />
                                     </div>
@@ -87,8 +87,8 @@
                                         <MudTextField T="string"
                                                 Required="false"
                                                 MaxLength="100"
-                                                @bind-Value="MembershipRequestModel.MiddleName"
-                                                For="(() => MembershipRequestModel.MiddleName)"
+                                                @bind-Value="UserRequestModel.MiddleName"
+                                                For="(() => UserRequestModel.MiddleName)"
                                                 Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Person"
                                                 Margin="Margin.Dense" Variant="Variant.Outlined" Clearable  />
                                     </div>
@@ -100,8 +100,8 @@
                                                 Required="true"
                                                 RequiredError="Last name is required!"
                                                 MaxLength="100"
-                                                @bind-Value="MembershipRequestModel.LastName"
-                                                For="(() => MembershipRequestModel.LastName)"
+                                                @bind-Value="UserRequestModel.LastName"
+                                                For="(() => UserRequestModel.LastName)"
                                                 Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Person"
                                                 Margin="Margin.Dense" Variant="Variant.Outlined" Clearable  />
                                     </div>
@@ -115,8 +115,8 @@
                                         <MudTextField T="string"
                                                 Required="false"
                                                 MaxLength="11"
-                                                @bind-Value="MembershipRequestModel.MobileNumber"
-                                                For="(() => MembershipRequestModel.MobileNumber)"
+                                                @bind-Value="UserRequestModel.MobileNumber"
+                                                For="(() => UserRequestModel.MobileNumber)"
                                                 Mask="@(new PatternMask("0000 000 0000"))"
                                                 Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Phone"
                                                 Margin="Margin.Dense" Variant="Variant.Outlined" Clearable  />
@@ -129,8 +129,8 @@
                                                 Required="true"
                                                 RequiredError="Email is required!"
                                                 MaxLength="255"
-                                                @bind-Value="MembershipRequestModel.Email"
-                                                For="(() => MembershipRequestModel.Email)"
+                                                @bind-Value="UserRequestModel.Email"
+                                                For="(() => UserRequestModel.Email)"
                                                 Validation="@(new EmailAddressAttribute() {ErrorMessage = "The email address is invalid"})"
                                                 Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Email"
                                                 Margin="Margin.Dense" Variant="Variant.Outlined" Clearable  />
@@ -139,7 +139,7 @@
                                 <div class="col-sm-4" style="padding-left: 15px !important;">
                                     <div class="form-group">
                                         <label style="margin-bottom: 3px !important;">Gender<code> *</code></label>
-                                        <MudRadioGroup Required="true" RequiredError="Gender is required!" @bind-Value="MembershipRequestModel.Gender">
+                                        <MudRadioGroup Required="true" RequiredError="Gender is required!" @bind-Value="UserRequestModel.Gender">
                                             <MudRadio Value="1" Color="Color.Primary" Dense="true">Male</MudRadio>
                                             <MudRadio Value="0" Color="Color.Secondary" Dense="false">Female</MudRadio>
                                         </MudRadioGroup>
@@ -155,7 +155,7 @@
                                         <MudTextField T="string" 
                                             @ref="pwField1"
                                             InputType="InputType.Password"
-                                            @bind-Value="MembershipRequestModel.PasswordHash"
+                                            @bind-Value="UserRequestModel.PasswordHash"
                                             Validation="@(new Func<string, IEnumerable<string>>(PasswordStrength))"
                                             Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Password"
                                             Margin="Margin.Dense" Variant="Variant.Outlined" Clearable  
@@ -166,7 +166,7 @@
                                     <div class="form-group">
                                         <label for="exampleInputConfirmPassword1">Confirm Password<code> *</code></label>
                                         <MudTextField T="string"
-                                            @bind-Value="MembershipRequestModel.ConfirmPasswordHash"
+                                            @bind-Value="UserRequestModel.ConfirmPasswordHash"
                                             InputType="InputType.Password"
                                             Validation="@(new Func<string, string>(PasswordMatch))"
                                             Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Password"
@@ -179,8 +179,8 @@
                                         <label>Primary User Role<code> *</code></label>
                                         <MudAutocomplete T="RoleDTO"
                                                          Margin="Margin.Dense"
-                                                         Value="MembershipRequestModel.Role"
-                                                         ValueChanged="@((i) => OnUserRoleChanged(MembershipRequestModel, i))"
+                                                         Value="UserRequestModel.Role"
+                                                         ValueChanged="@((i) => OnUserRoleChanged(UserRequestModel, i))"
                                                          SearchFunc="@SearchRole"
                                                          Variant="Variant.Outlined"
                                                          ToStringFunc="@(e=> e==null?null : $"{e.Name}")"
@@ -210,13 +210,13 @@
                                                        Required="true" RequiredError="This field is required!"
                                                        Variant="Variant.Outlined"
                                                        Margin="Margin.Dense"
-                                                       @bind-Date="MembershipRequestModel.Birthday"  />
+                                                       @bind-Date="UserRequestModel.Birthday"  />
                                     </div>
                                 </div>
                                 <div class="col-sm-1">
                                     <div class="form-group">
                                         <label style="margin-bottom: 3px !important;">Is Active?<code> *</code></label>
-                                        <MudSwitch @bind-Value="MembershipRequestModel.IsActive" Color="Color.Success">@(MembershipRequestModel.IsActive ? "Active" : "Inactive")</MudSwitch>
+                                        <MudSwitch @bind-Value="UserRequestModel.IsActive" Color="Color.Success">@(UserRequestModel.IsActive ? "Active" : "Inactive")</MudSwitch>
                                     </div>
                                 </div>
                                 <div class="col-sm-6"></div>
@@ -226,8 +226,8 @@
                                     <label>Address</label>
                                     <MudTextField T="string"
                                     MaxLength="100"
-                                    @bind-Value="MembershipRequestModel.Address"
-                                    For="(() => MembershipRequestModel.Address)"
+                                    @bind-Value="UserRequestModel.Address"
+                                    For="(() => UserRequestModel.Address)"
                                     Adornment="Adornment.Start"
                                     AdornmentIcon="@Icons.Material.Filled.House"
                                     Variant="Variant.Outlined"
