@@ -433,15 +433,12 @@ namespace Rapide.Web.Components.Pages.Operations
                 }
             }
 
-            if (EstimateRequestModel.ProductList != null && EstimateRequestModel.ProductList.Any())
+            if (estimateProductList != null && estimateProductList.Any())
             {
-                if (estimateProductList != null && estimateProductList.Any())
+                foreach (var del in estimateProductList)
                 {
-                    foreach (var del in estimateProductList)
-                    {
-                        //if (!estimateProductListForSkipDelete.Where(x => x.Id == del.Id).Any())
-                        await EstimateProductService.DeleteAsync(del.Id);
-                    }
+                    //if (!estimateProductListForSkipDelete.Where(x => x.Id == del.Id).Any())
+                    await EstimateProductService.DeleteAsync(del.Id);
                 }
             }
 

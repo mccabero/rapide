@@ -388,15 +388,12 @@ namespace Rapide.Web.Components.Pages.Operations
                 }
             }
 
-            if (JobOrderRequestModel.ProductList != null && JobOrderRequestModel.ProductList.Any())
+            if (jobOrderProductList != null && jobOrderProductList.Any())
             {
-                if (jobOrderProductList != null && jobOrderProductList.Any())
+                foreach (var del in jobOrderProductList)
                 {
-                    foreach (var del in jobOrderProductList)
-                    {
-                        //if (!estiamteProductListForSkipDelete.Where(x => x.Id == del.Id).Any())
-                        await JobOrderProductService.DeleteAsync(del.Id);
-                    }
+                    //if (!estiamteProductListForSkipDelete.Where(x => x.Id == del.Id).Any())
+                    await JobOrderProductService.DeleteAsync(del.Id);
                 }
             }
 

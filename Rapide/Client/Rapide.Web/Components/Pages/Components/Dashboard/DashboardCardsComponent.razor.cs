@@ -64,7 +64,7 @@ namespace Rapide.Web.Components.Pages.Components.Dashboard
             _dateRange.Start = DateTime.Now.Date;
             _dateRange.End = DateTime.Now.Date;
 
-            //await ReloadDashboardData();
+            await ReloadDashboardData();
 
             await base.OnInitializedAsync();
         }
