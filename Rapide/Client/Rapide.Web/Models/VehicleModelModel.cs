@@ -16,5 +16,13 @@
 
         public ParameterModel ClassificationParameter { get; set; }
         public int ClassificationParameterId { get; set; }
+
+        public int CreatedById { get; set; }
+
+        public DateTime CreatedDateTime { get; set; }
+
+        public int UpdatedById { get; set; }
+
+        public DateTime UpdatedDateTime { get; set; }
     }
 }

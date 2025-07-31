@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using MudBlazor;
 using Rapide.Common.Helpers;
 using Rapide.Contracts.Services;
+using Rapide.Entities;
 using Rapide.Web.Components.Utilities;
 using Rapide.Web.Helpers;
 using Rapide.Web.Models;
@@ -36,58 +38,53 @@ namespace Rapide.Web.Components.Pages.Vehicles
         private string mBoxCustomMessage { get; set; }
         private MudMessageBox mboxError { get; set; }
         private bool isViewOnly = false;
+        private bool IsBigThreeRoles = false;
         #endregion
 
         protected override async Task OnInitializedAsync()
         {
             IsLoading = true;
+            IsBigThreeRoles = TokenHelper.IsBigThreeRolesWithoutSupervisor(await AuthState);
             isViewOnly = TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.HR)
                 || TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.Accountant);
 
-            var dataList = await VehicleService.GetAllVehicleAsync();
+            try
+            {
 
-            if (dataList == null)
+                var dataList = await VehicleService.GetAllVehicleAsync();
+
+                if (dataList == null)
+                {
+                    IsLoading = false;
+                    return;
+                }
+
+                IMapper mapper = MappingWebHelper.InitializeMapper();
+                //VehicleRequestModel = mapper.Map<List<VehiclesModel>>(dataList.ToList());
+
+                foreach (var ul in dataList)
+                {
+                    var customerMap = mapper.Map<CustomerModel>(ul.Customer);
+                    var vehicleModelMap = mapper.Map<VehicleModelModel>(ul.VehicleModel);
+
+                    VehicleRequestModel.Add(new VehiclesModel()
+                    {
+                        Id = ul.Id,
+                        Customer = customerMap,
+                        FullName = $"{ul.Customer.FirstName} {ul.Customer.LastName}",
+                        PlateNo = ul.PlateNo,
+                        VehicleModel = vehicleModelMap,
+                        VIN = ul.VIN,
+                        YearModel = ul.YearModel
+                    });
+                }
+            }
+            catch (Exception ex)
             {
                 IsLoading = false;
-                return;
-            }
+                StateHasChanged();
 
-            foreach (var ul in dataList)
-            {
-                VehicleRequestModel.Add(new VehiclesModel()
-                {
-                    Id = ul.Id,
-                    IsAllowedToOverride = TokenHelper.IsBigThreeRoles(await AuthState),
-                    Customer = ul.Customer.Map<CustomerModel>(),
-                    FullName = $"{ul.Customer.FirstName} {ul.Customer.LastName}",
-                    PlateNo = ul.PlateNo,
-                    VehicleModel = new VehicleModelModel()
-                    {
-                        Id = ul.VehicleModel.Id,
-                        VehicleMake = new VehicleMakeModel()
-                        { 
-                            Id = ul.VehicleModel.VehicleMake.Id,
-                            Name = ul.VehicleModel.VehicleMake.Name,
-                            Description = ul.VehicleModel.VehicleMake.Description
-                        },
-                        Name = ul.VehicleModel.Name,
-                        BodyParameter = new ParameterModel()
-                        {
-                            Id = ul.VehicleModel.BodyParameter.Id,
-                            Name = ul.VehicleModel.BodyParameter.Name,
-                            Description = ul.VehicleModel.BodyParameter.Description
-                        },
-                        ClassificationParameter = new ParameterModel()
-                        { 
-                            Id = ul.VehicleModel.ClassificationParameter.Id,
-                            Name = ul.VehicleModel.ClassificationParameter.Name,
-                            Description = ul.VehicleModel.ClassificationParameter.Description
-                        },
-                        Description = ul.VehicleModel.Description
-                    },
-                    VIN = ul.VIN,
-                    YearModel = ul.YearModel
-                });
+                throw new Exception(ex.Message);
             }
 
             IsLoading = false;

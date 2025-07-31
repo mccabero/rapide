@@ -1,4 +1,5 @@
-﻿using Rapide.Common.Helpers;
+﻿using AutoMapper;
+using Rapide.Common.Helpers;
 using Rapide.Contracts.Repositories;
 using Rapide.Contracts.Services;
 using Rapide.DTO;
@@ -20,8 +21,8 @@ namespace Rapide.Services
                 if (entity == null)
                     return null;
 
-                foreach (var e in entity)
-                    dtoList.Add(e.Map<CustomerDTO>());
+                IMapper mapper = MappingHelper.InitializeMapper();
+                dtoList = mapper.Map<List<CustomerDTO>>(entity);
 
                 return dtoList;
             }

@@ -91,7 +91,7 @@
                                         </PropertyColumn>
                                         <PropertyColumn Property="x => x.VehicleModel.Name" Title="Vehicle Model" Filterable="false" Sortable="false">
                                             <CellTemplate>
-                                                <MudText>@($"{context.Item.VehicleModel.VehicleMake.Name} {context.Item.VehicleModel.Name}")</MudText>
+                                                <MudText>@($"{context.Item.VehicleModel.VehicleMake.Name} {context.Item.VehicleModel.Name} ({context.Item.YearModel})")</MudText>
                                             </CellTemplate>
                                         </PropertyColumn>
                                         <PropertyColumn Property="x => x.YearModel" Title="Year Model" Filterable="false" />
@@ -107,7 +107,7 @@
                                             <CellTemplate>
                                                 <MudStack Row>
                                                     <MudButton Size="@Size.Medium" Variant="@Variant.Filled" Href="@string.Format("/vehicles/{0}", @context.Item.Id.ToString())" Color="@Color.Primary"><i class="fa fa-pencil-square-o"></i></MudButton>
-                                                    @if (context.Item.IsAllowedToOverride)
+                                                    @if (IsBigThreeRoles)
                                                     {
                                                         <MudButton Size="@Size.Medium" @onclick="args => OnDeleteClick(context.Item)" Variant="@Variant.Filled" Color="@Color.Error"><i class="fa fa-trash"></i></MudButton>
                                                     }

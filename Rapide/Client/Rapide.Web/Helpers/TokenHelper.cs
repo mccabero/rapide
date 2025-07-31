@@ -61,6 +61,28 @@ namespace Rapide.Web.Helpers
                 return true;
             if (userRoles.Any(x => x.Equals(Constants.UserRoles.SystemAdministrator)))
                 return true;
+            if (userRoles.Any(x => x.Equals(Constants.UserRoles.RapideAdministrator)))
+                return true;
+
+            return false;
+        }
+
+        public static bool IsBigThreeRolesWithoutSupervisor(AuthenticationState authState)
+        {
+            var claims = authState.User.Claims;
+            var roles = claims.FirstOrDefault(c => c.Type == ClaimTypes.Role);
+
+            if (roles == null)
+                return false;
+
+            var userRoles = JsonConvert.DeserializeObject<List<string>>(roles.Value);
+
+            if (userRoles.Any(x => x.Equals(Constants.UserRoles.Owner)))
+                return true;
+            if (userRoles.Any(x => x.Equals(Constants.UserRoles.SystemAdministrator)))
+                return true;
+            if (userRoles.Any(x => x.Equals(Constants.UserRoles.RapideAdministrator)))
+                return true;
 
             return false;
         }

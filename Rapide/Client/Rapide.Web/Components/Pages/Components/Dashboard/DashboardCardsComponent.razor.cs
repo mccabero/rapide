@@ -88,7 +88,7 @@ namespace Rapide.Web.Components.Pages.Components.Dashboard
             estimateCount = estimates == null ? 0 : estimates.Count;
             jobOrdersCount = jobOrders == null ? 0 : jobOrders.Count;
 
-            isAllowOverride = TokenHelper.IsBigThreeRoles(await AuthState);
+            isAllowOverride = TokenHelper.IsBigThreeRolesWithoutSupervisor(await AuthState);
 
             await GetDiscount();
             await GetExpenses();

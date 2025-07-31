@@ -83,7 +83,7 @@ namespace Rapide.Web.Components.Pages.Operations
 
                 JobOrderRequestModel.Add(new JobOrderModel()
                 {
-                    IsAllowedToOverride = TokenHelper.IsBigThreeRoles(await AuthState),
+                    IsAllowedToOverride = TokenHelper.IsBigThreeRolesWithoutSupervisor(await AuthState),
                     StatusChipColor = statusColor,
                     Id = ul.Id,
                     ReferenceNo = ul.ReferenceNo,

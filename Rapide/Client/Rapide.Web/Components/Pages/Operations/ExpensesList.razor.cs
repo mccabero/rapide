@@ -68,7 +68,7 @@ namespace Rapide.Web.Components.Pages.Operations
 
                 ExpensesRequestModel.Add(new ExpensesModel()
                 {
-                    IsAllowedToOverride = TokenHelper.IsBigThreeRoles(await AuthState),
+                    IsAllowedToOverride = TokenHelper.IsBigThreeRolesWithoutSupervisor(await AuthState),
                     StatusChipColor = statusColor,
                     Id = ul.Id,
                     ReferenceNo = ul.ReferenceNo,

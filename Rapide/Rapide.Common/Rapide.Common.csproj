@@ -12,4 +12,9 @@
     <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="9.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Rapide.DTO\Rapide.DTO.csproj" />
+    <ProjectReference Include="..\Rapide.Entities\Rapide.Entities.csproj" />
+  </ItemGroup>
+
 </Project>

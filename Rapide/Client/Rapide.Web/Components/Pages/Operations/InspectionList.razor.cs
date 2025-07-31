@@ -79,7 +79,7 @@ namespace Rapide.Web.Components.Pages.Operations
 
                 InspectionRequestModel.Add(new InspectionModel()
                 {
-                    IsAllowedToOverride = TokenHelper.IsBigThreeRoles(await AuthState),
+                    IsAllowedToOverride = TokenHelper.IsBigThreeRolesWithoutSupervisor(await AuthState),
                     StatusChipColor = statusColor,
                     Id = ul.Id,
                     ReferenceNo = ul.ReferenceNo,

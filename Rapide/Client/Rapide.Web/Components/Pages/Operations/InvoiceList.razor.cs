@@ -89,7 +89,7 @@ namespace Rapide.Web.Components.Pages.Operations
 
                 InvoiceRequestModel.Add(new InvoiceModel()
                 {
-                    IsAllowedToOverride = TokenHelper.IsBigThreeRoles(await AuthState),
+                    IsAllowedToOverride = TokenHelper.IsBigThreeRolesWithoutSupervisor(await AuthState),
                     StatusChipColor = statusColor,
                     Id = ul.Id,
                     IsPackage = ul.IsPackage,

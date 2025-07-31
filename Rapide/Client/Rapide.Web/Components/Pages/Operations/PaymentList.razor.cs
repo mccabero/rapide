@@ -81,7 +81,7 @@ namespace Rapide.Web.Components.Pages.Operations
 
                 PaymentRequestModel.Add(new PaymentModel()
                 {
-                    IsAllowedToOverride = TokenHelper.IsBigThreeRoles(await AuthState),
+                    IsAllowedToOverride = TokenHelper.IsBigThreeRolesWithoutSupervisor(await AuthState),
                     StatusChipColor = statusColor,
                     Id = ul.Id,
                     IsFullyPaid = ul.IsFullyPaid,

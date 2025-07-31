@@ -11,28 +11,7 @@ namespace Rapide.Services
 {
     public class VehicleService(IVehicleRepo repo) : BaseService<Vehicle, VehicleDTO>(repo), IVehicleService
     {
-        private static IMapper InitializeMapper()
-        {
-            var map = new MapperConfiguration(cfg =>
-            {
-                cfg.CreateMap<Customer, CustomerDTO>();
-                cfg.CreateMap<Vehicle, VehicleDTO>();
-                cfg.CreateMap<VehicleMake, VehicleMakeDTO>();
-                cfg.CreateMap<VehicleModel, VehicleModelDTO>();
-                cfg.CreateMap<Parameter, ParameterDTO>();
-                cfg.CreateMap<ParameterGroup, ParameterGroupDTO>();
-
-                cfg.CreateMap<CustomerDTO, Customer>();
-                cfg.CreateMap<VehicleDTO, Vehicle>();
-                cfg.CreateMap<VehicleMakeDTO, VehicleMake>();
-                cfg.CreateMap<VehicleModelDTO, VehicleModel>();
-                cfg.CreateMap<ParameterDTO, Parameter>();
-                cfg.CreateMap<ParameterGroupDTO, ParameterGroup>();
-            });
-            var mapper = map.CreateMapper();
-            return mapper;
-        }
-
+        
         public async Task<List<VehicleDTO>> GetAllVehicleByCustomerIdAsync(int customerId)
         {
             try
@@ -43,10 +22,14 @@ namespace Rapide.Services
                 if (entityList.IsNullOrEmpty())
                     return null;
 
-                IMapper mapper = InitializeMapper();
+                IMapper mapper = MappingHelper.InitializeMapper();
+                dtoList = mapper.Map<List<VehicleDTO>>(entityList);
 
-                foreach (var e in entityList)
-                    dtoList.Add(mapper.Map<VehicleDTO>(e));
+                //IMapper mapper = InitializeMapper();
+                //dtoList = mapper.Map<List<VehicleDTO>>(entityList);
+
+                //foreach (var e in entityList)
+                //    dtoList.Add(mapper.Map<VehicleDTO>(e));
 
                 return dtoList;
             }
@@ -66,10 +49,11 @@ namespace Rapide.Services
                 if (entityList.IsNullOrEmpty())
                     return null;
 
-                IMapper mapper = InitializeMapper();
+                IMapper mapper = MappingHelper.InitializeMapper();
+                dtoList = mapper.Map<List<VehicleDTO>>(entityList);
 
-                foreach (var e in entityList)
-                    dtoList.Add(mapper.Map<VehicleDTO>(e));
+                //foreach (var e in entityList)
+                //    dtoList.Add(mapper.Map<VehicleDTO>(e));
 
                 return dtoList;
             }
@@ -101,13 +85,15 @@ namespace Rapide.Services
             try
             {
                 var entity = await repo.GetVehicleByModelAsync(model);
+                VehicleDTO dto = new VehicleDTO();
 
                 if (entity == null)
                     return null;
 
-                IMapper mapper = InitializeMapper();
+                IMapper mapper = MappingHelper.InitializeMapper();
+                dto = mapper.Map<VehicleDTO>(entity);
 
-                return mapper.Map<VehicleDTO>(entity);
+                return dto;
             }
             catch (Exception ex)
             {
@@ -120,13 +106,15 @@ namespace Rapide.Services
             try
             {
                 var entity = await repo.GetVehicleByIdAsync(id);
+                VehicleDTO dto = new VehicleDTO();
 
                 if (entity == null)
                     return null;
 
-                IMapper mapper = InitializeMapper();
+                IMapper mapper = MappingHelper.InitializeMapper();
+                dto = mapper.Map<VehicleDTO>(entity);
 
-                return mapper.Map<VehicleDTO>(entity);
+                return dto;
             }
             catch (Exception ex)
             {
@@ -139,7 +127,7 @@ namespace Rapide.Services
             // Convert everything to uppercase.
             dto = dto.MemberwiseApply((string s) => string.IsNullOrEmpty(s) ? s : s.ToUpper());
 
-            IMapper mapper = InitializeMapper();
+            IMapper mapper = MappingHelper.InitializeMapper();
 
             // Remove FKs. only parent table is tobe inserted
             dto.Customer = null;
@@ -162,7 +150,7 @@ namespace Rapide.Services
             // Convert everything to uppercase.
             dto = dto.MemberwiseApply((string s) => string.IsNullOrEmpty(s) ? s : s.ToUpper());
 
-            IMapper mapper = InitializeMapper();
+            IMapper mapper = MappingHelper.InitializeMapper();
 
             // Remove FKs. only parent table is tobe inserted
             dto.Customer = null;

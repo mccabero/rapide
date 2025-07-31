@@ -1,9 +1,12 @@
-﻿namespace Rapide.Web.Models
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace Rapide.Web.Models
 {
     public class VehiclesModel
     {
         public int Id { get; set; }
 
+        [NotMapped]
         public string FullName { get; set; }
 
         public CustomerModel Customer { get; set; }
@@ -37,7 +40,12 @@
         public ParameterModel EngineTypeParameter { get; set; }
         public int EngineTypeParameterId { get; set; }
 
-        // Additional property
-        public bool IsAllowedToOverride { get; set; }
+        public int CreatedById { get; set; }
+
+        public DateTime CreatedDateTime { get; set; }
+
+        public int UpdatedById { get; set; }
+
+        public DateTime UpdatedDateTime { get; set; }
     }
 }

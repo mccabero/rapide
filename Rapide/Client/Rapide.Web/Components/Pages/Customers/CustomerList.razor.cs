@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using MudBlazor;
 using Rapide.Common.Helpers;
@@ -36,29 +37,35 @@ namespace Rapide.Web.Components.Pages.Customers
         private string mBoxCustomMessage { get; set; }
         private MudMessageBox mboxError { get; set; }
         private bool isViewOnly = false;
+        private bool isBigThreeRoles = false;
         #endregion
 
         protected override async Task OnInitializedAsync()
         {
             IsLoading = true;
+            isBigThreeRoles = TokenHelper.IsBigThreeRolesWithoutSupervisor(await AuthState);
             isViewOnly = TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.HR)
                 || TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.Accountant);
 
+            try
+            {
+                var dataList = await CustomerService.GetAllAsync();
 
-            var dataList = await CustomerService.GetAllAsync();
+                if (dataList == null)
+                {
+                    IsLoading = false;
+                    return;
+                }
 
-            if (dataList == null)
+                IMapper mapper = MappingWebHelper.InitializeMapper();
+                CustomerRequestModel = mapper.Map<List<CustomerModel>>(dataList);
+            }
+            catch (Exception ex)
             {
                 IsLoading = false;
-                return;
-            }
+                StateHasChanged();
 
-            foreach (var ul in dataList)
-            {
-                var ulModel = ul.Map<CustomerModel>();
-                ulModel.IsAllowedToOverride = TokenHelper.IsBigThreeRoles(await AuthState);
-
-                CustomerRequestModel.Add(ulModel);
+                throw new Exception(ex.Message);
             }
 
             IsLoading = false;

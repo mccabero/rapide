@@ -19,5 +19,13 @@ namespace Rapide.Web.Models
         public string? OtherData { get; set; }
 
         public ParameterGroupModel? ParameterGroup { get; set; }
+
+        public int CreatedById { get; set; }
+
+        public DateTime CreatedDateTime { get; set; }
+
+        public int UpdatedById { get; set; }
+
+        public DateTime UpdatedDateTime { get; set; }
     }
 }
