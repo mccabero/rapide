@@ -54,10 +54,13 @@ namespace Rapide.Web.Components.Pages.Components.Dashboard
         private decimal expenseAmount = 0;
         private decimal netSalesAmount = 0;
         private decimal profitAmount = 0;
+
+        private bool IsBigThreeRoles = false;
         #endregion
 
         protected override async Task OnInitializedAsync()
         {
+            IsBigThreeRoles = TokenHelper.IsBigThreeRolesWithoutSupervisor(await AuthState);
             // As per owner, cards should display only the same day.
             //var firstDayOfTheMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
 
@@ -90,11 +93,14 @@ namespace Rapide.Web.Components.Pages.Components.Dashboard
 
             isAllowOverride = TokenHelper.IsBigThreeRolesWithoutSupervisor(await AuthState);
 
-            await GetDiscount();
-            await GetExpenses();
-            await GetNetSales();
-            await GetProfit();
-
+            if (IsBigThreeRoles)
+            {
+                await GetDiscount();
+                await GetExpenses();
+                await GetNetSales();
+                await GetProfit();
+            }
+        
             IsLoading = false;
         }
 
