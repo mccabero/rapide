@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.JSInterop;
 using MudBlazor;
@@ -58,63 +59,57 @@ namespace Rapide.Web.Components.Pages.Operations
                 || TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.Cashier)
                  || TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.Accountant);
 
-            var dataList = await InspectionService.GetAllInspectionAsync();
+            try
+            {
+                var dataList = await InspectionService.GetAllInspectionSummaryAsync();
 
-            if (dataList == null)
+                if (dataList == null)
+                {
+                    IsLoading = false;
+                    return;
+                }
+
+                IMapper mapper = MappingWebHelper.InitializeMapper();
+
+                foreach (var ul in dataList)
+                {
+                    Color statusColor = Color.Primary;
+                    if (ul.JobStatus.Name.Equals(Constants.JobStatus.Open))
+                        statusColor = Color.Warning;
+                    else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Converted))
+                        statusColor = Color.Success;
+                    else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Cancelled))
+                        statusColor = Color.Error;
+
+                    var customerMap = mapper.Map<CustomerModel>(ul.Customer);
+                    var vehicleModelMap = mapper.Map<VehicleModelModel>(ul.Vehicle.VehicleModel);
+                    var jobStatusMap = ul.JobStatus.Map<JobStatusModel>();
+
+                    InspectionRequestModel.Add(new InspectionModel()
+                    {
+                        IsAllowedToOverride = TokenHelper.IsBigThreeRolesWithoutSupervisor(await AuthState),
+                        StatusChipColor = statusColor,
+                        Id = ul.Id,
+                        ReferenceNo = ul.ReferenceNo,
+                        TransactionDate = ul.TransactionDate,
+                        Customer = customerMap,
+                        JobStatus = jobStatusMap,
+                        Vehicle = new VehiclesModel()
+                        {
+                            Id = ul.Vehicle.Id,
+                            VehicleModel = vehicleModelMap,
+                            PlateNo = ul.Vehicle.PlateNo,
+                            YearModel = ul.Vehicle.YearModel
+                        }
+                    });
+                }
+            }
+            catch (Exception ex)
             {
                 IsLoading = false;
-                return;
-            }
+                StateHasChanged();
 
-            foreach (var ul in dataList)
-            {
-                
-                Color statusColor = Color.Primary;
-                if (ul.JobStatus.Name.Equals(Constants.JobStatus.Open))
-                    statusColor = Color.Warning;
-                else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Converted))
-                    statusColor = Color.Success;
-                else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Cancelled))
-                    statusColor = Color.Error;
-
-                InspectionRequestModel.Add(new InspectionModel()
-                {
-                    IsAllowedToOverride = TokenHelper.IsBigThreeRolesWithoutSupervisor(await AuthState),
-                    StatusChipColor = statusColor,
-                    Id = ul.Id,
-                    ReferenceNo = ul.ReferenceNo,
-                    DiagnosticResult = ul.DiagnosticResult,
-                    ExpirationDate = ul.ExpirationDate,
-                    InspectionDetails = ul.InspectionDetails,
-                    Odometer = ul.Odometer,
-                    Remarks = ul.Remarks,
-                    VehicleFindings = ul.VehicleFindings,
-                    TransactionDate = ul.TransactionDate,
-                    Customer = ul.Customer.Map<CustomerModel>(),
-                    JobStatus = ul.JobStatus.Map<JobStatusModel>(),
-                    InspectorUser = new UserModel()
-                    { 
-                        Id = ul.InspectorUser.Id,
-                        FirstName = ul.InspectorUser.FirstName,
-                        LastName = ul.InspectorUser.LastName
-                    },
-                    Vehicle = new VehiclesModel()
-                    {
-                        Id = ul.Vehicle.Id,
-                        VehicleModel = new VehicleModelModel()
-                        {
-                            Id = ul.Vehicle.VehicleModel.Id,
-                            Name = ul.Vehicle.VehicleModel.Name,
-                            VehicleMake = new VehicleMakeModel()
-                            {
-                                Id = ul.Vehicle.VehicleModel.VehicleMake.Id,
-                                Name = ul.Vehicle.VehicleModel.VehicleMake.Name,
-                                Description = ul.Vehicle.VehicleModel.VehicleMake.Description
-                            }
-                        },
-                        PlateNo = ul.Vehicle.PlateNo
-                    }
-                });
+                throw new Exception(ex.Message);
             }
 
             IsLoading = false;
@@ -141,13 +136,11 @@ namespace Rapide.Web.Components.Pages.Operations
                     return true;
                 if ($"{element.Customer.FirstName} {element.Customer.LastName}".Contains(searchString, StringComparison.OrdinalIgnoreCase))
                     return true;
-                if ($"{element.Vehicle.VehicleModel.VehicleMake.Name} {element.Vehicle.VehicleModel.Name}".Contains(searchString, StringComparison.OrdinalIgnoreCase))
+                if ($"{element.Vehicle.VehicleModel.VehicleMake.Name} {element.Vehicle.VehicleModel.Name} {element.Vehicle.YearModel}".Contains(searchString, StringComparison.OrdinalIgnoreCase))
                     return true;
                 if (element.TransactionDate.ToString().Contains(searchString, StringComparison.OrdinalIgnoreCase))
                     return true;
                 if (element.Vehicle.PlateNo.ToString().Contains(searchString, StringComparison.OrdinalIgnoreCase))
-                    return true;
-                if ($"{element.InspectorUser.FirstName} {element.InspectorUser.LastName}".Contains(searchString, StringComparison.OrdinalIgnoreCase))
                     return true;
 
                 return false;

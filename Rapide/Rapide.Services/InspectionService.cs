@@ -11,34 +11,28 @@ namespace Rapide.Services
 {
     public class InspectionService(IInspectionRepo repo) : BaseService<Inspection, InspectionDTO>(repo), IInspectionService
     {
-        private static IMapper InitializeMapper()
+        public async Task<List<InspectionDTO>> GetAllInspectionSummaryAsync()
         {
-            var map = new MapperConfiguration(cfg =>
+            try
             {
-                cfg.CreateMap<Inspection, InspectionDTO>();
-                cfg.CreateMap<JobStatus, JobStatusDTO>();
-                cfg.CreateMap<Customer, CustomerDTO>();
-                cfg.CreateMap<Vehicle, VehicleDTO>();
-                cfg.CreateMap<VehicleModel, VehicleModelDTO>();
-                cfg.CreateMap<VehicleMake, VehicleMakeDTO>();
-                cfg.CreateMap<User, UserDTO>();
-                cfg.CreateMap<Role, RoleDTO>();
-                cfg.CreateMap<ServiceGroup, ServiceGroupDTO>();
-                cfg.CreateMap<Parameter, ParameterDTO>();
+                List<InspectionDTO> dtoList = new List<InspectionDTO>();
+                var entityList = await repo.GetAllInspectionSummaryAsync();
 
-                cfg.CreateMap<ParameterDTO, Parameter>();
-                cfg.CreateMap<ServiceGroupDTO, ServiceGroup>();
-                cfg.CreateMap<RoleDTO, Role>();
-                cfg.CreateMap<InspectionDTO, Inspection>();
-                cfg.CreateMap<JobStatusDTO, JobStatus>();
-                cfg.CreateMap<CustomerDTO, Customer>();
-                cfg.CreateMap<VehicleDTO, Vehicle>();
-                cfg.CreateMap<VehicleModelDTO, VehicleModel>();
-                cfg.CreateMap<VehicleMakeDTO, VehicleMake>();
-                cfg.CreateMap<UserDTO, User>();
-            });
-            var mapper = map.CreateMapper();
-            return mapper;
+                if (entityList.IsNullOrEmpty())
+                    return null;
+
+                IMapper mapper = MappingHelper.InitializeMapper();
+                dtoList = mapper.Map<List<InspectionDTO>>(entityList);
+
+                //foreach (var e in entityList)
+                //    dtoList.Add(mapper.Map<InspectionDTO>(e));
+
+                return dtoList;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
         }
 
         public async Task<List<InspectionDTO>> GetAllInspectionAsync()
@@ -51,10 +45,11 @@ namespace Rapide.Services
                 if (entityList.IsNullOrEmpty())
                     return null;
 
-                IMapper mapper = InitializeMapper();
+                IMapper mapper = MappingHelper.InitializeMapper();
+                dtoList = mapper.Map<List<InspectionDTO>>(entityList);
 
-                foreach (var e in entityList)
-                    dtoList.Add(mapper.Map<InspectionDTO>(e));
+                //foreach (var e in entityList)
+                //    dtoList.Add(mapper.Map<InspectionDTO>(e));
 
                 return dtoList;
             }
@@ -90,7 +85,7 @@ namespace Rapide.Services
                 if (entity == null)
                     return null;
 
-                IMapper mapper = InitializeMapper();
+                IMapper mapper = MappingHelper.InitializeMapper();
 
                 return mapper.Map<InspectionDTO>(entity);
             }
@@ -105,7 +100,7 @@ namespace Rapide.Services
             // Convert everything to uppercase.
             dto = dto.MemberwiseApply((string s) => string.IsNullOrEmpty(s) ? s : s.ToUpper());
 
-            IMapper mapper = InitializeMapper();
+            IMapper mapper = MappingHelper.InitializeMapper();
 
             // Remove FKs. only parent table is tobe inserted
             dto.JobStatus = null;
@@ -127,7 +122,7 @@ namespace Rapide.Services
             // Convert everything to uppercase.
             dto = dto.MemberwiseApply((string s) => string.IsNullOrEmpty(s) ? s : s.ToUpper());
 
-            IMapper mapper = InitializeMapper();
+            IMapper mapper = MappingHelper.InitializeMapper();
 
             // Remove FKs. only parent table is to be inserted
             dto.JobStatus = null;
@@ -156,7 +151,7 @@ namespace Rapide.Services
                 if (entityList.IsNullOrEmpty())
                     return null;
 
-                IMapper mapper = InitializeMapper();
+                IMapper mapper = MappingHelper.InitializeMapper();
 
                 foreach (var e in entityList)
                     dtoList.Add(mapper.Map<InspectionDTO>(e));
@@ -179,7 +174,7 @@ namespace Rapide.Services
                 if (entityList.IsNullOrEmpty())
                     return null;
 
-                IMapper mapper = InitializeMapper();
+                IMapper mapper = MappingHelper.InitializeMapper();
 
                 foreach (var e in entityList)
                     dtoList.Add(mapper.Map<InspectionDTO>(e));

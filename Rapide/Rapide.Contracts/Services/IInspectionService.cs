@@ -7,6 +7,8 @@ namespace Rapide.Contracts.Services
     {
         Task<InspectionDTO?> GetInspectionByIdAsync(int id);
 
+        Task<List<InspectionDTO>> GetAllInspectionSummaryAsync();
+
         Task<List<InspectionDTO>> GetAllInspectionAsync();
 
         Task<List<InspectionDTO>> GetAllInspectionByCustomerIdAsync(int customerId);

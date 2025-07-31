@@ -7,6 +7,21 @@ namespace Rapide.Repositories.Repos
 {
     public class InspectionRepo(IDbContextFactory<RapideDbContext> context) : BaseRepo<Inspection>(context), IInspectionRepo
     {
+        // summary only.
+        public async Task<List<Inspection>> GetAllInspectionSummaryAsync()
+        {
+            await using var context = await Factory.CreateDbContextAsync();
+
+            return await context.Set<Inspection>()
+                .Include(x => x.JobStatus)
+                .Include(x => x.Customer)
+                .Include(x => x.Vehicle)
+                    .ThenInclude(x => x.VehicleModel)
+                    .ThenInclude(x => x.VehicleMake)
+                .AsNoTracking()
+                .ToListAsync();
+        }
+
         public async Task<List<Inspection>> GetAllInspectionAsync()
         {
             await using var context = await Factory.CreateDbContextAsync();

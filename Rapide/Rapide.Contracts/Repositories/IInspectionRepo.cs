@@ -8,6 +8,8 @@ namespace Rapide.Contracts.Repositories
 
         Task<List<Inspection>> GetAllInspectionAsync();
 
+        Task<List<Inspection>> GetAllInspectionSummaryAsync();
+
         Task<List<Inspection>> GetAllInspectionByCustomerIdAsync(int customerId);
 
         Task<List<Inspection>> GetAllInspectionByVehicleIdAsync(int vehicleId);

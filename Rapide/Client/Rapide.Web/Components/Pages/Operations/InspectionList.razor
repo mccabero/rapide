@@ -121,7 +121,7 @@
                                         </PropertyColumn>
                                         <PropertyColumn Property="x => x.Vehicle" Title="Vehicle" Sortable="false">
                                             <CellTemplate>
-                                                <MudText>@($"{context.Item.Vehicle.VehicleModel.VehicleMake.Name} {context.Item.Vehicle.VehicleModel.Name}")</MudText>
+                                                <MudText>@($"{context.Item.Vehicle.VehicleModel.VehicleMake.Name} {context.Item.Vehicle.VehicleModel.Name} ({context.Item.Vehicle.YearModel})")</MudText>
                                             </CellTemplate>
                                         </PropertyColumn>
                                         <PropertyColumn Property="x => x.Vehicle.PlateNo" Title="Plate No.">
