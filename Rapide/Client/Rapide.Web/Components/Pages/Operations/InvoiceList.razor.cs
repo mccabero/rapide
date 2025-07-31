@@ -300,20 +300,6 @@ namespace Rapide.Web.Components.Pages.Operations
 
         private async Task OnGeneratePdfClick(int invoiceId)
         {
-            //var InvoiceRequestModel = await InvoiceService.GetInvoiceByIdAsync(invoiceId);
-
-            //if (InvoiceRequestModel == null)
-            //    return;
-
-            //InvoiceRequestModel.ProductList = await JobOrderProductService.GetAllJobOrderProductByJobOrderIdAsync(InvoiceRequestModel.JobOrder.Id);
-            //InvoiceRequestModel.ServiceList = await JobOrderServiceService.GetAllJobOrderServiceByJobOrderIdAsync(InvoiceRequestModel.JobOrder.Id);
-            //InvoiceRequestModel.TechnicianList = await JobOrderTechnicianService.GetAllJobOrderTechnicianByJobOrderIdAsync(InvoiceRequestModel.JobOrder.Id);
-            //InvoiceRequestModel.PackageList = await InvoicePackageService.GetAllInvoicePackageByInvoiceIdAsync(InvoiceRequestModel.Id);
-
-            //InvoiceReportGenerator.ImageFile = FileHelper.GetRapideLogo();
-            //await InvoiceReportGenerator.Generate(InvoiceRequestModel, JSRuntime);
-
-
             IsLoading = true;
 
             var companyInfo = await CompanyInfoService.GetAllAsync();
