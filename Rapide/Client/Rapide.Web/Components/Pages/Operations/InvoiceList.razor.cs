@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.JSInterop;
 using MudBlazor;
@@ -54,90 +55,94 @@ namespace Rapide.Web.Components.Pages.Operations
 
         private List<InvoiceModel> InvoiceRequestModel = new List<InvoiceModel>();
         private bool isViewOnly = false;
+        private bool isBigThreeRoles = false;
         #endregion
 
         protected override async Task OnInitializedAsync()
         {
             IsLoading = true;
+            isBigThreeRoles = TokenHelper.IsBigThreeRolesWithoutSupervisor(await AuthState);
             isViewOnly = TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.HR)
                 || TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.Accountant);
-
-            var dataList = await InvoiceService.GetAllInvoiceAsync();
-
-            if (dataList == null)
-            {
-                IsLoading = false;
-                return;
-            }
-
-            var depositList = await DepositService.GetAllDepositAsync();
-
-            foreach (var ul in dataList)
-            {
-                List<DepositDTO> depositData = new List<DepositDTO>();
-
-                if (depositList != null)
-                    depositData = depositList.Where(x => x.JobOrderId == ul.JobOrder.Id).ToList();
-
-                Color statusColor = Color.Primary;
-                if (ul.JobStatus.Name.Equals(Constants.JobStatus.Open))
-                    statusColor = Color.Warning;
-                else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Completed))
-                    statusColor = Color.Success;
-                else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Cancelled))
-                    statusColor = Color.Error;
-
-                InvoiceRequestModel.Add(new InvoiceModel()
-                {
-                    IsAllowedToOverride = TokenHelper.IsBigThreeRolesWithoutSupervisor(await AuthState),
-                    StatusChipColor = statusColor,
-                    Id = ul.Id,
-                    IsPackage = ul.IsPackage,
-                    InvoiceNo = ul.InvoiceNo,
-                    InvoiceDate = ul.InvoiceDate,
-                    DueDate = ul.DueDate,
-                    JobOrder = new JobOrderModel()
-                    {
-                        Id = ul.JobOrder.Id,
-                        ReferenceNo = ul.JobOrder.ReferenceNo
-                    },
-                    JobStatus = new JobStatusModel()
-                    {
-                        Id = ul.JobStatus.Id,
-                        Name = ul.JobStatus.Name
-                    },
-                    Customer = new CustomerModel()
-                    { 
-                        Id = ul.Customer.Id,
-                        FirstName = ul.Customer.FirstName,
-                        LastName = ul.Customer.LastName
-                    },
-                    CustomerPO = ul.CustomerPO,
-                    AdvisorUser = new UserModel()
-                    { 
-                        Id = ul.AdvisorUser.Id,
-                        FirstName = ul.AdvisorUser.FirstName,
-                        LastName = ul.AdvisorUser.LastName,
-                        FullName = $"{ul.AdvisorUser.FirstName} {ul.AdvisorUser.LastName}"
-                    },
-                    Summary = ul.Summary,
-                    SubTotal = ul.SubTotal,
-                    VAT12 = ul.VAT12,
-                    LaborDiscount = ul.LaborDiscount,
-                    ProductDiscount = ul.ProductDiscount,
-                    AdditionalDiscount = ul.AdditionalDiscount,
-                    TotalAmount = ul.TotalAmount,
-                    DepositAmount = depositData.Sum(x => x.DepositAmount)
-                });
-            }
 
             IsLoading = false;
             StateHasChanged();
             await base.OnInitializedAsync();
         }
 
+        private async Task ReloadRequestModel()
+        {
+            try
+            {
+                var dataList = await InvoiceService.GetAllInvoiceAsync();
+
+                if (dataList == null)
+                {
+                    IsLoading = false;
+                    return;
+                }
+
+                var depositList = await DepositService.GetAllDepositAsync();
+
+                IMapper mapper = MappingWebHelper.InitializeMapper();
+
+                foreach (var ul in dataList)
+                {
+                    List<DepositDTO> depositData = new List<DepositDTO>();
+
+                    if (depositList != null)
+                        depositData = depositList.Where(x => x.JobOrderId == ul.JobOrder.Id).ToList();
+
+                    Color statusColor = Color.Primary;
+                    if (ul.JobStatus.Name.Equals(Constants.JobStatus.Open))
+                        statusColor = Color.Warning;
+                    else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Completed))
+                        statusColor = Color.Success;
+                    else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Cancelled))
+                        statusColor = Color.Error;
+
+                    var customerMap = mapper.Map<CustomerModel>(ul.Customer);
+                    var jobStatusMap = ul.JobStatus.Map<JobStatusModel>();
+
+                    InvoiceRequestModel.Add(new InvoiceModel()
+                    {
+                        StatusChipColor = statusColor,
+                        Id = ul.Id,
+                        IsPackage = ul.IsPackage,
+                        InvoiceNo = ul.InvoiceNo,
+                        InvoiceDate = ul.InvoiceDate,
+                        DueDate = ul.DueDate,
+
+                        JobOrder = new JobOrderModel()
+                        {
+                            Id = ul.JobOrder.Id,
+                            ReferenceNo = ul.JobOrder.ReferenceNo
+                        },
+
+                        JobStatus = jobStatusMap,
+                        Customer = customerMap,
+                        CustomerPO = ul.CustomerPO,
+
+                        SubTotal = ul.SubTotal,
+                        TotalAmount = ul.TotalAmount,
+                        DepositAmount = depositData.Sum(x => x.DepositAmount)
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                IsLoading = false;
+                StateHasChanged();
+
+                throw new Exception(ex.Message);
+            }
+        }
+
         private async Task<GridData<InvoiceModel>> ServerReload(GridState<InvoiceModel> state)
         {
+            if (!InvoiceRequestModel.Any())
+                await ReloadRequestModel();
+
             IEnumerable<InvoiceModel> data = new List<InvoiceModel>();
             data = InvoiceRequestModel.OrderByDescending(x => x.InvoiceDate);
 

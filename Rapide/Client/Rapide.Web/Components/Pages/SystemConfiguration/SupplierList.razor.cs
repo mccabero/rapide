@@ -46,33 +46,49 @@ namespace Rapide.Web.Components.Pages.SystemConfiguration
             isViewOnly = TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.HR)
                 || TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.Accountant);
 
-            var dataList = await SupplierService.GetAllAsync();
-
-            if (dataList == null)
-            {
-                IsLoading = false;
-                return;
-            }
-
-            foreach (var ul in dataList)
-            {
-                Supplier.Add(new SupplierModel()
-                {
-                    Id = ul.Id,
-                    Name = ul.Name,
-                    Address = ul.Address,
-                    ContactPerson = ul.ContactPerson,
-                    ContactNumber = ul.ContactNumber
-                });
-            }
-
             IsLoading = false;
             StateHasChanged();
             await base.OnInitializedAsync();
         }
 
+        private async Task ReloadRequestModel()
+        {
+            try
+            {
+                var dataList = await SupplierService.GetAllAsync();
+
+                if (dataList == null)
+                {
+                    IsLoading = false;
+                    return;
+                }
+
+                foreach (var ul in dataList)
+                {
+                    Supplier.Add(new SupplierModel()
+                    {
+                        Id = ul.Id,
+                        Name = ul.Name,
+                        Address = ul.Address,
+                        ContactPerson = ul.ContactPerson,
+                        ContactNumber = ul.ContactNumber
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                IsLoading = false;
+                StateHasChanged();
+
+                throw new Exception(ex.Message);
+            }
+        }
+
         private async Task<GridData<SupplierModel>> ServerReload(GridState<SupplierModel> state)
         {
+            if (!Supplier.Any())
+                await ReloadRequestModel();
+
             IEnumerable<SupplierModel> data = new List<SupplierModel>();
             data = Supplier.OrderByDescending(x => x.Id);
 

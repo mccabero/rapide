@@ -39,45 +39,57 @@ namespace Rapide.Web.Components.Pages.Administrator
         protected override async Task OnInitializedAsync()
         {
             IsLoading = true;
-            var dataList = await UserService.GetAllUserRoleAsync();
-
-            if (dataList == null)
-            {
-                IsLoading = false;
-                return;
-            }
-
-            foreach (var ul in dataList)
-            {
-                users.Add(new UserModel()
-                {
-                    Id = ul.Id,
-                    FirstName = ul.FirstName,
-                    MiddleName = ul.MiddleName,
-                    LastName = ul.LastName,
-                    Email = ul.Email,
-                    MobileNumber = ul.MobileNumber,
-                    FullName = $"{ul.FirstName} {ul.MiddleName} {ul.LastName}",
-                    Gender = (int)ul.Gender,
-                    Address = ul.Address,
-                    IsActive = ul.IsActive,
-                    RoleId = (int)ul.RoleId,
-                    Role = ul?.Role?.Map<RoleModel>()
-                });
-            }
-
+            
             IsLoading = false;
             StateHasChanged();
             base.OnInitializedAsync();
         }
 
-        protected override Task OnAfterRenderAsync(bool firstRender)
+        private async Task ReloadRequestModel()
         {
-            return base.OnAfterRenderAsync(firstRender);
+            try
+            {
+                var dataList = await UserService.GetAllUserRoleAsync();
+
+                if (dataList == null)
+                {
+                    IsLoading = false;
+                    return;
+                }
+
+                foreach (var ul in dataList)
+                {
+                    users.Add(new UserModel()
+                    {
+                        Id = ul.Id,
+                        FirstName = ul.FirstName,
+                        MiddleName = ul.MiddleName,
+                        LastName = ul.LastName,
+                        Email = ul.Email,
+                        MobileNumber = ul.MobileNumber,
+                        FullName = $"{ul.FirstName} {ul.MiddleName} {ul.LastName}",
+                        Gender = (int)ul.Gender,
+                        Address = ul.Address,
+                        IsActive = ul.IsActive,
+                        RoleId = (int)ul.RoleId,
+                        Role = ul?.Role?.Map<RoleModel>()
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                IsLoading = false;
+                StateHasChanged();
+
+                throw new Exception(ex.Message);
+            }
         }
 
         private async Task<GridData<UserModel>> ServerReload(GridState<UserModel> state)
         {
+            if (!users.Any())
+                await ReloadRequestModel();
+
             IEnumerable<UserModel> data = new List<UserModel>();
             data = users.OrderByDescending(x => x.Id);
 

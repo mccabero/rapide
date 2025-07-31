@@ -46,31 +46,47 @@ namespace Rapide.Web.Components.Pages.SystemConfiguration
             isViewOnly = TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.HR)
                 || TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.Accountant);
 
-            var dataList = await ManufacturerService.GetAllAsync();
-
-            if (dataList == null)
-            {
-                IsLoading = false;
-                return;
-            }
-
-            foreach (var ul in dataList)
-            {
-                ManufacturerRequestModel.Add(new ManufacturerModel()
-                {
-                    Id = ul.Id,
-                    Name = ul.Name,
-                    Description = ul.Description,
-                });
-            }
-
             IsLoading = false;
             StateHasChanged();
             await base.OnInitializedAsync();
         }
 
+        private async Task ReloadRequestModel()
+        {
+            try
+            {
+                var dataList = await ManufacturerService.GetAllAsync();
+
+                if (dataList == null)
+                {
+                    IsLoading = false;
+                    return;
+                }
+
+                foreach (var ul in dataList)
+                {
+                    ManufacturerRequestModel.Add(new ManufacturerModel()
+                    {
+                        Id = ul.Id,
+                        Name = ul.Name,
+                        Description = ul.Description,
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                IsLoading = false;
+                StateHasChanged();
+
+                throw new Exception(ex.Message);
+            }
+        }
+
         private async Task<GridData<ManufacturerModel>> ServerReload(GridState<ManufacturerModel> state)
         {
+            if (!ManufacturerRequestModel.Any())
+                await ReloadRequestModel();
+
             IEnumerable<ManufacturerModel> data = new List<ManufacturerModel>();
             data = ManufacturerRequestModel.OrderByDescending(x => x.Id);
 

@@ -46,31 +46,47 @@ namespace Rapide.Web.Components.Pages.SystemConfiguration
             isViewOnly = TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.HR)
                 || TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.Accountant);
 
-            var dataList = await ProductCategoryService.GetAllAsync();
-
-            if (dataList == null)
-            {
-                IsLoading = false;
-                return;
-            }
-
-            foreach (var ul in dataList)
-            {
-                ProductCategoryRequestModel.Add(new ProductCategoryModel()
-                {
-                    Id = ul.Id,
-                    Name = ul.Name,
-                    Description = ul.Description,
-                });
-            }
-
             IsLoading = false;
             StateHasChanged();
             await base.OnInitializedAsync();
         }
 
+        private async Task ReloadRequestModel()
+        {
+            try
+            {
+                var dataList = await ProductCategoryService.GetAllAsync();
+
+                if (dataList == null)
+                {
+                    IsLoading = false;
+                    return;
+                }
+
+                foreach (var ul in dataList)
+                {
+                    ProductCategoryRequestModel.Add(new ProductCategoryModel()
+                    {
+                        Id = ul.Id,
+                        Name = ul.Name,
+                        Description = ul.Description,
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                IsLoading = false;
+                StateHasChanged();
+
+                throw new Exception(ex.Message);
+            }
+        }
+
         private async Task<GridData<ProductCategoryModel>> ServerReload(GridState<ProductCategoryModel> state)
         {
+            if (!ProductCategoryRequestModel.Any())
+                await ReloadRequestModel();
+
             IEnumerable<ProductCategoryModel> data = new List<ProductCategoryModel>();
             data = ProductCategoryRequestModel.OrderByDescending(x => x.Id);
 

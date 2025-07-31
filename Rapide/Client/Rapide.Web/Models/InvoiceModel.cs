@@ -43,8 +43,6 @@ namespace Rapide.Web.Models
 
         public decimal TotalAmount { get; set; }
 
-        // Additional property
-        public bool IsAllowedToOverride { get; set; }
         public Color StatusChipColor { get; set; }
 
         public decimal DepositAmount { get; set; }

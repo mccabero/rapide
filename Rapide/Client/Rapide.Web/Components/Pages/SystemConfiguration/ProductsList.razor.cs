@@ -47,42 +47,58 @@ namespace Rapide.Web.Components.Pages.SystemConfiguration
             isViewOnly = TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.HR)
                 || TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.Accountant);
 
-            var dataList = await ProductService.GetAllProductAsync();
-
-            if (dataList == null)
-            {
-                IsLoading = false;
-                return;
-            }
-
-            foreach (var ul in dataList)
-            {
-                ProductRequestModel.Add(new ProductModel()
-                {
-                    Id = ul.Id,
-                    Name = ul.Name,
-                    DisplayName = ul.DisplayName,
-                    Description = ul.Description,
-                    PartNo = ul.PartNo,
-                    ProductGroup = ul.ProductGroup.Map<ProductGroupModel>(),
-                    ProductCategory = ul.ProductCategory.Map<ProductCategoryModel>(),
-                    UnitOfMeasure = ul.UnitOfMeasure.Map<UnitOfMeasureModel>(),
-                    Manufacturer = ul.Manufacturer.Map<ManufacturerModel>(),
-                    ExpirationDateTime = ul.ExpirationDateTime,
-                    PurchaseCost = ul.PurchaseCost,
-                    MarkupRate = ul.MarkupRate,
-                    SellingPrice = ul.SellingPrice,
-                    StorageLocation = ul.StorageLocation
-                });
-            }
-
             IsLoading = false;
             StateHasChanged();
             await base.OnInitializedAsync();
         }
 
+        private async Task ReloadRequestModel()
+        {
+            try
+            {
+                var dataList = await ProductService.GetAllProductAsync();
+
+                if (dataList == null)
+                {
+                    IsLoading = false;
+                    return;
+                }
+
+                foreach (var ul in dataList)
+                {
+                    ProductRequestModel.Add(new ProductModel()
+                    {
+                        Id = ul.Id,
+                        Name = ul.Name,
+                        DisplayName = ul.DisplayName,
+                        Description = ul.Description,
+                        PartNo = ul.PartNo,
+                        ProductGroup = ul.ProductGroup.Map<ProductGroupModel>(),
+                        ProductCategory = ul.ProductCategory.Map<ProductCategoryModel>(),
+                        UnitOfMeasure = ul.UnitOfMeasure.Map<UnitOfMeasureModel>(),
+                        Manufacturer = ul.Manufacturer.Map<ManufacturerModel>(),
+                        ExpirationDateTime = ul.ExpirationDateTime,
+                        PurchaseCost = ul.PurchaseCost,
+                        MarkupRate = ul.MarkupRate,
+                        SellingPrice = ul.SellingPrice,
+                        StorageLocation = ul.StorageLocation
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                IsLoading = false;
+                StateHasChanged();
+
+                throw new Exception(ex.Message);
+            }
+        }
+
         private async Task<GridData<ProductModel>> ServerReload(GridState<ProductModel> state)
         {
+            if (!ProductRequestModel.Any())
+                await ReloadRequestModel();
+
             IEnumerable<ProductModel> data = new List<ProductModel>();
             data = ProductRequestModel.OrderByDescending(x => x.Id);
 

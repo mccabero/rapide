@@ -59,32 +59,48 @@ namespace Rapide.Web.Components.Pages.SystemConfiguration
             isViewOnly = TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.HR)
                 || TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.Accountant);
 
-            var dataList = await PackageService.GetAllPackageAsync();
-
-            if (dataList == null)
-            {
-                IsLoading = false;
-                return;
-            }
-
-            foreach (var ul in dataList)
-            {
-                PackageRequestModel.Add(new PackageModel()
-                {
-                    Id = ul.Id,
-                    Name = ul.Name,
-                    Code = ul.Code,
-                    TotalAmount = ul.TotalAmount,
-                });
-            }
-
             IsLoading = false;
             StateHasChanged();
             await base.OnInitializedAsync();
         }
 
+        private async Task ReloadRequestModel()
+        {
+            try
+            {
+                var dataList = await PackageService.GetAllPackageAsync();
+
+                if (dataList == null)
+                {
+                    IsLoading = false;
+                    return;
+                }
+
+                foreach (var ul in dataList)
+                {
+                    PackageRequestModel.Add(new PackageModel()
+                    {
+                        Id = ul.Id,
+                        Name = ul.Name,
+                        Code = ul.Code,
+                        TotalAmount = ul.TotalAmount,
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                IsLoading = false;
+                StateHasChanged();
+
+                throw new Exception(ex.Message);
+            }
+        }
+
         private async Task<GridData<PackageModel>> ServerReload(GridState<PackageModel> state)
         {
+            if (!PackageRequestModel.Any())
+                await ReloadRequestModel();
+
             IEnumerable<PackageModel> data = new List<PackageModel>();
             data = PackageRequestModel.OrderBy(x => x.Code);
 

@@ -46,31 +46,47 @@ namespace Rapide.Web.Components.Pages.SystemConfiguration
             isViewOnly = TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.HR)
                 || TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.Accountant);
 
-            var dataList = await JobStatusService.GetAllAsync();
-
-            if (dataList == null)
-            {
-                IsLoading = false;
-                return;
-            }
-
-            foreach (var ul in dataList)
-            {
-                JobStatuses.Add(new JobStatusModel()
-                {
-                    Id = ul.Id,
-                    Name = ul.Name,
-                    Description = ul.Description,
-                });
-            }
-
             IsLoading = false;
             StateHasChanged();
             await base.OnInitializedAsync();
         }
 
+        private async Task ReloadRequestModel()
+        {
+            try
+            {
+                var dataList = await JobStatusService.GetAllAsync();
+
+                if (dataList == null)
+                {
+                    IsLoading = false;
+                    return;
+                }
+
+                foreach (var ul in dataList)
+                {
+                    JobStatuses.Add(new JobStatusModel()
+                    {
+                        Id = ul.Id,
+                        Name = ul.Name,
+                        Description = ul.Description,
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                IsLoading = false;
+                StateHasChanged();
+
+                throw new Exception(ex.Message);
+            }
+        }
+
         private async Task<GridData<JobStatusModel>> ServerReload(GridState<JobStatusModel> state)
         {
+            if (!JobStatuses.Any())
+                await ReloadRequestModel();
+
             IEnumerable<JobStatusModel> data = new List<JobStatusModel>();
             data = JobStatuses.OrderByDescending(x => x.Id);
 

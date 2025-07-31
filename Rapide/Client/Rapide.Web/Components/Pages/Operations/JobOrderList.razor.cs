@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.JSInterop;
 using MudBlazor;
@@ -8,6 +9,7 @@ using Rapide.Web.Components.Utilities;
 using Rapide.Web.Helpers;
 using Rapide.Web.Models;
 using Rapide.Web.PdfReportGenerator;
+using static MudBlazor.CategoryTypes;
 
 namespace Rapide.Web.Components.Pages.Operations
 {
@@ -63,61 +65,72 @@ namespace Rapide.Web.Components.Pages.Operations
                 || TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.Cashier)
                 || TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.Accountant);
 
-            var dataList = await JobOrderService.GetAllJobOrderAsync();
-
-            if (dataList == null)
-            {
-                IsLoading = false;
-                return;
-            }
-
-            foreach (var ul in dataList)
-            {
-                Color statusColor = Color.Primary;
-                if (ul.JobStatus.Name.Equals(Constants.JobStatus.Open))
-                    statusColor = Color.Warning;
-                else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Converted))
-                    statusColor = Color.Success;
-                else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Cancelled))
-                    statusColor = Color.Error;
-
-                JobOrderRequestModel.Add(new JobOrderModel()
-                {
-                    IsAllowedToOverride = TokenHelper.IsBigThreeRolesWithoutSupervisor(await AuthState),
-                    StatusChipColor = statusColor,
-                    Id = ul.Id,
-                    ReferenceNo = ul.ReferenceNo,
-                    IsPackage = ul.IsPackage,
-                    Customer = ul.Customer.Map<CustomerModel>(),
-                    Vehicle = new VehiclesModel()
-                    {
-                        Id = ul.Vehicle.Id,
-                        VehicleModel = new VehicleModelModel()
-                        {
-                            Id = ul.Vehicle.VehicleModel.Id,
-                            Name = ul.Vehicle.VehicleModel.Name,
-                            VehicleMake = new VehicleMakeModel()
-                            {
-                                Id = ul.Vehicle.VehicleModel.VehicleMake.Id,
-                                Name = ul.Vehicle.VehicleModel.VehicleMake.Name,
-                                Description = ul.Vehicle.VehicleModel.VehicleMake.Description
-                            }
-                        },
-                        PlateNo = ul.Vehicle.PlateNo
-                    },
-                    TotalAmount = ul.TotalAmount,
-                    TransactionDate = ul.TransactionDate,
-                    JobStatus = ul.JobStatus.Map<JobStatusModel>()
-                });
-            }
-
             IsLoading = false;
             StateHasChanged();
             await base.OnInitializedAsync();
         }
 
+        private async Task ReloadRequestModel()
+        {
+            try
+            {
+                var dataList = await JobOrderService.GetAllJobOrderAsync();
+
+                if (dataList == null)
+                {
+                    IsLoading = false;
+                    return;
+                }
+
+                IMapper mapper = MappingWebHelper.InitializeMapper();
+
+                foreach (var ul in dataList)
+                {
+                    Color statusColor = Color.Primary;
+                    if (ul.JobStatus.Name.Equals(Constants.JobStatus.Open))
+                        statusColor = Color.Warning;
+                    else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Converted))
+                        statusColor = Color.Success;
+                    else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Cancelled))
+                        statusColor = Color.Error;
+
+                    var customerMap = mapper.Map<CustomerModel>(ul.Customer);
+                    var vehicleModelMap = mapper.Map<VehicleModelModel>(ul.Vehicle.VehicleModel);
+                    var jobStatusMap = ul.JobStatus.Map<JobStatusModel>();
+
+                    JobOrderRequestModel.Add(new JobOrderModel()
+                    {
+                        IsAllowedToOverride = TokenHelper.IsBigThreeRolesWithoutSupervisor(await AuthState),
+                        StatusChipColor = statusColor,
+                        Id = ul.Id,
+                        ReferenceNo = ul.ReferenceNo,
+                        Customer = customerMap,
+                        Vehicle = new VehiclesModel()
+                        {
+                            Id = ul.Vehicle.Id,
+                            VehicleModel = vehicleModelMap,
+                            PlateNo = ul.Vehicle.PlateNo,
+                            YearModel = ul.Vehicle.YearModel
+                        },
+                        TransactionDate = ul.TransactionDate,
+                        JobStatus = jobStatusMap
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                IsLoading = false;
+                StateHasChanged();
+
+                throw new Exception(ex.Message);
+            }
+        }
+
         private async Task<GridData<JobOrderModel>> ServerReload(GridState<JobOrderModel> state)
         {
+            if (!JobOrderRequestModel.Any())
+                await ReloadRequestModel();
+
             IEnumerable<JobOrderModel> data = new List<JobOrderModel>();
             data = JobOrderRequestModel.OrderByDescending(x => x.TransactionDate);
 
@@ -132,7 +145,7 @@ namespace Rapide.Web.Components.Pages.Operations
                     return true;
                 if (element.TransactionDate.ToString().Contains(searchString, StringComparison.OrdinalIgnoreCase))
                     return true;
-                if ($"{element.Vehicle.VehicleModel.VehicleMake.Name} {element.Vehicle.VehicleModel.Name}".Contains(searchString, StringComparison.OrdinalIgnoreCase))
+                if ($"{element.Vehicle.VehicleModel.VehicleMake.Name} {element.Vehicle.VehicleModel.Name} {element.Vehicle.YearModel}".Contains(searchString, StringComparison.OrdinalIgnoreCase))
                     return true;
                 if (element.Vehicle.PlateNo.ToString().Contains(searchString, StringComparison.OrdinalIgnoreCase))
                     return true;

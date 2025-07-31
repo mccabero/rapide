@@ -48,41 +48,57 @@ namespace Rapide.Web.Components.Pages.SystemConfiguration
             isViewOnly = TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.HR)
                 || TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.Accountant);
 
-            var dataList = await ServiceService.GetAllServiceAsync();
-
-            if (dataList == null)
-            {
-                IsLoading = false;
-                return;
-            }
-
-            foreach (var ul in dataList)
-            {
-                ServiceRequestModel.Add(new ServiceModel()
-                {
-                    Id = ul.Id,
-                    Name = ul.Name,
-                    Code = ul.Code,
-                    ServiceGroup = ul.ServiceGroup.Map<ServiceGroupModel>(),
-                    ServiceCategory = ul.ServiceCategory.Map<ServiceCategoryModel>(),
-                    StandardRate = ul.StandardRate,
-                    StandardHours = ul.StandardHours,
-                    IsReplacement = ul.IsReplacement,
-                    IsAllowRateOverride = ul.IsAllowRateOverride,
-                    IsMechanicRequired = ul.IsMechanicRequired,
-                    DisplayStandardHours = ul.DisplayStandardHours,
-                    DisplayStandardRate = ul.DisplayStandardRate,
-                    DisplayNotes = ul.DisplayNotes
-                });
-            }
-
             IsLoading = false;
             StateHasChanged();
             await base.OnInitializedAsync();
         }
 
+        private async Task ReloadRequestModel()
+        {
+            try
+            {
+                var dataList = await ServiceService.GetAllServiceAsync();
+
+                if (dataList == null)
+                {
+                    IsLoading = false;
+                    return;
+                }
+
+                foreach (var ul in dataList)
+                {
+                    ServiceRequestModel.Add(new ServiceModel()
+                    {
+                        Id = ul.Id,
+                        Name = ul.Name,
+                        Code = ul.Code,
+                        ServiceGroup = ul.ServiceGroup.Map<ServiceGroupModel>(),
+                        ServiceCategory = ul.ServiceCategory.Map<ServiceCategoryModel>(),
+                        StandardRate = ul.StandardRate,
+                        StandardHours = ul.StandardHours,
+                        IsReplacement = ul.IsReplacement,
+                        IsAllowRateOverride = ul.IsAllowRateOverride,
+                        IsMechanicRequired = ul.IsMechanicRequired,
+                        DisplayStandardHours = ul.DisplayStandardHours,
+                        DisplayStandardRate = ul.DisplayStandardRate,
+                        DisplayNotes = ul.DisplayNotes
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                IsLoading = false;
+                StateHasChanged();
+
+                throw new Exception(ex.Message);
+            }
+        }
+
         private async Task<GridData<ServiceModel>> ServerReload(GridState<ServiceModel> state)
         {
+            if (!ServiceRequestModel.Any())
+                await ReloadRequestModel();
+
             IEnumerable<ServiceModel> data = new List<ServiceModel>();
             data = ServiceRequestModel.OrderByDescending(x => x.Id);
 

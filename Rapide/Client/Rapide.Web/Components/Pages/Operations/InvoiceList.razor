@@ -145,7 +145,7 @@
                                                 <MudStack Row>
                                                     <MudButton Size="@Size.Medium" Variant="@Variant.Filled" Href="@string.Format("/operations/invoices/{0}", @context.Item.Id.ToString())" Color="@Color.Primary"><i class="fa fa-pencil-square-o"></i></MudButton>
                                                     @* <MudButton Size="@Size.Medium" @onclick="args => OnGeneratePdfClick(context.Item.Id)" Variant="@Variant.Filled" Color="@Color.Success"><i class="fa fa-print"></i></MudButton> *@
-                                                    @if (context.Item.IsAllowedToOverride)
+                                                    @if (isBigThreeRoles)
                                                     {
                                                         <MudButton Size="@Size.Medium" @onclick="args => OnDeleteClick(context.Item)" Variant="@Variant.Filled" Color="@Color.Error"><i class="fa fa-trash"></i></MudButton>
                                                     }

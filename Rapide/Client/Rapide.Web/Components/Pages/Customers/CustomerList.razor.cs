@@ -47,6 +47,15 @@ namespace Rapide.Web.Components.Pages.Customers
             isViewOnly = TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.HR)
                 || TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.Accountant);
 
+            //await ReloadRequestModel();
+
+            IsLoading = false;
+            StateHasChanged();
+            await base.OnInitializedAsync();
+        }
+
+        private async Task ReloadRequestModel()
+        {
             try
             {
                 var dataList = await CustomerService.GetAllAsync();
@@ -54,7 +63,6 @@ namespace Rapide.Web.Components.Pages.Customers
                 if (dataList == null)
                 {
                     IsLoading = false;
-                    return;
                 }
 
                 IMapper mapper = MappingWebHelper.InitializeMapper();
@@ -67,14 +75,13 @@ namespace Rapide.Web.Components.Pages.Customers
 
                 throw new Exception(ex.Message);
             }
-
-            IsLoading = false;
-            StateHasChanged();
-            await base.OnInitializedAsync();
         }
 
         private async Task<GridData<CustomerModel>> ServerReload(GridState<CustomerModel> state)
         {
+            if (!CustomerRequestModel.Any())
+                await ReloadRequestModel();
+
             IEnumerable<CustomerModel> data = new List<CustomerModel>();
             data = CustomerRequestModel.OrderByDescending(x => x.Id);
 

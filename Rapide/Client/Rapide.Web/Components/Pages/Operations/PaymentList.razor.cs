@@ -61,60 +61,76 @@ namespace Rapide.Web.Components.Pages.Operations
             isViewOnly = TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.HR)
                 || TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.Accountant);
 
-            var dataList = await PaymentService.GetAllPaymentAsync();
-
-            if (dataList == null)
-            {
-                IsLoading = false;
-                return;
-            }
-
-            foreach (var ul in dataList)
-            {
-                Color statusColor = Color.Primary;
-                if (ul.JobStatus.Name.Equals(Constants.JobStatus.Open))
-                    statusColor = Color.Warning;
-                else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Completed))
-                    statusColor = Color.Success;
-                else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Cancelled))
-                    statusColor = Color.Error;
-
-                PaymentRequestModel.Add(new PaymentModel()
-                {
-                    IsAllowedToOverride = TokenHelper.IsBigThreeRolesWithoutSupervisor(await AuthState),
-                    StatusChipColor = statusColor,
-                    Id = ul.Id,
-                    IsFullyPaid = ul.IsFullyPaid,
-                    ReferenceNo = ul.ReferenceNo,
-                    PaymentDate = ul.PaymentDate,
-                    Customer = new CustomerModel()
-                    {
-                        Id = ul.Customer.Id,
-                        FirstName = ul.Customer.FirstName,
-                        LastName = ul.Customer.LastName
-                    },
-                    JobStatus = new JobStatusModel()
-                    {
-                        Id = ul.JobStatus.Id,
-                        Name = ul.JobStatus.Name
-                    },
-                    InvoiceTotalAmount = ul.InvoiceTotalAmount,
-                    Remarks = ul.Remarks,
-                    VAT12 = ul.VAT12,
-                    DepositAmount = ul.DepositAmount,
-                    AmountPayable = ul.AmountPayable,
-                    TotalPaidAmount = ul.TotalPaidAmount,
-                    Balance = ul.Balance
-                });
-            }
-
             IsLoading = false;
             StateHasChanged();
             await base.OnInitializedAsync();
         }
 
+        private async Task ReloadRequestModel()
+        {
+            try
+            {
+                var dataList = await PaymentService.GetAllPaymentAsync();
+
+                if (dataList == null)
+                {
+                    IsLoading = false;
+                    return;
+                }
+
+                foreach (var ul in dataList)
+                {
+                    Color statusColor = Color.Primary;
+                    if (ul.JobStatus.Name.Equals(Constants.JobStatus.Open))
+                        statusColor = Color.Warning;
+                    else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Completed))
+                        statusColor = Color.Success;
+                    else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Cancelled))
+                        statusColor = Color.Error;
+
+                    PaymentRequestModel.Add(new PaymentModel()
+                    {
+                        IsAllowedToOverride = TokenHelper.IsBigThreeRolesWithoutSupervisor(await AuthState),
+                        StatusChipColor = statusColor,
+                        Id = ul.Id,
+                        IsFullyPaid = ul.IsFullyPaid,
+                        ReferenceNo = ul.ReferenceNo,
+                        PaymentDate = ul.PaymentDate,
+                        Customer = new CustomerModel()
+                        {
+                            Id = ul.Customer.Id,
+                            FirstName = ul.Customer.FirstName,
+                            LastName = ul.Customer.LastName
+                        },
+                        JobStatus = new JobStatusModel()
+                        {
+                            Id = ul.JobStatus.Id,
+                            Name = ul.JobStatus.Name
+                        },
+                        InvoiceTotalAmount = ul.InvoiceTotalAmount,
+                        Remarks = ul.Remarks,
+                        VAT12 = ul.VAT12,
+                        DepositAmount = ul.DepositAmount,
+                        AmountPayable = ul.AmountPayable,
+                        TotalPaidAmount = ul.TotalPaidAmount,
+                        Balance = ul.Balance
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                IsLoading = false;
+                StateHasChanged();
+
+                throw new Exception(ex.Message);
+            }
+        }
+
         private async Task<GridData<PaymentModel>> ServerReload(GridState<PaymentModel> state)
         {
+            if (!PaymentRequestModel.Any())
+                await ReloadRequestModel();
+
             IEnumerable<PaymentModel> data = new List<PaymentModel>();
             data = PaymentRequestModel.OrderByDescending(x => x.PaymentDate);
 

@@ -47,48 +47,52 @@ namespace Rapide.Web.Components.Pages.SystemConfiguration
             isViewOnly = TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.HR)
                 || TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.Accountant);
 
-            var dataList = await VehicleMakeService.GetAllAsync();
-
-            if (dataList == null)
-            {
-                IsLoading = false;
-                return;
-            }
-
-            foreach (var ul in dataList)
-            {
-                VehicleMakeRequestModel.Add(new VehicleMakeModel()
-                {
-                    Id = ul.Id,
-                    Name = ul.Name,
-                    Description = ul.Description,
-                    RegionParameter = new ParameterModel()
-                    { 
-                        Id = ul.RegionParameter.Id,
-                        Name = ul.RegionParameter.Name,
-                        //Description = ul.RegionParameter.Description,
-                        //Code = ul.RegionParameter.Code,
-                        //NumericData = ul.RegionParameter.NumericData,
-                        //OtherData = ul.RegionParameter.OtherData,
-                        //SortOrder = ul.RegionParameter.SortOrder,
-                        //ParameterGroup = new ParameterGroupModel()
-                        //{ 
-                        //    Id = ul.RegionParameter.ParameterGroup.Id,
-                        //    Code = ul.RegionParameter.ParameterGroup.Code,
-                        //    Name = ul.RegionParameter.ParameterGroup.Name,
-                        //    Description = ul.RegionParameter.ParameterGroup.Description,
-                        //}
-                    }
-                });
-            }
-
             IsLoading = false;
             StateHasChanged();
             await base.OnInitializedAsync();
         }
 
+        private async Task ReloadRequestModel()
+        {
+            try
+            {
+                var dataList = await VehicleMakeService.GetAllAsync();
+
+                if (dataList == null)
+                {
+                    IsLoading = false;
+                    return;
+                }
+
+                foreach (var ul in dataList)
+                {
+                    VehicleMakeRequestModel.Add(new VehicleMakeModel()
+                    {
+                        Id = ul.Id,
+                        Name = ul.Name,
+                        Description = ul.Description,
+                        RegionParameter = new ParameterModel()
+                        {
+                            Id = ul.RegionParameter.Id,
+                            Name = ul.RegionParameter.Name,
+                        }
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                IsLoading = false;
+                StateHasChanged();
+
+                throw new Exception(ex.Message);
+            }
+        }
+
         private async Task<GridData<VehicleMakeModel>> ServerReload(GridState<VehicleMakeModel> state)
         {
+            if (!VehicleMakeRequestModel.Any())
+                await ReloadRequestModel();
+
             IEnumerable<VehicleMakeModel> data = new List<VehicleMakeModel>();
             data = VehicleMakeRequestModel.OrderByDescending(x => x.Id);
 

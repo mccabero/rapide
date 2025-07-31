@@ -46,33 +46,49 @@ namespace Rapide.Web.Components.Pages.SystemConfiguration
             isViewOnly = TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.HR)
                 || TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.Accountant);
 
-            var dataList = await ParameterGroupService.GetAllAsync();
-
-            if (dataList == null)
-            {
-                IsLoading = false;
-                return;
-            }
-
-            foreach (var ul in dataList)
-            {
-                this.parameterGroups.Add(new ParameterGroupModel()
-                {
-                    Id = ul.Id,
-                    Name = ul.Name,
-                    Code = ul.Code,
-                    Description = ul.Description,
-                    CreatedDateTime = ul.CreatedDateTime
-                });
-            }
-
             IsLoading = false;
             StateHasChanged();
             await base.OnInitializedAsync();
         }
 
+        private async Task ReloadRequestModel()
+        {
+            try
+            {
+                var dataList = await ParameterGroupService.GetAllAsync();
+
+                if (dataList == null)
+                {
+                    IsLoading = false;
+                    return;
+                }
+
+                foreach (var ul in dataList)
+                {
+                    this.parameterGroups.Add(new ParameterGroupModel()
+                    {
+                        Id = ul.Id,
+                        Name = ul.Name,
+                        Code = ul.Code,
+                        Description = ul.Description,
+                        CreatedDateTime = ul.CreatedDateTime
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                IsLoading = false;
+                StateHasChanged();
+
+                throw new Exception(ex.Message);
+            }
+        }
+
         private async Task<GridData<ParameterGroupModel>> ServerReload(GridState<ParameterGroupModel> state)
         {
+            if (!parameterGroups.Any())
+                await ReloadRequestModel();
+
             IEnumerable<ParameterGroupModel> data = new List<ParameterGroupModel>();
             data = parameterGroups.OrderByDescending(x => x.Id);
 

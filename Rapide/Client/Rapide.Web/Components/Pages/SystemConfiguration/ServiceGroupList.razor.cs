@@ -46,31 +46,47 @@ namespace Rapide.Web.Components.Pages.SystemConfiguration
             isViewOnly = TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.HR)
                 || TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.Accountant);
 
-            var dataList = await ServiceGroupService.GetAllAsync();
-
-            if (dataList == null)
-            {
-                IsLoading = false;
-                return;
-            }
-
-            foreach (var pl in dataList)
-            {
-                ServiceGroupRequestModel.Add(new ServiceGroupModel()
-                {
-                    Id = pl.Id,
-                    Name = pl.Name,
-                    Description = pl.Description,
-                });
-            }
-
             IsLoading = false;
             StateHasChanged();
             await base.OnInitializedAsync();
         }
 
+        private async Task ReloadRequestModel()
+        {
+            try
+            {
+                var dataList = await ServiceGroupService.GetAllAsync();
+
+                if (dataList == null)
+                {
+                    IsLoading = false;
+                    return;
+                }
+
+                foreach (var pl in dataList)
+                {
+                    ServiceGroupRequestModel.Add(new ServiceGroupModel()
+                    {
+                        Id = pl.Id,
+                        Name = pl.Name,
+                        Description = pl.Description,
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                IsLoading = false;
+                StateHasChanged();
+
+                throw new Exception(ex.Message);
+            }
+        }
+
         private async Task<GridData<ServiceGroupModel>> ServerReload(GridState<ServiceGroupModel> state)
         {
+            if (!ServiceGroupRequestModel.Any())
+                await ReloadRequestModel();
+
             IEnumerable<ServiceGroupModel> data = new List<ServiceGroupModel>();
             data = ServiceGroupRequestModel.OrderByDescending(x => x.Id);
 

@@ -53,71 +53,87 @@ namespace Rapide.Web.Components.Pages.Operations
             isViewOnly = TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.HR)
                 || TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.Accountant);
 
-            var dataList = await QuickSalesService.GetAllQuickSalesAsync();
-
-            if (dataList == null)
-            {
-                IsLoading = false;
-                return;
-            }
-
-            foreach (var ul in dataList)
-            {
-                Color statusColor = Color.Primary;
-                if (ul.JobStatus.Name.Equals(Constants.JobStatus.Open))
-                    statusColor = Color.Warning;
-                else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Completed))
-                    statusColor = Color.Success;
-                else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Cancelled))
-                    statusColor = Color.Error;
-
-                QuickSalesRequestModel.Add(new QuickSalesModel()
-                {
-                    IsAllowedToOverride = TokenHelper.IsBigThreeRolesWithoutSupervisor(await AuthState),
-                    StatusChipColor = statusColor,
-                    Id = ul.Id,
-                    ReferenceNo = ul.ReferenceNo,
-                    TransactionDate = ul.TransactionDate,
-                    Customer = new CustomerModel()
-                    { 
-                        Id = ul.Customer.Id,
-                        FirstName = ul.Customer.FirstName,
-                        LastName = ul.Customer.LastName
-                    },
-                    JobStatus = new JobStatusModel()
-                    { 
-                        Id = ul.JobStatus.Id,
-                        Name = ul.JobStatus.Name
-                    },
-                    PaymentTypeParameter = new ParameterModel()
-                    { 
-                        Id = ul.PaymentTypeParameter.Id,
-                        Name = ul.PaymentTypeParameter.Name
-                    },
-                    PaymentReferenceNo = ul.PaymentReferenceNo,
-                    SalesPersonUser = new UserModel()
-                    { 
-                        Id = ul.SalesPersonUser.Id,
-                        FirstName = ul.SalesPersonUser.FirstName,
-                        LastName= ul.SalesPersonUser.LastName
-                    },
-                    Summary = ul.Summary,
-                    SubTotal = ul.SubTotal,
-                    VAT12 = ul.VAT12,
-                    Discount = ul.Discount,
-                    TotalAmount = ul.TotalAmount,
-                    Payment = ul.Payment,
-                    Change = ul.Change
-                });
-            }
-
             IsLoading = false;
             StateHasChanged();
             await base.OnInitializedAsync();
         }
 
+        private async Task ReloadRequestModel()
+        {
+            try
+            {
+                var dataList = await QuickSalesService.GetAllQuickSalesAsync();
+
+                if (dataList == null)
+                {
+                    IsLoading = false;
+                    return;
+                }
+
+                foreach (var ul in dataList)
+                {
+                    Color statusColor = Color.Primary;
+                    if (ul.JobStatus.Name.Equals(Constants.JobStatus.Open))
+                        statusColor = Color.Warning;
+                    else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Completed))
+                        statusColor = Color.Success;
+                    else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Cancelled))
+                        statusColor = Color.Error;
+
+                    QuickSalesRequestModel.Add(new QuickSalesModel()
+                    {
+                        IsAllowedToOverride = TokenHelper.IsBigThreeRolesWithoutSupervisor(await AuthState),
+                        StatusChipColor = statusColor,
+                        Id = ul.Id,
+                        ReferenceNo = ul.ReferenceNo,
+                        TransactionDate = ul.TransactionDate,
+                        Customer = new CustomerModel()
+                        {
+                            Id = ul.Customer.Id,
+                            FirstName = ul.Customer.FirstName,
+                            LastName = ul.Customer.LastName
+                        },
+                        JobStatus = new JobStatusModel()
+                        {
+                            Id = ul.JobStatus.Id,
+                            Name = ul.JobStatus.Name
+                        },
+                        PaymentTypeParameter = new ParameterModel()
+                        {
+                            Id = ul.PaymentTypeParameter.Id,
+                            Name = ul.PaymentTypeParameter.Name
+                        },
+                        PaymentReferenceNo = ul.PaymentReferenceNo,
+                        SalesPersonUser = new UserModel()
+                        {
+                            Id = ul.SalesPersonUser.Id,
+                            FirstName = ul.SalesPersonUser.FirstName,
+                            LastName = ul.SalesPersonUser.LastName
+                        },
+                        Summary = ul.Summary,
+                        SubTotal = ul.SubTotal,
+                        VAT12 = ul.VAT12,
+                        Discount = ul.Discount,
+                        TotalAmount = ul.TotalAmount,
+                        Payment = ul.Payment,
+                        Change = ul.Change
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                IsLoading = false;
+                StateHasChanged();
+
+                throw new Exception(ex.Message);
+            }
+        }
+
         private async Task<GridData<QuickSalesModel>> ServerReload(GridState<QuickSalesModel> state)
         {
+            if (!QuickSalesRequestModel.Any())
+                await ReloadRequestModel();
+
             IEnumerable<QuickSalesModel> data = new List<QuickSalesModel>();
             data = QuickSalesRequestModel.OrderByDescending(x => x.Id);
 

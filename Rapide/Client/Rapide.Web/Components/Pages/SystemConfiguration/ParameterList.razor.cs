@@ -46,32 +46,48 @@ namespace Rapide.Web.Components.Pages.SystemConfiguration
             isViewOnly = TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.HR)
                 || TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.Accountant);
 
-            var parameterList = await ParameterService.GetAllParameterAsync();
-
-            if (parameterList == null)
-                return;
-
-            foreach (var pl in parameterList)
-            {
-                ParameterRequestModel.Add(new ParameterModel()
-                {
-                    Id = pl.Id,
-                    Code = pl.Code,  
-                    Name = pl.Name,
-                    Description = pl.Description,
-                    NumericData = pl.NumericData,
-                    SortOrder = pl.SortOrder,
-                    OtherData = pl.OtherData,
-                    ParameterGroup = pl?.ParameterGroup?.Map<ParameterGroupModel>()
-                });
-            }
-
             StateHasChanged();
             await base.OnInitializedAsync();
         }
 
+        private async Task ReloadRequestModel()
+        {
+            try
+            {
+                var parameterList = await ParameterService.GetAllParameterAsync();
+
+                if (parameterList == null)
+                    return;
+
+                foreach (var pl in parameterList)
+                {
+                    ParameterRequestModel.Add(new ParameterModel()
+                    {
+                        Id = pl.Id,
+                        Code = pl.Code,
+                        Name = pl.Name,
+                        Description = pl.Description,
+                        NumericData = pl.NumericData,
+                        SortOrder = pl.SortOrder,
+                        OtherData = pl.OtherData,
+                        ParameterGroup = pl?.ParameterGroup?.Map<ParameterGroupModel>()
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                IsLoading = false;
+                StateHasChanged();
+
+                throw new Exception(ex.Message);
+            }
+        }
+
         private async Task<GridData<ParameterModel>> ServerReload(GridState<ParameterModel> state)
         {
+            if (!ParameterRequestModel.Any())
+                await ReloadRequestModel();
+
             IEnumerable<ParameterModel> data = new List<ParameterModel>();
             data = ParameterRequestModel.OrderByDescending(x => x.Id);
 

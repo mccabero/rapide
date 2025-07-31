@@ -59,6 +59,13 @@ namespace Rapide.Web.Components.Pages.Operations
                 || TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.Cashier)
                  || TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.Accountant);
 
+            IsLoading = false;
+            StateHasChanged();
+            await base.OnInitializedAsync();
+        }
+
+        private async Task ReloadRequestModel()
+        {
             try
             {
                 var dataList = await InspectionService.GetAllInspectionSummaryAsync();
@@ -111,10 +118,6 @@ namespace Rapide.Web.Components.Pages.Operations
 
                 throw new Exception(ex.Message);
             }
-
-            IsLoading = false;
-            StateHasChanged();
-            await base.OnInitializedAsync();
         }
 
         private void OnAddClick()
@@ -124,6 +127,9 @@ namespace Rapide.Web.Components.Pages.Operations
 
         private async Task<GridData<InspectionModel>> ServerReload(GridState<InspectionModel> state)
         {
+            if (!InspectionRequestModel.Any())
+                await ReloadRequestModel();
+
             IEnumerable<InspectionModel> data = new List<InspectionModel>();
             data = InspectionRequestModel.OrderByDescending(x => x.TransactionDate);
 

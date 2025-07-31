@@ -48,62 +48,78 @@ namespace Rapide.Web.Components.Pages.Operations
             isViewOnly = TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.HR)
                 || TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.Accountant);
 
-            var dataList = await ExpensesService.GetAllExpensesAsync();
-
-            if (dataList == null)
-            {
-                IsLoading = false;
-                return;
-            }
-
-            foreach (var ul in dataList)
-            {
-                Color statusColor = Color.Primary;
-                if (ul.JobStatus.Name.Equals(Constants.JobStatus.Open))
-                    statusColor = Color.Warning;
-                else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Completed))
-                    statusColor = Color.Success;
-                else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Cancelled))
-                    statusColor = Color.Error;
-
-                ExpensesRequestModel.Add(new ExpensesModel()
-                {
-                    IsAllowedToOverride = TokenHelper.IsBigThreeRolesWithoutSupervisor(await AuthState),
-                    StatusChipColor = statusColor,
-                    Id = ul.Id,
-                    ReferenceNo = ul.ReferenceNo,
-                    ExpenseDateTime = ul.ExpenseDateTime,
-                    Amount = ul.Amount,
-                    VAT12 = ul.VAT12,
-                    PayTo = ul.PayTo,
-                    Remarks = ul.Remarks,
-                    PaymentReferenceNo = ul.PaymentReferenceNo,
-                    PaymentTypeParameter = new ParameterModel()
-                    {
-                        Id = ul.PaymentTypeParameter.Id,
-                        Name = ul.PaymentTypeParameter.Name,
-                    },
-                    JobStatus = new JobStatusModel()
-                    {
-                        Id = ul.JobStatus.Id,
-                        Name = ul.JobStatus.Name
-                    },
-                    ExpenseByUser = new UserModel()
-                    {
-                        Id = ul.ExpenseByUser.Id,
-                        FirstName = ul.ExpenseByUser.FirstName,
-                        LastName = ul.ExpenseByUser.LastName
-                    }
-                });
-            }
-
             IsLoading = false;
             StateHasChanged();
             await base.OnInitializedAsync();
         }
 
+        private async Task ReloadRequestModel()
+        {
+            try
+            {
+                var dataList = await ExpensesService.GetAllExpensesAsync();
+
+                if (dataList == null)
+                {
+                    IsLoading = false;
+                    return;
+                }
+
+                foreach (var ul in dataList)
+                {
+                    Color statusColor = Color.Primary;
+                    if (ul.JobStatus.Name.Equals(Constants.JobStatus.Open))
+                        statusColor = Color.Warning;
+                    else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Completed))
+                        statusColor = Color.Success;
+                    else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Cancelled))
+                        statusColor = Color.Error;
+
+                    ExpensesRequestModel.Add(new ExpensesModel()
+                    {
+                        IsAllowedToOverride = TokenHelper.IsBigThreeRolesWithoutSupervisor(await AuthState),
+                        StatusChipColor = statusColor,
+                        Id = ul.Id,
+                        ReferenceNo = ul.ReferenceNo,
+                        ExpenseDateTime = ul.ExpenseDateTime,
+                        Amount = ul.Amount,
+                        VAT12 = ul.VAT12,
+                        PayTo = ul.PayTo,
+                        Remarks = ul.Remarks,
+                        PaymentReferenceNo = ul.PaymentReferenceNo,
+                        PaymentTypeParameter = new ParameterModel()
+                        {
+                            Id = ul.PaymentTypeParameter.Id,
+                            Name = ul.PaymentTypeParameter.Name,
+                        },
+                        JobStatus = new JobStatusModel()
+                        {
+                            Id = ul.JobStatus.Id,
+                            Name = ul.JobStatus.Name
+                        },
+                        ExpenseByUser = new UserModel()
+                        {
+                            Id = ul.ExpenseByUser.Id,
+                            FirstName = ul.ExpenseByUser.FirstName,
+                            LastName = ul.ExpenseByUser.LastName
+                        }
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                IsLoading = false;
+                StateHasChanged();
+
+                throw new Exception(ex.Message);
+            }
+        }
+
         private async Task<GridData<ExpensesModel>> ServerReload(GridState<ExpensesModel> state)
         {
+            if (!ExpensesRequestModel.Any())
+                await ReloadRequestModel();
+
             IEnumerable<ExpensesModel> data = new List<ExpensesModel>();
             data = ExpensesRequestModel.OrderByDescending(x => x.Id);
 

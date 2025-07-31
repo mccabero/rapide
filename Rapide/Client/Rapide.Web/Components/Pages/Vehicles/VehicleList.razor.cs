@@ -48,9 +48,15 @@ namespace Rapide.Web.Components.Pages.Vehicles
             isViewOnly = TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.HR)
                 || TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.Accountant);
 
+            IsLoading = false;
+            StateHasChanged();
+            await base.OnInitializedAsync();
+        }
+
+        private async Task ReloadRequestModel()
+        {
             try
             {
-
                 var dataList = await VehicleService.GetAllVehicleAsync();
 
                 if (dataList == null)
@@ -86,14 +92,13 @@ namespace Rapide.Web.Components.Pages.Vehicles
 
                 throw new Exception(ex.Message);
             }
-
-            IsLoading = false;
-            StateHasChanged();
-            await base.OnInitializedAsync();
         }
 
         private async Task<GridData<VehiclesModel>> ServerReload(GridState<VehiclesModel> state)
         {
+            if (!VehicleRequestModel.Any())
+                await ReloadRequestModel();
+
             IEnumerable<VehiclesModel> data = new List<VehiclesModel>();
             data = VehicleRequestModel.OrderByDescending(x => x.Id);
 

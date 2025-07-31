@@ -46,31 +46,47 @@ namespace Rapide.Web.Components.Pages.SystemConfiguration
             isViewOnly = TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.HR)
                 || TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.Accountant);
 
-            var dataList = await UnitOfMeasureService.GetAllAsync();
-
-            if (dataList == null)
-            {
-                IsLoading = false;
-                return;
-            }
-
-            foreach (var ul in dataList)
-            {
-                unitOfMeasure.Add(new UnitOfMeasureModel()
-                {
-                    Id = ul.Id,
-                    Name = ul.Name,
-                    Description = ul.Description,
-                });
-            }
-
             IsLoading = false;
             StateHasChanged();
             await base.OnInitializedAsync();
         }
 
+        private async Task ReloadRequestModel()
+        {
+            try
+            {
+                var dataList = await UnitOfMeasureService.GetAllAsync();
+
+                if (dataList == null)
+                {
+                    IsLoading = false;
+                    return;
+                }
+
+                foreach (var ul in dataList)
+                {
+                    unitOfMeasure.Add(new UnitOfMeasureModel()
+                    {
+                        Id = ul.Id,
+                        Name = ul.Name,
+                        Description = ul.Description,
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                IsLoading = false;
+                StateHasChanged();
+
+                throw new Exception(ex.Message);
+            }
+        }
+
         private async Task<GridData<UnitOfMeasureModel>> ServerReload(GridState<UnitOfMeasureModel> state)
         {
+            if (!unitOfMeasure.Any())
+                await ReloadRequestModel();
+
             IEnumerable<UnitOfMeasureModel> data = new List<UnitOfMeasureModel>();
             data = unitOfMeasure.OrderByDescending(x => x.Id);
 

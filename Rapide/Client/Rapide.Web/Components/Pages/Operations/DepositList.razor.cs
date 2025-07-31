@@ -53,65 +53,81 @@ namespace Rapide.Web.Components.Pages.Operations
             isViewOnly = TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.HR)
                 || TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.Accountant);
 
-            var dataList = await DepositService.GetAllDepositAsync();
-
-            if (dataList == null)
-            {
-                IsLoading = false;
-                return;
-            }
-
-            foreach (var ul in dataList)
-            {
-                Color statusColor = Color.Primary;
-                if (ul.JobStatus.Name.Equals(Constants.JobStatus.Open))
-                    statusColor = Color.Warning;
-                else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Completed))
-                    statusColor = Color.Success;
-                else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Cancelled))
-                    statusColor = Color.Error;
-
-                DepositRequestModel.Add(new DepositModel()
-                {
-                    IsAllowedToOverride = TokenHelper.IsBigThreeRolesWithoutSupervisor(await AuthState),
-                    StatusChipColor = statusColor,
-                    Id = ul.Id,
-                    ReferenceNo = ul.ReferenceNo,
-                    TransactionDateTime = ul.TransactionDateTime,
-                    DepositAmount = ul.DepositAmount,
-                    PaymentReferenceNo = ul.PaymentReferenceNo,
-                    Description = ul.Description,
-                    PaymentTypeParameter = new ParameterModel()
-                    {
-                        Id = ul.PaymentTypeParameter.Id,
-                        Name = ul.PaymentTypeParameter.Name,
-                    },
-                    JobStatus = new JobStatusModel()
-                    {
-                        Id = ul.JobStatus.Id,
-                        Name = ul.JobStatus.Name
-                    },
-                    JobOrder = new JobOrderModel()
-                    {
-                        Id = ul.JobOrder.Id,
-                        ReferenceNo = ul.JobOrder.ReferenceNo
-                    },
-                    Customer = new CustomerModel()
-                    {
-                        Id = ul.Customer.Id,
-                        FirstName = ul.Customer.FirstName,
-                        LastName = ul.Customer.LastName
-                    }
-                });
-            }
-
             IsLoading = false;
             StateHasChanged();
             await base.OnInitializedAsync();
         }
 
+        private async Task ReloadRequestModel()
+        {
+            try
+            {
+                var dataList = await DepositService.GetAllDepositAsync();
+
+                if (dataList == null)
+                {
+                    IsLoading = false;
+                    return;
+                }
+
+                foreach (var ul in dataList)
+                {
+                    Color statusColor = Color.Primary;
+                    if (ul.JobStatus.Name.Equals(Constants.JobStatus.Open))
+                        statusColor = Color.Warning;
+                    else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Completed))
+                        statusColor = Color.Success;
+                    else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Cancelled))
+                        statusColor = Color.Error;
+
+                    DepositRequestModel.Add(new DepositModel()
+                    {
+                        IsAllowedToOverride = TokenHelper.IsBigThreeRolesWithoutSupervisor(await AuthState),
+                        StatusChipColor = statusColor,
+                        Id = ul.Id,
+                        ReferenceNo = ul.ReferenceNo,
+                        TransactionDateTime = ul.TransactionDateTime,
+                        DepositAmount = ul.DepositAmount,
+                        PaymentReferenceNo = ul.PaymentReferenceNo,
+                        Description = ul.Description,
+                        PaymentTypeParameter = new ParameterModel()
+                        {
+                            Id = ul.PaymentTypeParameter.Id,
+                            Name = ul.PaymentTypeParameter.Name,
+                        },
+                        JobStatus = new JobStatusModel()
+                        {
+                            Id = ul.JobStatus.Id,
+                            Name = ul.JobStatus.Name
+                        },
+                        JobOrder = new JobOrderModel()
+                        {
+                            Id = ul.JobOrder.Id,
+                            ReferenceNo = ul.JobOrder.ReferenceNo
+                        },
+                        Customer = new CustomerModel()
+                        {
+                            Id = ul.Customer.Id,
+                            FirstName = ul.Customer.FirstName,
+                            LastName = ul.Customer.LastName
+                        }
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                IsLoading = false;
+                StateHasChanged();
+
+                throw new Exception(ex.Message);
+            }
+        }
+
         private async Task<GridData<DepositModel>> ServerReload(GridState<DepositModel> state)
         {
+            if (!DepositRequestModel.Any())
+                await ReloadRequestModel();
+
             IEnumerable<DepositModel> data = new List<DepositModel>();
             data = DepositRequestModel.OrderByDescending(x => x.Id);
 

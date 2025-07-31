@@ -46,30 +46,46 @@ namespace Rapide.Web.Components.Pages.SystemConfiguration
             isViewOnly = TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.HR)
                 || TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.Accountant);
 
-            var dataList = await ServiceCategoryService.GetAllAsync();
-            if (dataList == null)
-            {
-                IsLoading = false;
-                return;
-            }
-
-            foreach (var pl in dataList)
-            {
-                ServiceCategoryRequestModel.Add(new ServiceCategoryModel()
-                {
-                    Id = pl.Id,
-                    Name = pl.Name,
-                    Description = pl.Description,
-                });
-            }
-
             IsLoading = false;
             StateHasChanged();
             await base.OnInitializedAsync();
         }
 
+        private async Task ReloadRequestModel()
+        {
+            try
+            {
+                var dataList = await ServiceCategoryService.GetAllAsync();
+                if (dataList == null)
+                {
+                    IsLoading = false;
+                    return;
+                }
+
+                foreach (var pl in dataList)
+                {
+                    ServiceCategoryRequestModel.Add(new ServiceCategoryModel()
+                    {
+                        Id = pl.Id,
+                        Name = pl.Name,
+                        Description = pl.Description,
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                IsLoading = false;
+                StateHasChanged();
+
+                throw new Exception(ex.Message);
+            }
+        }
+
         private async Task<GridData<ServiceCategoryModel>> ServerReload(GridState<ServiceCategoryModel> state)
         {
+            if (!ServiceCategoryRequestModel.Any())
+                await ReloadRequestModel();
+
             IEnumerable<ServiceCategoryModel> data = new List<ServiceCategoryModel>();
             data = ServiceCategoryRequestModel.OrderByDescending(x => x.Id);
 

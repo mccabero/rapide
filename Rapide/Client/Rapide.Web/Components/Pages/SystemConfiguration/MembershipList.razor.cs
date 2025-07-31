@@ -48,35 +48,51 @@ namespace Rapide.Web.Components.Pages.SystemConfiguration
             isViewOnly = TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.HR)
                 || TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.Accountant);
 
-            var datalist = await MembershipService.GetAllMembershipAsync();
-
-            if (datalist == null) 
-            { 
-                IsLoading = false;
-                return;
-            }
-
-            foreach (var ul in datalist)
-            {
-                MembershipRequestModel.Add(new MembershipModel()
-                {
-                    Customer = ul.Customer.Map<CustomerModel>(),
-                    Id = ul.Id,
-                    MembershipNo = ul.MembershipNo,
-                    MembershipDate = ul.MembershipDate,
-                    ExpiryDate = ul.ExpiryDate,
-                    IsActive = ul.IsActive,
-                    CreatedDateTime = ul.CreatedDateTime,
-                });
-            }
-
             IsLoading = false;
             StateHasChanged();
             await base.OnInitializedAsync();
         }
 
+        private async Task ReloadRequestModel()
+        {
+            try
+            {
+                var datalist = await MembershipService.GetAllMembershipAsync();
+
+                if (datalist == null)
+                {
+                    IsLoading = false;
+                    return;
+                }
+
+                foreach (var ul in datalist)
+                {
+                    MembershipRequestModel.Add(new MembershipModel()
+                    {
+                        Customer = ul.Customer.Map<CustomerModel>(),
+                        Id = ul.Id,
+                        MembershipNo = ul.MembershipNo,
+                        MembershipDate = ul.MembershipDate,
+                        ExpiryDate = ul.ExpiryDate,
+                        IsActive = ul.IsActive,
+                        CreatedDateTime = ul.CreatedDateTime,
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                IsLoading = false;
+                StateHasChanged();
+
+                throw new Exception(ex.Message);
+            }
+        }
+
         private async Task<GridData<MembershipModel>> ServerReload(GridState<MembershipModel> state)
         {
+            if (!MembershipRequestModel.Any())
+                await ReloadRequestModel();
+
             IEnumerable<MembershipModel> data = new List<MembershipModel>();
             data = MembershipRequestModel.OrderByDescending(x => x.Id);
 

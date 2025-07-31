@@ -35,31 +35,48 @@ namespace Rapide.Web.Components.Pages.Administrator
         protected override async Task OnInitializedAsync()
         {
             IsLoading = true;
-            var dataList = await RoleService.GetAllAsync();
-
-            if (dataList == null)
-            {
-                IsLoading = false;
-                return;
-            }
-
-            foreach (var ul in dataList)
-            {
-                RoleRequestModel.Add(new RoleModel()
-                {
-                    Id = ul.Id,
-                    Name = ul.Name,
-                    Description = ul.Description,
-                });
-            }
-
+            
             IsLoading = false;
             StateHasChanged();
             await base.OnInitializedAsync();
         }
 
+        private async Task ReloadRequestModel()
+        {
+            try
+            {
+                var dataList = await RoleService.GetAllAsync();
+
+                if (dataList == null)
+                {
+                    IsLoading = false;
+                    return;
+                }
+
+                foreach (var ul in dataList)
+                {
+                    RoleRequestModel.Add(new RoleModel()
+                    {
+                        Id = ul.Id,
+                        Name = ul.Name,
+                        Description = ul.Description,
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                IsLoading = false;
+                StateHasChanged();
+
+                throw new Exception(ex.Message);
+            }
+        }
+
         private async Task<GridData<RoleModel>> ServerReload(GridState<RoleModel> state)
         {
+            if (!RoleRequestModel.Any())
+                await ReloadRequestModel();
+
             IEnumerable<RoleModel> data = new List<RoleModel>();
             data = RoleRequestModel.OrderByDescending(x => x.Id);
 
