@@ -6,6 +6,8 @@ using MudBlazor;
 using Rapide.Common.Helpers;
 using Rapide.Contracts.Services;
 using Rapide.DTO;
+using Rapide.Entities;
+using Rapide.Services;
 using Rapide.Web.Components.Utilities;
 using Rapide.Web.Helpers;
 using Rapide.Web.Models;
@@ -37,6 +39,8 @@ namespace Rapide.Web.Components.Pages.Operations
         private IPackageService PackageService { get; set; }
         [Inject]
         private IInvoicePackageService InvoicePackageService { get; set; }
+        [Inject]
+        private ICompanyInfoService CompanyInfoService { get; set; }
         [Inject]
         private IDepositService DepositService { get; set; }
         [Inject]
@@ -308,6 +312,32 @@ namespace Rapide.Web.Components.Pages.Operations
 
             //InvoiceReportGenerator.ImageFile = FileHelper.GetRapideLogo();
             //await InvoiceReportGenerator.Generate(InvoiceRequestModel, JSRuntime);
+
+
+            IsLoading = true;
+
+            var companyInfo = await CompanyInfoService.GetAllAsync();
+            var companyData = (companyInfo == null && !companyInfo.Any())
+                ? new()
+                : companyInfo.FirstOrDefault();
+
+            var InvoiceRequestModel = await InvoiceService.GetInvoiceByIdAsync(invoiceId);
+            var invoiceInfo = InvoiceRequestModel;
+
+            invoiceInfo.PackageList = await InvoicePackageService.GetAllInvoicePackageByInvoiceIdAsync(invoiceInfo.Id);
+            invoiceInfo.ProductList = await JobOrderProductService.GetAllJobOrderProductByJobOrderIdAsync(invoiceInfo.JobOrder.Id);
+            invoiceInfo.ServiceList = await JobOrderServiceService.GetAllJobOrderServiceByJobOrderIdAsync(invoiceInfo.JobOrder.Id);
+            invoiceInfo.TechnicianList = await JobOrderTechnicianService.GetAllJobOrderTechnicianByJobOrderIdAsync(invoiceInfo.JobOrder.Id);
+
+            // payment information
+            var PaymentRequestModel = new PaymentDTO();
+
+            InvoiceReportGenerator.ImageFile = FileHelper.GetRapideLogo();
+            InvoiceReportGenerator.ImageFileCompany = FileHelper.GetCompanyLogo();
+            await InvoiceReportGenerator.Generate(invoiceInfo, JSRuntime, PaymentRequestModel, companyData);
+
+            IsLoading = false;
+
         }
     }
 }

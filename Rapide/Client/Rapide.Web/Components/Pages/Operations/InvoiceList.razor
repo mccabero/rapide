@@ -111,13 +111,13 @@
                                                 </MudStack>
                                             </CellTemplate>
                                         </PropertyColumn>
-                                        <PropertyColumn Property="x => x.DueDate" Title="Due Date">
+                                        @* <PropertyColumn Property="x => x.DueDate" Title="Due Date">
                                             <CellTemplate>
                                                 <MudStack Row>
                                                     <MudText>@(((DateTime)context.Item.DueDate).ToString("MM/dd/yyyy"))</MudText>
                                                 </MudStack>
                                             </CellTemplate>
-                                        </PropertyColumn>
+                                        </PropertyColumn> *@
                                         <PropertyColumn Property="x => x.TotalAmount" Title="Amount" Format="N2" />
                                         <PropertyColumn Property="x => x.DepositAmount" Title="Deposit" Format="N2" />
                                         <PropertyColumn Property="x => x.IsPackage" Title="Invoice Type" Sortable="false" Filterable="false">
@@ -144,9 +144,10 @@
                                             <CellTemplate>
                                                 <MudStack Row>
                                                     <MudButton Size="@Size.Medium" Variant="@Variant.Filled" Href="@string.Format("/operations/invoices/{0}", @context.Item.Id.ToString())" Color="@Color.Primary"><i class="fa fa-pencil-square-o"></i></MudButton>
-                                                    @* <MudButton Size="@Size.Medium" @onclick="args => OnGeneratePdfClick(context.Item.Id)" Variant="@Variant.Filled" Color="@Color.Success"><i class="fa fa-print"></i></MudButton> *@
+                                                    
                                                     @if (isBigThreeRoles)
                                                     {
+                                                        <MudButton Size="@Size.Medium" @onclick="args => OnGeneratePdfClick(context.Item.Id)" Variant="@Variant.Filled" Color="@Color.Success"><i class="fa fa-print"></i></MudButton>
                                                         <MudButton Size="@Size.Medium" @onclick="args => OnDeleteClick(context.Item)" Variant="@Variant.Filled" Color="@Color.Error"><i class="fa fa-trash"></i></MudButton>
                                                     }
                                                 </MudStack>
