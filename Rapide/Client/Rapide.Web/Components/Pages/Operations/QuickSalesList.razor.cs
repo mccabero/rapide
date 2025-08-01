@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.JSInterop;
 using MudBlazor;
 using Rapide.Contracts.Services;
+using Rapide.DTO;
+using Rapide.Services;
 using Rapide.Web.Components.Utilities;
 using Rapide.Web.Helpers;
 using Rapide.Web.Models;
@@ -31,6 +33,8 @@ namespace Rapide.Web.Components.Pages.Operations
         private IQuickSalesProductService QuickSalesProductService { get; set; }
         [Inject]
         private ICompanyInfoService CompanyInfoService { get; set; }
+        [Inject]
+        private IJobStatusService JobStatusService { get; set; }
         #endregion
 
         #region Private Properties
@@ -38,6 +42,9 @@ namespace Rapide.Web.Components.Pages.Operations
         private MudMessageBox mboxError { get; set; }
         private string mBoxCustomMessage { get; set; }
         private bool IsLoading { get; set; }
+
+        private List<JobStatusDTO> JobStatusList { get; set; } = new();
+
         private MudDataGrid<QuickSalesModel> dataGrid;
         private string searchString;
 
@@ -52,6 +59,8 @@ namespace Rapide.Web.Components.Pages.Operations
             IsLoading = true;
             isViewOnly = TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.HR)
                 || TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.Accountant);
+
+            JobStatusList = await JobStatusService.GetAllAsync();
 
             IsLoading = false;
             StateHasChanged();
@@ -78,11 +87,13 @@ namespace Rapide.Web.Components.Pages.Operations
                     else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Completed))
                         statusColor = Color.Success;
                     else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Cancelled))
+                        statusColor = Color.Info;
+                    else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Deleted))
                         statusColor = Color.Error;
 
                     QuickSalesRequestModel.Add(new QuickSalesModel()
                     {
-                        IsAllowedToOverride = TokenHelper.IsBigThreeRolesWithoutSupervisor(await AuthState),
+                        IsAllowedToOverride = TokenHelper.IsBigThreeRoles(await AuthState),
                         StatusChipColor = statusColor,
                         Id = ul.Id,
                         ReferenceNo = ul.ReferenceNo,
@@ -151,6 +162,8 @@ namespace Rapide.Web.Components.Pages.Operations
                 if (element.TransactionDate.ToString().Contains(searchString, StringComparison.OrdinalIgnoreCase))
                     return true;
                 if (element.TotalAmount.ToString().Contains(searchString, StringComparison.OrdinalIgnoreCase))
+                    return true;
+                if (element.JobStatus.Name.ToString().Contains(searchString, StringComparison.OrdinalIgnoreCase))
                     return true;
 
                 return false;
@@ -224,15 +237,14 @@ namespace Rapide.Web.Components.Pages.Operations
                     {
                         IsLoading = true;
 
-                        // Delete Products
-                        var quickSalesProductList = await QuickSalesProductService.GetAllQuickSalesProductByQuickSalesIdAsync(model.Id);
-                        if (quickSalesProductList != null)
-                        {
-                            foreach (var p in quickSalesProductList)
-                                await QuickSalesProductService.DeleteAsync(p.Id);
-                        }
+                        var jobStatusDeleted = JobStatusList.Where(x => x.Name.Equals(Constants.JobStatus.Deleted)).FirstOrDefault();
 
-                        await QuickSalesService.DeleteAsync(model.Id);
+                        var dataToDelete = await QuickSalesService.GetQuickSalesByIdAsync(model.Id);
+                        dataToDelete.JobStatus = jobStatusDeleted;
+                        dataToDelete.JobStatusId = jobStatusDeleted.Id;
+
+                        await QuickSalesService.UpdateAsync(dataToDelete);
+
                         SnackbarService.Add("Quick Sales Successfuly Deleted!", Severity.Normal, config => { config.ShowCloseIcon = true; });
 
                         IsLoading = false;

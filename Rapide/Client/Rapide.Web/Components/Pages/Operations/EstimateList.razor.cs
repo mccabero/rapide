@@ -5,6 +5,8 @@ using Microsoft.JSInterop;
 using MudBlazor;
 using Rapide.Common.Helpers;
 using Rapide.Contracts.Services;
+using Rapide.DTO;
+using Rapide.Services;
 using Rapide.Web.Components.Utilities;
 using Rapide.Web.Helpers;
 using Rapide.Web.Models;
@@ -40,6 +42,8 @@ namespace Rapide.Web.Components.Pages.Operations
         private IPackageService PackageService { get; set; }
         [Inject]
         private ICompanyInfoService CompanyInfoService { get; set; }
+        [Inject]
+        private IJobStatusService JobStatusService { get; set; }
         #endregion
 
         #region Private Properties
@@ -48,6 +52,8 @@ namespace Rapide.Web.Components.Pages.Operations
         private MudMessageBox mboxError { get; set; }
         private MudMessageBox mbox { get; set; }
         private bool IsLoading { get; set; }
+
+        private List<JobStatusDTO> JobStatusList { get; set; } = new();
 
         private MudDataGrid<EstimateModel> dataGrid;
         private string searchString;
@@ -65,6 +71,8 @@ namespace Rapide.Web.Components.Pages.Operations
                 || TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.Accountant);
 
             isCashier = TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.Cashier);
+
+            JobStatusList = await JobStatusService.GetAllAsync();
 
             IsLoading = false;
             StateHasChanged();
@@ -94,6 +102,8 @@ namespace Rapide.Web.Components.Pages.Operations
                     else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Converted))
                         statusColor = Color.Success;
                     else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Cancelled))
+                        statusColor = Color.Info;
+                    else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Deleted))
                         statusColor = Color.Error;
 
                     var customerMap = mapper.Map<CustomerModel>(ul.Customer);
@@ -102,7 +112,7 @@ namespace Rapide.Web.Components.Pages.Operations
 
                     EstimateRequestModel.Add(new EstimateModel()
                     {
-                        IsAllowedToOverride = TokenHelper.IsBigThreeRolesWithoutSupervisor(await AuthState),
+                        IsAllowedToOverride = TokenHelper.IsBigThreeRoles(await AuthState),
                         StatusChipColor = statusColor,
                         Id = ul.Id,
                         ReferenceNo = ul.ReferenceNo,
@@ -151,6 +161,8 @@ namespace Rapide.Web.Components.Pages.Operations
                 if (element.Vehicle.PlateNo.ToString().Contains(searchString, StringComparison.OrdinalIgnoreCase))
                     return true;
                 if (element.TransactionDate.ToString().Contains(searchString, StringComparison.OrdinalIgnoreCase))
+                    return true;
+                if (element.JobStatus.Name.ToString().Contains(searchString, StringComparison.OrdinalIgnoreCase))
                     return true;
 
                 return false;
@@ -239,39 +251,14 @@ namespace Rapide.Web.Components.Pages.Operations
                     {
                         IsLoading = true;
 
-                        // Delete Services
-                        var estimateServiceList = await EstimateServiceService.GetAllEstimateServiceByEstimateIdAsync(model.Id);
-                        if (estimateServiceList != null)
-                        {
-                            foreach (var s in estimateServiceList)
-                                await EstimateServiceService.DeleteAsync(s.Id);
-                        }
+                        var jobStatusDeleted = JobStatusList.Where(x => x.Name.Equals(Constants.JobStatus.Deleted)).FirstOrDefault();
 
-                        // Delete Products
-                        var estimateProductList = await EstimateProductService.GetAllEstimateProductByEstimateIdAsync(model.Id);
-                        if (estimateProductList != null)
-                        {
-                            foreach (var p in estimateProductList)
-                                await EstimateProductService.DeleteAsync(p.Id);
-                        }
+                        var dataToDelete = await EstimateService.GetEstimateByIdAsync(model.Id);
+                        dataToDelete.JobStatus = jobStatusDeleted;
+                        dataToDelete.JobStatusId = jobStatusDeleted.Id;
 
-                        // Delete Package
-                        var estimatePackageList = await EstimatePackageService.GetAllEstimatePackageByEstimateIdAsync(model.Id);
-                        if (estimatePackageList != null)
-                        {
-                            foreach (var p in estimatePackageList)
-                                await EstimatePackageService.DeleteAsync(p.Id);
-                        }
+                        await EstimateService.UpdateAsync(dataToDelete);
 
-                        // Delete Technicians
-                        var estimateTechnicianList = await EstimateTechnicianService.GetAllEstimateTechnicianByEstimateIdAsync(model.Id);
-                        if (estimateTechnicianList != null)
-                        {
-                            foreach (var t in estimateTechnicianList)
-                                await EstimateTechnicianService.DeleteAsync(t.Id);
-                        }
-
-                        await EstimateService.DeleteAsync(model.Id);
                         SnackbarService.Add("Estimate Successfuly Deleted!", Severity.Normal, config => { config.ShowCloseIcon = true; });
 
                         IsLoading = false;

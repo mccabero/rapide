@@ -47,6 +47,8 @@ namespace Rapide.Web.Components.Pages.Operations
         private ISnackbar SnackbarService { get; set; }
         [Inject]
         private IJSRuntime JSRuntime { get; set; }
+        [Inject]
+        private IJobStatusService JobStatusService { get; set; }
         #endregion
 
         #region Private Properties
@@ -54,6 +56,9 @@ namespace Rapide.Web.Components.Pages.Operations
         private MudMessageBox mboxError { get; set; }
         private string mBoxCustomMessage { get; set; }
         private bool IsLoading { get; set; }
+
+        private List<JobStatusDTO> JobStatusList { get; set; } = new();
+
         private MudDataGrid<InvoiceModel> dataGrid;
         private string searchString;
 
@@ -65,9 +70,11 @@ namespace Rapide.Web.Components.Pages.Operations
         protected override async Task OnInitializedAsync()
         {
             IsLoading = true;
-            isBigThreeRoles = TokenHelper.IsBigThreeRolesWithoutSupervisor(await AuthState);
+            isBigThreeRoles = TokenHelper.IsBigThreeRoles(await AuthState);
             isViewOnly = TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.HR)
                 || TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.Accountant);
+
+            JobStatusList = await JobStatusService.GetAllAsync();
 
             IsLoading = false;
             StateHasChanged();
@@ -103,6 +110,8 @@ namespace Rapide.Web.Components.Pages.Operations
                     else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Completed))
                         statusColor = Color.Success;
                     else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Cancelled))
+                        statusColor = Color.Info;
+                    else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Deleted))
                         statusColor = Color.Error;
 
                     var customerMap = mapper.Map<CustomerModel>(ul.Customer);
@@ -168,6 +177,8 @@ namespace Rapide.Web.Components.Pages.Operations
                 if (element.InvoiceDate.ToString().Contains(searchString, StringComparison.OrdinalIgnoreCase))
                     return true;
                 if (element.DepositAmount.ToString().Contains(searchString, StringComparison.OrdinalIgnoreCase))
+                    return true;
+                if (element.JobStatus.Name.ToString().Contains(searchString, StringComparison.OrdinalIgnoreCase))
                     return true;
 
                 return false;
@@ -268,16 +279,14 @@ namespace Rapide.Web.Components.Pages.Operations
                     {
                         IsLoading = true;
 
-                        var invoicePackageToDelete = await InvoicePackageService.GetAllInvoicePackageByInvoiceIdAsync(model.Id);
-                        if (invoicePackageToDelete != null)
-                        {
-                            foreach (var ip in invoicePackageToDelete)
-                            {
-                                await InvoicePackageService.DeleteAsync(ip.Id);
-                            }
-                        }
+                        var jobStatusDeleted = JobStatusList.Where(x => x.Name.Equals(Constants.JobStatus.Deleted)).FirstOrDefault();
 
-                        await InvoiceService.DeleteAsync(model.Id);
+                        var dataToDelete = await InvoiceService.GetInvoiceByIdAsync(model.Id);
+                        dataToDelete.JobStatus = jobStatusDeleted;
+                        dataToDelete.JobStatusId = jobStatusDeleted.Id;
+
+                        await InvoiceService.UpdateAsync(dataToDelete);
+
                         SnackbarService.Add("Invoice Successfuly Deleted!", Severity.Normal, config => { config.ShowCloseIcon = true; });
 
                         IsLoading = false;

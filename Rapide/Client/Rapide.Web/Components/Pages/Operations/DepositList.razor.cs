@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.JSInterop;
 using MudBlazor;
 using Rapide.Contracts.Services;
+using Rapide.DTO;
 using Rapide.Entities;
 using Rapide.Services;
 using Rapide.Web.Components.Utilities;
@@ -33,6 +34,8 @@ namespace Rapide.Web.Components.Pages.Operations
         private IUserService UserService { get; set; }
         [Inject]
         private ICompanyInfoService CompanyInfoService { get; set; }
+        [Inject]
+        private IJobStatusService JobStatusService { get; set; }
         #endregion
 
         #region Private Properties
@@ -40,6 +43,9 @@ namespace Rapide.Web.Components.Pages.Operations
         private MudMessageBox mboxError { get; set; }
         private string mBoxCustomMessage { get; set; }
         private bool IsLoading { get; set; }
+
+        private List<JobStatusDTO> JobStatusList { get; set; } = new();
+
         private MudDataGrid<DepositModel> dataGrid;
         private string searchString;
 
@@ -52,6 +58,8 @@ namespace Rapide.Web.Components.Pages.Operations
             IsLoading = true;
             isViewOnly = TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.HR)
                 || TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.Accountant);
+
+            JobStatusList = await JobStatusService.GetAllAsync();
 
             IsLoading = false;
             StateHasChanged();
@@ -78,11 +86,13 @@ namespace Rapide.Web.Components.Pages.Operations
                     else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Completed))
                         statusColor = Color.Success;
                     else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Cancelled))
+                        statusColor = Color.Info;
+                    else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Deleted))
                         statusColor = Color.Error;
 
                     DepositRequestModel.Add(new DepositModel()
                     {
-                        IsAllowedToOverride = TokenHelper.IsBigThreeRolesWithoutSupervisor(await AuthState),
+                        IsAllowedToOverride = TokenHelper.IsBigThreeRoles(await AuthState),
                         StatusChipColor = statusColor,
                         Id = ul.Id,
                         ReferenceNo = ul.ReferenceNo,
@@ -145,6 +155,8 @@ namespace Rapide.Web.Components.Pages.Operations
                 if (element.JobOrder.ReferenceNo.ToString().Contains(searchString, StringComparison.OrdinalIgnoreCase))
                     return true;
                 if (element.DepositAmount.ToString().Contains(searchString, StringComparison.OrdinalIgnoreCase))
+                    return true;
+                if (element.JobStatus.Name.ToString().Contains(searchString, StringComparison.OrdinalIgnoreCase))
                     return true;
 
                 return false;
@@ -223,7 +235,14 @@ namespace Rapide.Web.Components.Pages.Operations
                     {
                         IsLoading = true;
 
-                        await DepositService.DeleteAsync(model.Id);
+                        var jobStatusDeleted = JobStatusList.Where(x => x.Name.Equals(Constants.JobStatus.Deleted)).FirstOrDefault();
+
+                        var dataToDelete = await DepositService.GetDepositByIdAsync(model.Id);
+                        dataToDelete.JobStatus = jobStatusDeleted;
+                        dataToDelete.JobStatusId = jobStatusDeleted.Id;
+
+                        await DepositService.UpdateAsync(dataToDelete);
+
                         SnackbarService.Add("Deposit Successfuly Deleted!", Severity.Normal, config => { config.ShowCloseIcon = true; });
 
                         IsLoading = false;

@@ -5,6 +5,7 @@ using Microsoft.JSInterop;
 using MudBlazor;
 using Rapide.Common.Helpers;
 using Rapide.Contracts.Services;
+using Rapide.DTO;
 using Rapide.Web.Components.Utilities;
 using Rapide.Web.Helpers;
 using Rapide.Web.Models;
@@ -41,6 +42,8 @@ namespace Rapide.Web.Components.Pages.Operations
         private IJSRuntime JSRuntime { get; set; }
         [Inject]
         private ICompanyInfoService CompanyInfoService { get; set; }
+        [Inject]
+        private IJobStatusService JobStatusService { get; set; }
         #endregion
 
         #region Private Properties
@@ -51,6 +54,7 @@ namespace Rapide.Web.Components.Pages.Operations
         private string searchString;
         private List<JobOrderModel> JobOrderRequestModel = new List<JobOrderModel>();
 
+        private List<JobStatusDTO> JobStatusList { get; set; } = new();
         private string mBoxCustomMessage { get; set; }
         private MudMessageBox mboxError { get; set; }
         private bool isViewOnly = false;
@@ -64,6 +68,8 @@ namespace Rapide.Web.Components.Pages.Operations
             isViewOnly = TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.HR)
                 || TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.Cashier)
                 || TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.Accountant);
+
+            JobStatusList = await JobStatusService.GetAllAsync();
 
             IsLoading = false;
             StateHasChanged();
@@ -92,6 +98,8 @@ namespace Rapide.Web.Components.Pages.Operations
                     else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Converted))
                         statusColor = Color.Success;
                     else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Cancelled))
+                        statusColor = Color.Info;
+                    else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Deleted))
                         statusColor = Color.Error;
 
                     var customerMap = mapper.Map<CustomerModel>(ul.Customer);
@@ -100,7 +108,7 @@ namespace Rapide.Web.Components.Pages.Operations
 
                     JobOrderRequestModel.Add(new JobOrderModel()
                     {
-                        IsAllowedToOverride = TokenHelper.IsBigThreeRolesWithoutSupervisor(await AuthState),
+                        IsAllowedToOverride = TokenHelper.IsBigThreeRoles(await AuthState),
                         StatusChipColor = statusColor,
                         Id = ul.Id,
                         ReferenceNo = ul.ReferenceNo,
@@ -148,6 +156,8 @@ namespace Rapide.Web.Components.Pages.Operations
                 if ($"{element.Vehicle.VehicleModel.VehicleMake.Name} {element.Vehicle.VehicleModel.Name} {element.Vehicle.YearModel}".Contains(searchString, StringComparison.OrdinalIgnoreCase))
                     return true;
                 if (element.Vehicle.PlateNo.ToString().Contains(searchString, StringComparison.OrdinalIgnoreCase))
+                    return true;
+                if (element.JobStatus.Name.ToString().Contains(searchString, StringComparison.OrdinalIgnoreCase))
                     return true;
 
                 return false;
@@ -230,39 +240,14 @@ namespace Rapide.Web.Components.Pages.Operations
                     {
                         IsLoading = true;
 
-                        // Delete Services
-                        var jobOrderServiceList = await JobOrderServiceService.GetAllJobOrderServiceByJobOrderIdAsync(model.Id);
-                        if (jobOrderServiceList != null)
-                        {
-                            foreach (var s in jobOrderServiceList)
-                                await JobOrderServiceService.DeleteAsync(s.Id);
-                        }
+                        var jobStatusDeleted = JobStatusList.Where(x => x.Name.Equals(Constants.JobStatus.Deleted)).FirstOrDefault();
 
-                        // Delete Products
-                        var jobOrderProductList = await JobOrderProductService.GetAllJobOrderProductByJobOrderIdAsync(model.Id);
-                        if (jobOrderProductList != null)
-                        {
-                            foreach (var p in jobOrderProductList)
-                                await JobOrderProductService.DeleteAsync(p.Id);
-                        }
+                        var dataToDelete = await JobOrderService.GetJobOrderByIdAsync(model.Id);
+                        dataToDelete.JobStatus = jobStatusDeleted;
+                        dataToDelete.JobStatusId = jobStatusDeleted.Id;
 
-                        // Delete Package
-                        var estimatePackageList = await JobOrderPackageService.GetAllJobOrderPackageByJobOrderIdAsync(model.Id);
-                        if (estimatePackageList != null)
-                        {
-                            foreach (var p in estimatePackageList)
-                                await JobOrderPackageService.DeleteAsync(p.Id);
-                        }
+                        await JobOrderService.UpdateAsync(dataToDelete);
 
-                        // Delete Technicians
-                        var jobOrderTechnicianList = await JobOrderTechnicianService.GetAllJobOrderTechnicianByJobOrderIdAsync(model.Id);
-                        if (jobOrderTechnicianList != null)
-                        {
-                            foreach (var t in jobOrderTechnicianList)
-                                await JobOrderTechnicianService.DeleteAsync(t.Id);
-                        }
-
-                        await JobOrderService.DeleteAsync(model.Id);
                         SnackbarService.Add("Job Order Successfuly Deleted!", Severity.Normal, config => { config.ShowCloseIcon = true; });
 
                         IsLoading = false;

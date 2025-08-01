@@ -67,6 +67,7 @@
             public const string Completed = "COMPLETED";
             public const string Release = "RELEASE";
             public const string Cancelled = "CANCELLED";
+            public const string Deleted = "DELETED";
         }
 
         public static class Operations

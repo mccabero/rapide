@@ -42,7 +42,7 @@ namespace Rapide.Web.Components.Pages.SystemConfiguration
 
         protected override async Task OnInitializedAsync()
         {
-            isBigThreeRoles = TokenHelper.IsBigThreeRolesWithoutSupervisor(await AuthState);
+            isBigThreeRoles = TokenHelper.IsBigThreeRoles(await AuthState);
             isViewOnly = TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.HR)
                 || TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.Accountant);
 

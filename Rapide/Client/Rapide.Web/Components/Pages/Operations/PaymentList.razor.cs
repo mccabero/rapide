@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.JSInterop;
 using MudBlazor;
 using Rapide.Contracts.Services;
+using Rapide.DTO;
 using Rapide.Services;
 using Rapide.Web.Components.Utilities;
 using Rapide.Web.Helpers;
@@ -41,6 +42,8 @@ namespace Rapide.Web.Components.Pages.Operations
         private IJobOrderServiceService JobOrderServiceService { get; set; }
         [Inject]
         private IJobOrderTechnicianService JobOrderTechnicianService { get; set; }
+        [Inject]
+        private IJobStatusService JobStatusService { get; set; }
         #endregion
 
         #region Private Properties
@@ -48,6 +51,9 @@ namespace Rapide.Web.Components.Pages.Operations
         private MudMessageBox mboxError { get; set; }
         private string mBoxCustomMessage { get; set; }
         private bool IsLoading { get; set; }
+
+        private List<JobStatusDTO> JobStatusList { get; set; } = new();
+
         private MudDataGrid<PaymentModel> dataGrid;
         private string searchString;
 
@@ -60,6 +66,8 @@ namespace Rapide.Web.Components.Pages.Operations
             IsLoading = true;
             isViewOnly = TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.HR)
                 || TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.Accountant);
+
+            JobStatusList = await JobStatusService.GetAllAsync();
 
             IsLoading = false;
             StateHasChanged();
@@ -86,11 +94,13 @@ namespace Rapide.Web.Components.Pages.Operations
                     else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Completed))
                         statusColor = Color.Success;
                     else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Cancelled))
+                        statusColor = Color.Info;
+                    else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Deleted))
                         statusColor = Color.Error;
 
                     PaymentRequestModel.Add(new PaymentModel()
                     {
-                        IsAllowedToOverride = TokenHelper.IsBigThreeRolesWithoutSupervisor(await AuthState),
+                        IsAllowedToOverride = TokenHelper.IsBigThreeRoles(await AuthState),
                         StatusChipColor = statusColor,
                         Id = ul.Id,
                         IsFullyPaid = ul.IsFullyPaid,
@@ -150,6 +160,8 @@ namespace Rapide.Web.Components.Pages.Operations
                 if (element.PaymentDate.ToString().Contains(searchString, StringComparison.OrdinalIgnoreCase))
                     return true;
                 if (element.Balance.ToString().Contains(searchString, StringComparison.OrdinalIgnoreCase))
+                    return true;
+                if (element.JobStatus.Name.ToString().Contains(searchString, StringComparison.OrdinalIgnoreCase))
                     return true;
 
                 return false;
@@ -235,15 +247,14 @@ namespace Rapide.Web.Components.Pages.Operations
                     {
                         IsLoading = true;
 
-                        // Delete details
-                        var deleteList = await PaymentDetailsService.GetAllPaymentDetailsByPaymentIdAsync(model.Id);
-                        if (deleteList != null)
-                        {
-                            foreach (var p in deleteList)
-                                await PaymentDetailsService.DeleteAsync(p.Id);
-                        }
+                        var jobStatusDeleted = JobStatusList.Where(x => x.Name.Equals(Constants.JobStatus.Deleted)).FirstOrDefault();
 
-                        await PaymentService.DeleteAsync(model.Id);
+                        var dataToDelete = await PaymentService.GetPaymentByIdAsync(model.Id);
+                        dataToDelete.JobStatus = jobStatusDeleted;
+                        dataToDelete.JobStatusId = jobStatusDeleted.Id;
+
+                        await PaymentService.UpdateAsync(dataToDelete);
+
                         SnackbarService.Add("Payment Successfuly Deleted!", Severity.Normal, config => { config.ShowCloseIcon = true; });
 
                         IsLoading = false;

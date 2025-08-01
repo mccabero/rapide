@@ -99,6 +99,9 @@ namespace Rapide.Web.Components.Pages.Components
                     return true;
                 if (element.Vehicle.PlateNo.Contains(searchString, StringComparison.OrdinalIgnoreCase))
                     return true;
+                if (element.JobStatus.Name.ToString().Contains(searchString, StringComparison.OrdinalIgnoreCase))
+                    return true;
+
                 return false;
             }).ToArray();
 

@@ -6,7 +6,9 @@ using MudBlazor;
 using Newtonsoft.Json;
 using Rapide.Common.Helpers;
 using Rapide.Contracts.Services;
+using Rapide.DTO;
 using Rapide.Services;
+using Rapide.Web.Components.Pages.SystemConfiguration;
 using Rapide.Web.Components.Utilities;
 using Rapide.Web.Helpers;
 using Rapide.Web.Models;
@@ -35,6 +37,8 @@ namespace Rapide.Web.Components.Pages.Operations
         private IInspectionTechnicianService InspectionTechnicianService { get; set; }
         [Inject]
         private ICompanyInfoService CompanyInfoService { get; set; }
+        [Inject]
+        private IJobStatusService JobStatusService { get; set; }
         #endregion
 
         #region Private Properties
@@ -43,6 +47,8 @@ namespace Rapide.Web.Components.Pages.Operations
         private MudMessageBox mboxError { get; set; }
         private MudMessageBox mbox { get; set; }
         private bool IsLoading { get; set; }
+
+        private List<JobStatusDTO> JobStatusList { get; set; } = new();
 
         private MudDataGrid<InspectionModel> dataGrid;
         private string searchString;
@@ -58,6 +64,8 @@ namespace Rapide.Web.Components.Pages.Operations
             isViewOnly = TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.HR)
                 || TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.Cashier)
                  || TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.Accountant);
+
+            JobStatusList = await JobStatusService.GetAllAsync();
 
             IsLoading = false;
             StateHasChanged();
@@ -86,6 +94,8 @@ namespace Rapide.Web.Components.Pages.Operations
                     else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Converted))
                         statusColor = Color.Success;
                     else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Cancelled))
+                        statusColor = Color.Info;
+                    else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Deleted))
                         statusColor = Color.Error;
 
                     var customerMap = mapper.Map<CustomerModel>(ul.Customer);
@@ -94,7 +104,7 @@ namespace Rapide.Web.Components.Pages.Operations
 
                     InspectionRequestModel.Add(new InspectionModel()
                     {
-                        IsAllowedToOverride = TokenHelper.IsBigThreeRolesWithoutSupervisor(await AuthState),
+                        IsAllowedToOverride = TokenHelper.IsBigThreeRoles(await AuthState),
                         StatusChipColor = statusColor,
                         Id = ul.Id,
                         ReferenceNo = ul.ReferenceNo,
@@ -147,6 +157,10 @@ namespace Rapide.Web.Components.Pages.Operations
                 if (element.TransactionDate.ToString().Contains(searchString, StringComparison.OrdinalIgnoreCase))
                     return true;
                 if (element.Vehicle.PlateNo.ToString().Contains(searchString, StringComparison.OrdinalIgnoreCase))
+                    return true;
+                if (element.JobStatus.Name.ToString().Contains(searchString, StringComparison.OrdinalIgnoreCase))
+                    return true;
+                if (element.JobStatus.Name.ToString().Contains(searchString, StringComparison.OrdinalIgnoreCase))
                     return true;
 
                 return false;
@@ -224,17 +238,14 @@ namespace Rapide.Web.Components.Pages.Operations
                     {
                         IsLoading = true;
 
-                        // delete technicians first
-                        var technicianList = await InspectionTechnicianService.GetAllInspectionTechnicianByInspectionIdAsync(model.Id);
-                        if (technicianList != null)
-                        {
-                            foreach (var tl in technicianList)
-                            {
-                                await InspectionTechnicianService.DeleteAsync(tl.Id);
-                            }
-                        }
+                        var jobStatusDeleted = JobStatusList.Where(x => x.Name.Equals(Constants.JobStatus.Deleted)).FirstOrDefault();
 
-                        await InspectionService.DeleteAsync(model.Id);
+                        var dataToDelete = await InspectionService.GetInspectionByIdAsync(model.Id);
+                        dataToDelete.JobStatus = jobStatusDeleted;
+                        dataToDelete.JobStatusId = jobStatusDeleted.Id;
+
+                        await InspectionService.UpdateAsync(dataToDelete);
+
                         SnackbarService.Add("Inspection Successfuly Deleted!", Severity.Normal, config => { config.ShowCloseIcon = true; });
 
                         IsLoading = false;
