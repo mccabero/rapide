@@ -68,12 +68,15 @@
                 <MudChip T="string" Icon="@Icons.Material.Filled.Person2" Color="Color.Warning">@CustomerName</MudChip>
                 @if (!isInspectionLocked && !isViewOnly)
                 {
-                    <MudButton @onclick="OnConvertToEstimate"
-                    Size="@Size.Medium" 
-                    Variant="Variant.Filled" 
-                    Color="Color.Success" 
-                    StartIcon="@Icons.Material.Filled.Approval" 
-                    Disabled="!IsEditMode">Convert to Estimate</MudButton>
+                    if (!isTechnician)
+                    {
+                        <MudButton @onclick="OnConvertToEstimate"
+                            Size="@Size.Medium" 
+                            Variant="Variant.Filled" 
+                            Color="Color.Success" 
+                            StartIcon="@Icons.Material.Filled.Approval" 
+                            Disabled="!IsEditMode">Convert to Estimate</MudButton>
+                    }
                 }
             </div>
             <div class="col-md-6" style="padding-bottom: 10px !important;">

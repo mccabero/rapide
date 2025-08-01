@@ -16,6 +16,7 @@ namespace Rapide.Web.Components.Layout
         private bool isBigThreeRoles = false;
         private bool isCashier = false;
         private bool isOIC = false;
+        private bool isTechnician = false;
         #endregion
 
         protected override async Task OnInitializedAsync()
@@ -23,6 +24,8 @@ namespace Rapide.Web.Components.Layout
             isBigThreeRoles = TokenHelper.IsBigThreeRoles(await AuthState);
             isCashier = TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.Cashier);
             isOIC = TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.OIC);
+            isTechnician = TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.JuniorTechnician)
+                || TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.SeniorTechnician);
 
             await base.OnInitializedAsync();
         }

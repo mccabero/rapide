@@ -112,6 +112,7 @@ namespace Rapide.Web.Components.Pages.Operations
         private bool isBigThreeRoles = false;
         private bool isViewOnly = false;
         private bool isCashier = false;
+        private bool isTechnician = false;
         #endregion
 
         protected override async Task OnInitializedAsync()
@@ -121,6 +122,9 @@ namespace Rapide.Web.Components.Pages.Operations
             isViewOnly = TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.HR)
                 || TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.Cashier)
                 || TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.Accountant);
+
+            isTechnician = TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.SeniorTechnician)
+                || TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.JuniorTechnician);
 
             #region Initialize Request Model
             InspectionRequestModel = new InspectionDTO()
@@ -262,7 +266,10 @@ namespace Rapide.Web.Components.Pages.Operations
 
                 var authState = await AuthState;
                 var advisorUser = userList.Where(x => x.Id == TokenHelper.GetCurrentUserId(authState));
-                InspectionRequestModel.AdvisorUser = advisorUser.FirstOrDefault();
+
+                InspectionRequestModel.AdvisorUser = isTechnician
+                    ? null
+                    : advisorUser.FirstOrDefault();
 
                 JobStatusName = InspectionRequestModel.JobStatus.Name;
 

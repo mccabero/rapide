@@ -71,14 +71,15 @@ namespace Rapide.Web.Services
                     };
                 }
 
-                if (userByEmail.UserRoles.Where(x => x.Role.Name.Equals(Constants.UserRoles.JuniorTechnician)).Any()
-                    || userByEmail.UserRoles.Where(x => x.Role.Name.Equals(Constants.UserRoles.SeniorTechnician)).Any())
-                {
-                    return new LoginResponseModel()
-                    {
-                        ErrorMessage = "Technician account is not allowed to access the application!"
-                    };
-                }
+                // Technician is now allowed to access the POS but only vehicles, customer and inspection.
+                //if (userByEmail.UserRoles.Where(x => x.Role.Name.Equals(Constants.UserRoles.JuniorTechnician)).Any()
+                //    || userByEmail.UserRoles.Where(x => x.Role.Name.Equals(Constants.UserRoles.SeniorTechnician)).Any())
+                //{
+                //    return new LoginResponseModel()
+                //    {
+                //        ErrorMessage = "Technician account is not allowed to access the application!"
+                //    };
+                //}
 
                 var result = await TokenHelper.GenerateClaimsResponse(userByEmail);
 

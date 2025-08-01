@@ -21,14 +21,12 @@
 <section class="content">
     <div class="container-fluid">
 
-        @* Dashboard Components *@
-        <DashboardCardsComponent />
+        @if (!isTechnician)
+        {
+            @* Dashboard Components *@
+            <DashboardCardsComponent />
+        }
 
-
-
-
-
-    
         <div class="row">
             <section class="col-lg-6 connectedSortable">
             
