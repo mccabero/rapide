@@ -60,7 +60,7 @@ namespace Rapide.Web.Components.Pages.Components.Dashboard
 
         protected override async Task OnInitializedAsync()
         {
-            IsBigThreeRoles = TokenHelper.IsBigThreeRolesWithoutSupervisor(await AuthState);
+            IsBigThreeRoles = TokenHelper.IsBigThreeRoles(await AuthState);
             // As per owner, cards should display only the same day.
             //var firstDayOfTheMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
 
@@ -91,7 +91,7 @@ namespace Rapide.Web.Components.Pages.Components.Dashboard
             estimateCount = estimates == null ? 0 : estimates.Count;
             jobOrdersCount = jobOrders == null ? 0 : jobOrders.Count;
 
-            isAllowOverride = TokenHelper.IsBigThreeRolesWithoutSupervisor(await AuthState);
+            isAllowOverride = TokenHelper.IsBigThreeRoles(await AuthState);
 
             if (IsBigThreeRoles)
             {

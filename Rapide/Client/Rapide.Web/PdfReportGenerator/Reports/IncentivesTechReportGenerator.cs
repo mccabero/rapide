@@ -182,7 +182,7 @@ namespace Rapide.Web.PdfReportGenerator.Reports
                     });
 
                     var packageInvoice = invoice.Where(x => x.IsPackage = true && x.PackageList != null);
-                    var packageInvoiceWithIncentives = packageInvoice.Where(x => x.PackageList.Any(y => y.Package.IncentiveTech > 0));
+                    var packageInvoiceWithIncentives = packageInvoice.Where(x => x.PackageList.Any(y => y.Package.IncentiveTech > 0)).OrderBy(x => x.InvoiceDate);
 
                     foreach (var i in packageInvoiceWithIncentives)
                     {

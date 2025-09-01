@@ -1,4 +1,5 @@
 ﻿using Rapide.DTO;
+using Rapide.Web.Components.Utilities;
 using Rapide.Web.Helpers;
 using Rapide.Web.PdfReportGenerator.Reports;
 
@@ -20,6 +21,8 @@ namespace Rapide.Web.Components.Pages.Components
             var technicians = users.Where(x => x.Role.Name.ToUpper().Contains("TECHNICIAN") && x.IsActive == true).ToList();
 
             var filteredInvoice = invoice.Where(x => x.InvoiceDate >= _dateRange.Start && x.InvoiceDate <= _dateRange.End).ToList();
+            filteredInvoice = filteredInvoice.Where(x => x.JobOrder.JobStatus.Name != Constants.JobStatus.Cancelled).ToList();
+
 
             if (!filteredInvoice.Any())
             {
