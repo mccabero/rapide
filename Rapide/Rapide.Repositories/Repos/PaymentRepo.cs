@@ -23,6 +23,8 @@ namespace Rapide.Repositories.Repos
             await using var context = await Factory.CreateDbContextAsync();
 
             return await context.Set<Payment>()
+                .Include(x => x.JobStatus)
+                .Include(x => x.Customer)
                 .AsNoTracking()
                 .ToListAsync();
         }

@@ -84,7 +84,7 @@ namespace Rapide.Web.Components.Pages.Operations
         {
             try
             {
-                var dataList = await JobOrderService.GetAllJobOrderAsync();
+                var dataList = await JobOrderService.GetAllJobOrderSummaryAsync();
 
                 if (dataList == null)
                 {

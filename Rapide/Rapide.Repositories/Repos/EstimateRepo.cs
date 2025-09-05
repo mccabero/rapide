@@ -33,6 +33,11 @@ namespace Rapide.Repositories.Repos
             await using var context = await Factory.CreateDbContextAsync();
 
             return await context.Set<Estimate>()
+                .Include(x => x.JobStatus)
+                .Include(x => x.Customer)
+                .Include(x => x.Vehicle)
+                    .ThenInclude(x => x.VehicleModel)
+                    .ThenInclude(x => x.VehicleMake)
                 .AsNoTracking()
                 .ToListAsync();
         }

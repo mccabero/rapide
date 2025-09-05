@@ -82,7 +82,7 @@ namespace Rapide.Web.Components.Pages.Operations
         {
             try
             {
-                var dataList = await PaymentService.GetAllPaymentAsync();
+                var dataList = await PaymentService.GetAllPaymentSummaryAsync();
 
                 if (dataList == null)
                 {

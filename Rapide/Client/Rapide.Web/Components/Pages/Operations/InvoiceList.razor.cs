@@ -90,7 +90,7 @@ namespace Rapide.Web.Components.Pages.Operations
         {
             try
             {
-                var dataList = await InvoiceService.GetAllInvoiceAsync();
+                var dataList = await InvoiceService.GetAllInvoiceSummaryAsync();
 
                 if (dataList == null)
                 {

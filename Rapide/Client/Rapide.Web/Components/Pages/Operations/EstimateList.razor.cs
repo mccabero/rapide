@@ -88,7 +88,7 @@ namespace Rapide.Web.Components.Pages.Operations
             try
             {
 
-                var dataList = await EstimateService.GetAllEstimateAsync();
+                var dataList = await EstimateService.GetAllEstimateSummaryAsync();
 
                 if (dataList == null)
                 {
