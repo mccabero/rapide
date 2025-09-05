@@ -2,6 +2,8 @@
 {
     public class JobOrderDTO : BaseDTO
     {
+        public bool IsChangan { get; set; }
+
         public bool IsPackage { get; set; }
 
         public bool IsPaid { get; set; }

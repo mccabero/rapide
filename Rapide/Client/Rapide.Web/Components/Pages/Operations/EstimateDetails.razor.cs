@@ -712,7 +712,7 @@ namespace Rapide.Web.Components.Pages.Operations
             }
         }
 
-        private async Task OnCustomerApprovedClick()
+        private async Task ConvertToJobOrder()
         {
             var isValidated = await ValidateSubComponents();
             if (!isValidated)
@@ -738,6 +738,7 @@ namespace Rapide.Web.Components.Pages.Operations
                     #region Create New Job Order from Estimate
                     var dto = new JobOrderDTO()
                     {
+                        IsChangan = EstimateRequestModel.IsChangan,
                         IsPackage = EstimateRequestModel.IsPackage,
                         IsPaid = false,
                         EstimateId = EstimateRequestModel.Id,

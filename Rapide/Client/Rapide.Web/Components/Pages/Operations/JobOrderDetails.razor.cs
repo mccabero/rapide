@@ -484,6 +484,7 @@ namespace Rapide.Web.Components.Pages.Operations
 
         private void ReloadJobOrderRequestModel()
         {
+            JobOrderRequestModel.IsChangan = JobOrderRequestModel.IsChangan;
             JobOrderRequestModel.CustomerId = JobOrderRequestModel.Customer.Id;
             JobOrderRequestModel.VehicleId = JobOrderRequestModel.Vehicle.Id;
             JobOrderRequestModel.AdvisorUserId = JobOrderRequestModel.AdvisorUser.Id;
