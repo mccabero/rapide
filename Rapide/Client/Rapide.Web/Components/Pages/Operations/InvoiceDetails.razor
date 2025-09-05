@@ -73,7 +73,7 @@
                 <MudChip T="string" Icon="@Icons.Material.Filled.Person2" Color="Color.Warning">@CustomerName</MudChip>
                 @if (!hasPayment && !isViewOnly)
                 {
-                    <MudButton Disabled="@(!IsEditMode)" @onclick="OnProceedToPaymentClick" Size="@Size.Medium" Variant="Variant.Filled" Color="Color.Success" StartIcon="@Icons.Material.Filled.Approval">Proceed to Payment</MudButton>
+                    <MudButton Disabled="@(!IsEditMode)" @onclick="ConvertToPayment" Size="@Size.Medium" Variant="Variant.Filled" Color="Color.Success" StartIcon="@Icons.Material.Filled.Approval">Proceed to Payment</MudButton>
                 }
             </div>
             <div class="col-md-6" style="padding-bottom: 10px !important;">

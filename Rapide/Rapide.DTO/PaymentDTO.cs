@@ -2,6 +2,8 @@
 {
     public class PaymentDTO : BaseDTO
     {
+        public bool IsChangan { get; set; }
+
         public bool IsFullyPaid { get; set; }
 
         public string? ReferenceNo { get; set; }

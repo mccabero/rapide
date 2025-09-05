@@ -133,7 +133,7 @@ namespace Rapide.Web.Components.Pages.Operations
             await base.OnInitializedAsync();
         }
 
-        private async Task OnProceedToPaymentClick()
+        private async Task ConvertToPayment()
         {
             var PaymentRequestModel = new PaymentDTO();
 
@@ -144,6 +144,7 @@ namespace Rapide.Web.Components.Pages.Operations
 
             if (proceedAddNew)
             {
+                PaymentRequestModel.IsChangan = InvoiceRequestModel.IsChangan;
                 PaymentRequestModel.ReferenceNo = await ReferenceNumberHelper.GetRNPayment(PaymentService);
 
                 var jobStatus = await JobStatusService.GetAllAsync();
@@ -205,20 +206,24 @@ namespace Rapide.Web.Components.Pages.Operations
                 // call create endpoint here...
                 var created = await PaymentService.CreateAsync(PaymentRequestModel);
 
-                // Save payment details
-                foreach (var t in PaymentRequestModel.PaymentDetailsList)
+                if (PaymentRequestModel.PaymentDetailsList != null)
                 {
-                    t.PaymentId = created.Id;
-                    t.PaymentTypeParameterId = t.PaymentTypeParameter.Id;
-                    t.InvoiceId = t.Invoice.Id;
+                    // Save payment details
+                    foreach (var t in PaymentRequestModel.PaymentDetailsList)
+                    {
+                        t.PaymentId = created.Id;
+                        t.PaymentTypeParameterId = t.PaymentTypeParameter.Id;
+                        t.InvoiceId = t.Invoice.Id;
 
-                    t.CreatedById = TokenHelper.GetCurrentUserId(await AuthState);
-                    t.CreatedDateTime = DateTime.Now;
-                    t.UpdatedById = TokenHelper.GetCurrentUserId(await AuthState);
-                    t.UpdatedDateTime = DateTime.Now;
+                        t.CreatedById = TokenHelper.GetCurrentUserId(await AuthState);
+                        t.CreatedDateTime = DateTime.Now;
+                        t.UpdatedById = TokenHelper.GetCurrentUserId(await AuthState);
+                        t.UpdatedDateTime = DateTime.Now;
 
-                    await PaymentDetailsService.CreateAsync(t);
+                        await PaymentDetailsService.CreateAsync(t);
+                    }
                 }
+                
 
                 // update the status to converted
                 var convertedStatus = jobStatus.Where(x => x.Name.Equals(Constants.JobStatus.Converted)).FirstOrDefault();

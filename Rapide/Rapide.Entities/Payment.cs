@@ -6,6 +6,9 @@ namespace Rapide.Entities
     public class Payment : BaseEntity
     {
         [Required]
+        public bool IsChangan { get; set; }
+
+        [Required]
         public bool IsFullyPaid { get; set; }
         
         [Required]
