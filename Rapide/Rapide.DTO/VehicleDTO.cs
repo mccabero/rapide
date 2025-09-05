@@ -2,6 +2,8 @@
 {
     public class VehicleDTO : BaseDTO
     {
+        public bool IsChangan { get; set; }
+
         public CustomerDTO Customer { get; set; }
         public int CustomerId { get; set; }
 

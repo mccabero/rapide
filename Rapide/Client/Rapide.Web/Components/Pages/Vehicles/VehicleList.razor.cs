@@ -8,6 +8,7 @@ using Rapide.Entities;
 using Rapide.Web.Components.Utilities;
 using Rapide.Web.Helpers;
 using Rapide.Web.Models;
+using static Rapide.Web.Components.Utilities.Constants;
 
 namespace Rapide.Web.Components.Pages.Vehicles
 {
@@ -39,6 +40,10 @@ namespace Rapide.Web.Components.Pages.Vehicles
         private MudMessageBox mboxError { get; set; }
         private bool isViewOnly = false;
         private bool IsBigThreeRoles = false;
+
+        // 1: Rapide | 2: Changan | 3: ALL
+        public string clientType { get; set; } = Constants.ClientType.All;
+        private string clientTypeFilter;
         #endregion
 
         protected override async Task OnInitializedAsync()
@@ -76,6 +81,7 @@ namespace Rapide.Web.Components.Pages.Vehicles
                     VehicleRequestModel.Add(new VehiclesModel()
                     {
                         Id = ul.Id,
+                        IsChangan = ul.IsChangan,
                         Customer = customerMap,
                         FullName = $"{ul.Customer.FirstName} {ul.Customer.LastName}",
                         PlateNo = ul.PlateNo,
@@ -119,6 +125,16 @@ namespace Rapide.Web.Components.Pages.Vehicles
                     return true;
                 return false;
             }).ToArray();
+
+            if (!string.IsNullOrEmpty(clientTypeFilter))
+            {
+                if ($"{Constants.ClientType.Rapide}_{Constants.ClientType.Changan}".Contains(clientTypeFilter))
+                {
+                    bool clientType = clientTypeFilter.Equals(Constants.ClientType.Changan.ToString());
+
+                    data = data.Where(x => x.IsChangan == clientType);
+                }
+            }
 
             var totalItems = data.Count();
 
@@ -167,6 +183,13 @@ namespace Rapide.Web.Components.Pages.Vehicles
                 TotalItems = totalItems,
                 Items = pagedData
             };
+        }
+
+        private Task OnFilter(string text)
+        {
+            clientType = text;
+            clientTypeFilter = text;
+            return dataGrid.ReloadServerData();
         }
 
         private Task OnSearch(string text)

@@ -9,6 +9,8 @@ namespace Rapide.Web.Models
         [NotMapped]
         public string FullName { get; set; }
 
+        public bool IsChangan { get; set; }
+
         public CustomerModel Customer { get; set; }
         public int CustomerId { get; set; }
 

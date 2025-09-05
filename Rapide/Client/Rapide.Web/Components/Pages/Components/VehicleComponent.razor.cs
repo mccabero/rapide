@@ -63,6 +63,8 @@ namespace Rapide.Web.Components.Pages.Components
             isViewOnly = TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.HR)
                 || TokenHelper.IsRoleEqual(await AuthState, Constants.UserRoles.Accountant);
 
+            VehicleRequestModel.Customer = new CustomerDTO();
+
             bool isEditMode = !string.IsNullOrEmpty(VehicleId);
 
             var allParams = await ParameterService.GetAllParameterAsync();
@@ -202,6 +204,12 @@ namespace Rapide.Web.Components.Pages.Components
                 NavigationManager.NavigateTo($"/configurations/vehicle-models/add?returnUrl={returnUrl}");
         }
 
+        private async Task OnCustomerSelected(CustomerDTO dto)
+        {
+            VehicleRequestModel.Customer = dto;
+            VehicleRequestModel.IsChangan = dto.IsChangan;
+        }
+
         #region Search MudAutoComplete
         private async Task<IEnumerable<CustomerDTO>> SearchCustomer(string filter, CancellationToken token)
         {
@@ -209,7 +217,12 @@ namespace Rapide.Web.Components.Pages.Components
             if (string.IsNullOrEmpty(filter))
                 return CustomerList;
 
-            return CustomerList.Where(i => $"{i.FirstName} {i.MiddleName} {i.LastName}".Contains(filter, StringComparison.InvariantCultureIgnoreCase)).ToList();
+            var customerData = CustomerList
+                .Where(i => $"{i.FirstName} {i.MiddleName} {i.LastName}"
+                .Contains(filter, StringComparison.InvariantCultureIgnoreCase))
+                .ToList();
+            
+            return customerData;
         }
 
         private async Task<IEnumerable<VehicleModelDTO>> SearchVehicleModel(string filter, CancellationToken token)

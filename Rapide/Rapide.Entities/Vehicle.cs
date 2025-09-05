@@ -6,6 +6,9 @@ namespace Rapide.Entities
     public class Vehicle : BaseEntity
     {
         [Required]
+        public bool IsChangan { get; set; }
+
+        [Required]
         [ForeignKey("CustomerId")]
         public Customer Customer { get; set; }
         public int CustomerId { get; set; }

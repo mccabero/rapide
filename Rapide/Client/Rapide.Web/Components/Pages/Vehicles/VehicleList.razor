@@ -1,5 +1,6 @@
 ﻿@page "/vehicles"
 @using MudBlazor
+@using Rapide.Web.Components.Utilities
 @using Rapide.Web.Models
 
 @if (IsLoading)
@@ -75,13 +76,29 @@
                             <div class="col-md-12">
                                 <MudDataGrid Dense T="VehiclesModel" @ref="dataGrid" ServerData="ServerReload" Filterable="false" RowsPerPage="100">
                                     <ToolBarContent>
-                                        <MudText Typo="Typo.h6"></MudText>
+                                        <MudRadioGroup T="string" Value="@clientType" ValueChanged="@(s => OnFilter(s))">
+                                            <MudRadio Value="@Constants.ClientType.All" Color="Color.Success" Dense="true">@Constants.ClientType.All</MudRadio>
+                                            <MudRadio Value="@Constants.ClientType.Rapide" Color="Color.Warning" Dense="true" sele>@Constants.ClientType.Rapide</MudRadio>
+                                            <MudRadio Value="@Constants.ClientType.Changan" Color="Color.Info" Dense="true">@Constants.ClientType.Changan</MudRadio>
+                                        </MudRadioGroup>
                                         <MudSpacer />
                                         <MudTextField T="string" ValueChanged="@(s=>OnSearch(s))" Placeholder="Search" Adornment="Adornment.Start"
                                                       AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Small" Class="mt-0"></MudTextField>
                                     </ToolBarContent>
                                     <Columns>
                                         @* <PropertyColumn Property="x => x.Id" Title="Id" /> *@
+                                        <PropertyColumn Property="x => x.IsChangan" Title="Client Type" Sortable="false" Filterable="false">
+                                            <CellTemplate>
+                                                <MudStack Row>
+                                                    <MudChip T="string"
+                                                             Size="@Size.Medium"
+                                                             Color="@(@context.Item.IsChangan ? Color.Info : Color.Warning)">
+                                                        @(@context.Item.IsChangan ? Constants.ClientType.Changan : Constants.ClientType.Rapide)
+                                                    </MudChip>
+                                                </MudStack>
+                                            </CellTemplate>
+                                        </PropertyColumn>
+
                                         <PropertyColumn Property="x => x.PlateNo" Title="Plate No." Filterable="false">
                                             <CellTemplate>
                                                 <MudStack Row>
@@ -94,7 +111,7 @@
                                                 <MudText>@($"{context.Item.VehicleModel.VehicleMake.Name} {context.Item.VehicleModel.Name} ({context.Item.YearModel})")</MudText>
                                             </CellTemplate>
                                         </PropertyColumn>
-                                        <PropertyColumn Property="x => x.YearModel" Title="Year Model" Filterable="false" />
+                                        @* <PropertyColumn Property="x => x.YearModel" Title="Year Model" Filterable="false" /> *@
                                         <PropertyColumn Property="x => x.FullName" Title="Name" Filterable="false">
                                             <CellTemplate>
                                                 <MudStack Row>
