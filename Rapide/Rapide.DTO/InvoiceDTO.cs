@@ -2,6 +2,8 @@
 {
     public class InvoiceDTO : BaseDTO
     {
+        public bool IsChangan { get; set; }
+
         public bool IsPackage { get; set; }
 
         public string? InvoiceNo { get; set; }

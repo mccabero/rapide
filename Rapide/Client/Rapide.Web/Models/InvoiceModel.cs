@@ -7,6 +7,8 @@ namespace Rapide.Web.Models
     {
         public int Id { get; set; }
 
+        public bool IsChangan { get; set; }
+
         public bool IsPackage { get; set; }
 
         public string? InvoiceNo { get; set; }

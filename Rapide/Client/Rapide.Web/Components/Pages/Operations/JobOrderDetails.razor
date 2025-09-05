@@ -75,7 +75,7 @@
                 
                 @if (!isJobOrderCompleted && (!isViewOnly || isCashier || isOIC || isBigThreeRoles))
                 {
-                    <MudButton @onclick="OnJobOrderCompletedClick"
+                    <MudButton @onclick="ConvertToInvoice"
                     Size="@Size.Medium"
                     Variant="Variant.Filled"
                     Color="Color.Success"

@@ -664,7 +664,7 @@ namespace Rapide.Web.Components.Pages.Operations
             }
         }
 
-        private async Task OnJobOrderCompletedClick()
+        private async Task ConvertToInvoice()
         {
             // validate service, products and technicians
             var isValid = await ValidateSubComponents();
@@ -694,6 +694,7 @@ namespace Rapide.Web.Components.Pages.Operations
                     #region Create New Job Order from Estimate
                     var dto = new InvoiceDTO()
                     {
+                        IsChangan = JobOrderRequestModel.IsChangan,
                         IsPackage = JobOrderRequestModel.IsPackage,
                         InvoiceNo = newRefNo,
                         InvoiceDate = JobOrderRequestModel.TransactionDate,

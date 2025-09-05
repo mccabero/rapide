@@ -12,6 +12,7 @@ using Rapide.Web.Components.Utilities;
 using Rapide.Web.Helpers;
 using Rapide.Web.Models;
 using Rapide.Web.PdfReportGenerator;
+using static Rapide.Web.Components.Utilities.Constants;
 
 namespace Rapide.Web.Components.Pages.Operations
 {
@@ -65,6 +66,10 @@ namespace Rapide.Web.Components.Pages.Operations
         private List<InvoiceModel> InvoiceRequestModel = new List<InvoiceModel>();
         private bool isViewOnly = false;
         private bool isBigThreeRoles = false;
+
+        // 1: Rapide | 2: Changan | 3: ALL
+        public string clientType { get; set; } = Constants.ClientType.All;
+        private string clientTypeFilter;
         #endregion
 
         protected override async Task OnInitializedAsync()
@@ -119,6 +124,7 @@ namespace Rapide.Web.Components.Pages.Operations
 
                     InvoiceRequestModel.Add(new InvoiceModel()
                     {
+                        IsChangan = ul.IsChangan,
                         StatusChipColor = statusColor,
                         Id = ul.Id,
                         IsPackage = ul.IsPackage,
@@ -183,6 +189,16 @@ namespace Rapide.Web.Components.Pages.Operations
 
                 return false;
             }).ToArray();
+
+            if (!string.IsNullOrEmpty(clientTypeFilter))
+            {
+                if ($"{Constants.ClientType.Rapide}_{Constants.ClientType.Changan}".Contains(clientTypeFilter))
+                {
+                    bool clientType = clientTypeFilter.Equals(Constants.ClientType.Changan.ToString());
+
+                    data = data.Where(x => x.IsChangan == clientType);
+                }
+            }
 
             var totalItems = data.Count();
 
@@ -249,6 +265,13 @@ namespace Rapide.Web.Components.Pages.Operations
         private Task OnSearch(string text)
         {
             searchString = text;
+            return dataGrid.ReloadServerData();
+        }
+
+        private Task OnFilter(string text)
+        {
+            clientType = text;
+            clientTypeFilter = text;
             return dataGrid.ReloadServerData();
         }
 

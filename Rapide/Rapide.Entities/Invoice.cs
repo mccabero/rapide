@@ -6,6 +6,9 @@ namespace Rapide.Entities
     public class Invoice : BaseEntity
     {
         [Required]
+        public bool IsChangan { get; set; }
+
+        [Required]
         public bool IsPackage { get; set; }
 
         [Required]
