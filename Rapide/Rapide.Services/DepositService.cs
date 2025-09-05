@@ -59,6 +59,29 @@ namespace Rapide.Services
                 throw;
             }
         }
+        public async Task<List<DepositDTO>> GetAllDepositSummaryAsync()
+        {
+            try
+            {
+                List<DepositDTO> dtoList = new List<DepositDTO>();
+                var entityList = await repo.GetAllDepositSummaryAsync();
+
+                if (entityList.IsNullOrEmpty())
+                    return null;
+
+                IMapper mapper = InitializeMapper();
+
+                foreach (var e in entityList)
+                    dtoList.Add(mapper.Map<DepositDTO>(e));
+
+                return dtoList;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
 
         public override async Task<DepositDTO?> GetAsync(Expression<Func<Deposit, bool>> predicate)
         {

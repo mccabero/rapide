@@ -21,6 +21,15 @@ namespace Rapide.Repositories.Repos
                 .ToListAsync();
         }
 
+        public async Task<List<QuickSales>> GetAllQuickSalesSummaryAsync()
+        {
+            await using var context = await Factory.CreateDbContextAsync();
+
+            return await context.Set<QuickSales>()
+                .AsNoTracking()
+                .ToListAsync();
+        }
+
         public async Task<List<QuickSales>> GetAllQuickSalesByCustomerIdAsync(int customerId)
         {
             await using var context = await Factory.CreateDbContextAsync();

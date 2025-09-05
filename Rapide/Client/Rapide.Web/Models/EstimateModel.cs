@@ -6,6 +6,8 @@ namespace Rapide.Web.Models
     {
         public int Id { get; set; }
 
+        public bool IsChangan { get; set; }
+
         public bool IsCustomerApproved { get; set; }
 
         public int? Inspectionid { get; set; }

@@ -9,6 +9,8 @@ namespace Rapide.Contracts.Services
 
         Task<List<QuickSalesDTO>> GetAllQuickSalesAsync();
 
+        Task<List<QuickSalesDTO>> GetAllQuickSalesSummaryAsync();
+
         Task<List<QuickSalesDTO>> GetAllQuickSalesByCustomerIdAsync(int customerId);
     }
 }

@@ -8,6 +8,8 @@ namespace Rapide.Contracts.Repositories
 
         Task<List<Invoice>> GetAllInvoiceAsync();
 
+        Task<List<Invoice>> GetAllInvoiceSummaryAsync();
+
         Task<List<Invoice>> GetAllInvoiceByCustomerIdAsync(int customerId);
     }
 }

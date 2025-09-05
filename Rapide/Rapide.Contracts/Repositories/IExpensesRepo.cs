@@ -8,6 +8,8 @@ namespace Rapide.Contracts.Repositories
 
         Task<List<Expenses>> GetAllExpensesAsync();
 
+        Task<List<Expenses>> GetAllExpensesSummaryAsync();
+
         Task<List<Expenses>> GetAllExpensesByExpenseByUserIdAsync(int expenseByUserId);
     }
 }

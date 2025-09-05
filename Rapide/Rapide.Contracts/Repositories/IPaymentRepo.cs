@@ -8,6 +8,8 @@ namespace Rapide.Contracts.Repositories
 
         Task<List<Payment>> GetAllPaymentAsync();
 
+        Task<List<Payment>> GetAllPaymentSummaryAsync();
+
         Task<List<Payment>> GetAllPaymentByCustomerIdAsync(int customerId);
     }
 }

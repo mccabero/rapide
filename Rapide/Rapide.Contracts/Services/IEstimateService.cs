@@ -9,6 +9,8 @@ namespace Rapide.Contracts.Services
 
         Task<List<EstimateDTO>> GetAllEstimateAsync();
 
+        Task<List<EstimateDTO>> GetAllEstimateSummaryAsync();
+
         Task<List<EstimateDTO>> GetAllEstimateByCustomerIdAsync(int customerId);
     }
 }

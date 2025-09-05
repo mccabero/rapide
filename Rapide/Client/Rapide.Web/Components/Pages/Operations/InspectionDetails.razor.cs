@@ -542,6 +542,8 @@ namespace Rapide.Web.Components.Pages.Operations
                 var EstimateRequestModel = new EstimateDTO();
                 var jobStatusOpen = JobStatusList.Where(x => x.Name.Equals(Constants.JobStatus.Open)).FirstOrDefault();
 
+                EstimateRequestModel.IsChangan = InspectionRequestModel.IsChangan;
+
                 EstimateRequestModel.ReferenceNo = await ReferenceNumberHelper.GetRNEstimate(EstimateService);
 
                 EstimateRequestModel.EstimatedDays = 0;

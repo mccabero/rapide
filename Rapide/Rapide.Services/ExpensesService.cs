@@ -56,6 +56,29 @@ namespace Rapide.Services
             }
         }
 
+        public async Task<List<ExpensesDTO>> GetAllExpensesSummaryAsync()
+        {
+            try
+            {
+                List<ExpensesDTO> dtoList = new List<ExpensesDTO>();
+                var entityList = await repo.GetAllExpensesSummaryAsync();
+
+                if (entityList.IsNullOrEmpty())
+                    return null;
+
+                IMapper mapper = InitializeMapper();
+
+                foreach (var e in entityList)
+                    dtoList.Add(mapper.Map<ExpensesDTO>(e));
+
+                return dtoList;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
         public override async Task<ExpensesDTO?> GetAsync(Expression<Func<Expenses, bool>> predicate)
         {
             try

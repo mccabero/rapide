@@ -66,6 +66,29 @@ namespace Rapide.Services
             }
         }
 
+        public async Task<List<JobOrderDTO>> GetAllJobOrderSummaryAsync()
+        {
+            try
+            {
+                List<JobOrderDTO> dtoList = new List<JobOrderDTO>();
+                var entityList = await repo.GetAllJobOrderSummaryAsync();
+
+                if (entityList.IsNullOrEmpty())
+                    return null;
+
+                IMapper mapper = InitializeMapper();
+
+                foreach (var e in entityList)
+                    dtoList.Add(mapper.Map<JobOrderDTO>(e));
+
+                return dtoList;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
         public async Task<List<JobOrderDTO>> GetAllJobOrderByCustomerIdAsync(int customerId)
         {
             try

@@ -20,6 +20,15 @@ namespace Rapide.Repositories.Repos
                 .ToListAsync();
         }
 
+        public async Task<List<Deposit>> GetAllDepositSummaryAsync()
+        {
+            await using var context = await Factory.CreateDbContextAsync();
+
+            return await context.Set<Deposit>()
+                .AsNoTracking()
+                .ToListAsync();
+        }
+
         public async Task<List<Deposit>> GetAllDepositByCustomerIdAsync(int customerId)
         {
             await using var context = await Factory.CreateDbContextAsync();

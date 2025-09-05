@@ -8,6 +8,8 @@ namespace Rapide.Contracts.Repositories
 
         Task<List<QuickSales>> GetAllQuickSalesAsync();
 
+        Task<List<QuickSales>> GetAllQuickSalesSummaryAsync();
+
         Task<List<QuickSales>> GetAllQuickSalesByCustomerIdAsync(int customerId);
     }
 }

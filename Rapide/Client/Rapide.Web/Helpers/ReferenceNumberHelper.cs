@@ -6,7 +6,7 @@ namespace Rapide.Web.Helpers
     {
         public static async Task<string> GetRNInspection(IInspectionService service)
         {
-            var data = await service.GetAllInspectionAsync();
+            var data = await service.GetAllInspectionSummaryAsync();
             var lastId = 1;
 
             if (data != null)
@@ -22,7 +22,7 @@ namespace Rapide.Web.Helpers
 
         public static async Task<string> GetRNEstimate(IEstimateService service)
         {
-            var data = await service.GetAllEstimateAsync();
+            var data = await service.GetAllEstimateSummaryAsync();
             var lastId = 1;
 
             if (data != null)
@@ -38,7 +38,7 @@ namespace Rapide.Web.Helpers
 
         public static async Task<string> GetRNJobOrder(IJobOrderService service)
         {
-            var data = await service.GetAllJobOrderAsync();
+            var data = await service.GetAllJobOrderSummaryAsync();
             var lastId = 1;
 
             if (data != null)
@@ -54,7 +54,7 @@ namespace Rapide.Web.Helpers
 
         public static async Task<string> GetRNInvoice(IInvoiceService service)
         {
-            var data = await service.GetAllInvoiceAsync();
+            var data = await service.GetAllInvoiceSummaryAsync();
             var lastId = 1;
 
             if (data != null)
@@ -70,7 +70,7 @@ namespace Rapide.Web.Helpers
 
         public static async Task<string> GetRNDeposit(IDepositService service)
         {
-            var data = await service.GetAllDepositAsync();
+            var data = await service.GetAllDepositSummaryAsync();
             var lastId = 1;
 
             if (data != null)
@@ -86,7 +86,7 @@ namespace Rapide.Web.Helpers
 
         public static async Task<string> GetRNPayment(IPaymentService service)
         {
-            var data = await service.GetAllPaymentAsync();
+            var data = await service.GetAllPaymentSummaryAsync();
             var lastId = 1;
 
             if (data != null)
@@ -102,7 +102,7 @@ namespace Rapide.Web.Helpers
 
         public static async Task<string> GetRNQuickSales(IQuickSalesService service)
         {
-            var data = await service.GetAllQuickSalesAsync();
+            var data = await service.GetAllQuickSalesSummaryAsync();
             var lastId = 1;
 
             if (data != null)
@@ -118,7 +118,7 @@ namespace Rapide.Web.Helpers
 
         public static async Task<string> GetRNExpenses(IExpensesService service)
         {
-            var data = await service.GetAllExpensesAsync();
+            var data = await service.GetAllExpensesSummaryAsync();
             var lastId = 1;
 
             if (data != null)

@@ -67,6 +67,29 @@ namespace Rapide.Services
             }
         }
 
+        public async Task<List<InvoiceDTO>> GetAllInvoiceSummaryAsync()
+        {
+            try
+            {
+                List<InvoiceDTO> dtoList = new List<InvoiceDTO>();
+                var entityList = await repo.GetAllInvoiceSummaryAsync();
+
+                if (entityList.IsNullOrEmpty())
+                    return null;
+
+                IMapper mapper = InitializeMapper();
+
+                foreach (var e in entityList)
+                    dtoList.Add(mapper.Map<InvoiceDTO>(e));
+
+                return dtoList;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
         public async Task<List<InvoiceDTO>> GetAllInvoiceByCustomerIdAsync(int customerId)
         {
             try

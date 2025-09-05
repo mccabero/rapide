@@ -9,6 +9,8 @@ namespace Rapide.Contracts.Services
 
         Task<List<JobOrderDTO>> GetAllJobOrderAsync();
 
+        Task<List<JobOrderDTO>> GetAllJobOrderSummaryAsync();
+
         Task<List<JobOrderDTO>> GetAllJobOrderByCustomerIdAsync(int customerId);
 
         Task<List<JobOrderDTO>> GetAllJobOrderByVehicleIdAsync(int vehicleId);

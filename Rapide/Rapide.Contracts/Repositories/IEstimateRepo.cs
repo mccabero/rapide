@@ -8,6 +8,8 @@ namespace Rapide.Contracts.Repositories
 
         Task<List<Estimate>> GetAllEstimateAsync();
 
+        Task<List<Estimate>> GetAllEstimateSummaryAsync();
+
         Task<List<Estimate>> GetAllEstimateByCustomerIdAsync(int customerId);
     }
 }

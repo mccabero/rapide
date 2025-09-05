@@ -59,6 +59,29 @@ namespace Rapide.Services
             }
         }
 
+        public async Task<List<QuickSalesDTO>> GetAllQuickSalesSummaryAsync()
+        {
+            try
+            {
+                List<QuickSalesDTO> dtoList = new List<QuickSalesDTO>();
+                var entityList = await repo.GetAllQuickSalesSummaryAsync();
+
+                if (entityList.IsNullOrEmpty())
+                    return null;
+
+                IMapper mapper = InitializeMapper();
+
+                foreach (var e in entityList)
+                    dtoList.Add(mapper.Map<QuickSalesDTO>(e));
+
+                return dtoList;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
         public override async Task<QuickSalesDTO?> GetAsync(Expression<Func<QuickSales, bool>> predicate)
         {
             try

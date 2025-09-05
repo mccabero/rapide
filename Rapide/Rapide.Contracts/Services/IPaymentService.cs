@@ -9,6 +9,8 @@ namespace Rapide.Contracts.Services
 
         Task<List<PaymentDTO>> GetAllPaymentAsync();
 
+        Task<List<PaymentDTO>> GetAllPaymentSummaryAsync();
+
         Task<List<PaymentDTO>> GetAllPaymentByCustomerIdAsync(int customerId);
     }
 }

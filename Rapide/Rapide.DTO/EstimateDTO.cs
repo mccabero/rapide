@@ -2,6 +2,8 @@
 {
     public class EstimateDTO : BaseDTO
     {
+        public bool IsChangan { get; set; }
+
         public bool IsPackage { get; set; }
 
         public bool IsCustomerApproved { get; set; }

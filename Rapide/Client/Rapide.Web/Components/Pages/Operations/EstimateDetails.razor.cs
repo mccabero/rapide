@@ -367,6 +367,8 @@ namespace Rapide.Web.Components.Pages.Operations
 
         private void ReloadEstimateRequestModel()
         {
+            EstimateRequestModel.IsChangan = EstimateRequestModel.IsChangan;
+
             EstimateRequestModel.CustomerId = EstimateRequestModel.Customer.Id;
             EstimateRequestModel.VehicleId = EstimateRequestModel.Vehicle.Id;
             EstimateRequestModel.AdvisorUserId = EstimateRequestModel.AdvisorUser.Id;

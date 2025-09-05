@@ -39,6 +39,15 @@ namespace Rapide.Repositories.Repos
                 .ToListAsync();
         }
 
+        public async Task<List<JobOrder>> GetAllJobOrderSummaryAsync()
+        {
+            await using var context = await Factory.CreateDbContextAsync();
+
+            return await context.Set<JobOrder>()
+                .AsNoTracking()
+                .ToListAsync();
+        }
+
         public async Task<List<JobOrder>> GetAllJobOrderByCustomerIdAsync(int customerId)
         {
             await using var context = await Factory.CreateDbContextAsync();

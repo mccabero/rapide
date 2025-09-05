@@ -9,6 +9,8 @@ namespace Rapide.Contracts.Services
 
         Task<List<DepositDTO>> GetAllDepositAsync();
 
+        Task<List<DepositDTO>> GetAllDepositSummaryAsync();
+
         Task<List<DepositDTO>> GetAllDepositByCustomerIdAsync(int customerId);
 
         Task<List<DepositDTO>> GetAllDepositByJobOrderIdAsync(int jobOrderId);

@@ -8,6 +8,8 @@ namespace Rapide.Contracts.Repositories
 
         Task<List<JobOrder>> GetAllJobOrderAsync();
 
+        Task<List<JobOrder>> GetAllJobOrderSummaryAsync();
+
         Task<List<JobOrder>> GetAllJobOrderByCustomerIdAsync(int customerId);
 
         Task<List<JobOrder>> GetAllJobOrderByVehicleIdAsync(int vehicleId);
