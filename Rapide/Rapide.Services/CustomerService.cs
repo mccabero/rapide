@@ -32,6 +32,28 @@ namespace Rapide.Services
             }
         }
 
+        public async Task<List<CustomerDTO>> GetAllSummaryAsync()
+        {
+            try
+            {
+                List<CustomerDTO> dtoList = new List<CustomerDTO>();
+
+                var entity = await repo.GetAllSummaryAsync();
+
+                if (entity == null)
+                    return null;
+
+                IMapper mapper = MappingHelper.InitializeMapper();
+                dtoList = mapper.Map<List<CustomerDTO>>(entity);
+
+                return dtoList;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
         public override async Task<CustomerDTO?> GetAsync(Expression<Func<Customer, bool>> predicate)
         {
             try

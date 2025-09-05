@@ -5,5 +5,7 @@ namespace Rapide.Contracts.Repositories
     public interface ICustomerRepo : IBaseRepo<Customer>
     {
         Task<List<Customer>> GetAllAsync();
+
+        Task<List<Customer>> GetAllSummaryAsync();
     }
 }

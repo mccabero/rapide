@@ -15,5 +15,14 @@ namespace Rapide.Repositories.Repos
                 .AsNoTracking()
                 .ToListAsync();
         }
+
+        public async Task<List<Customer>> GetAllSummaryAsync()
+        {
+            await using var context = await Factory.CreateDbContextAsync();
+
+            return await context.Set<Customer>()
+                .AsNoTracking()
+                .ToListAsync();
+        }
     }
 }

@@ -6,5 +6,7 @@ namespace Rapide.Contracts.Services
     public interface ICustomerService : IBaseService<Customer, CustomerDTO>
     {
         Task<List<CustomerDTO>> GetAllAsync();
+
+        Task<List<CustomerDTO>> GetAllSummaryAsync();
     }
 }

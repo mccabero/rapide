@@ -27,6 +27,15 @@ namespace Rapide.Repositories.Repos
                 .ToListAsync();
         }
 
+        public async Task<List<Vehicle>> GetAllVehicleSummaryAsync()
+        {
+            await using var context = await Factory.CreateDbContextAsync();
+
+            return await context.Set<Vehicle>()
+                .AsNoTracking()
+                .ToListAsync();
+        }
+
         public async Task<Vehicle?> GetVehicleByModelAsync(string model)
         {
             await using var context = await Factory.CreateDbContextAsync();

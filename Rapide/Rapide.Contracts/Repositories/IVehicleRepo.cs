@@ -10,6 +10,8 @@ namespace Rapide.Contracts.Repositories
 
         Task<List<Vehicle>> GetAllVehicleAsync();
 
+        Task<List<Vehicle>> GetAllVehicleSummaryAsync();
+
         Task<List<Vehicle>> GetAllVehicleByCustomerIdAsync(int customerId);
     }
 }

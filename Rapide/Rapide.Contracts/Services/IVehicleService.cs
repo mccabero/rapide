@@ -11,6 +11,8 @@ namespace Rapide.Contracts.Services
 
         Task<List<VehicleDTO>> GetAllVehicleAsync();
 
+        Task<List<VehicleDTO>> GetAllVehicleSummaryAsync();
+
         Task<List<VehicleDTO>> GetAllVehicleByCustomerIdAsync(int customerId);
     }
 }

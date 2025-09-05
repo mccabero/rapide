@@ -68,7 +68,7 @@ namespace Rapide.Web.Components.Pages.Components.Dashboard
             _dateRange.End = DateTime.Now.Date;
 
             // TODO: Optimize this...
-            //await ReloadDashboardData();
+            await ReloadDashboardData();
 
             await base.OnInitializedAsync();
         }
@@ -77,10 +77,10 @@ namespace Rapide.Web.Components.Pages.Components.Dashboard
         {
             IsLoading = true;
 
-            var customers = await CustomerService.GetAllAsync();
-            var vehicles = await VehicleService.GetAllVehicleAsync();
-            var estimates = await EstimateService.GetAllEstimateAsync();
-            var jobOrders = await JobOrderService.GetAllJobOrderAsync();
+            var customers = await CustomerService.GetAllSummaryAsync();
+            var vehicles = await VehicleService.GetAllVehicleSummaryAsync();
+            var estimates = await EstimateService.GetAllEstimateSummaryAsync();
+            var jobOrders = await JobOrderService.GetAllJobOrderSummaryAsync();
 
             customers = customers.Where(x => x.CreatedDateTime >= _dateRange.Start &&  x.CreatedDateTime <= _dateRange.End).ToList();
             vehicles = vehicles.Where(x => x.CreatedDateTime >= _dateRange.Start && x.CreatedDateTime <= _dateRange.End).ToList();
@@ -94,13 +94,13 @@ namespace Rapide.Web.Components.Pages.Components.Dashboard
 
             isAllowOverride = TokenHelper.IsBigThreeRoles(await AuthState);
 
-            if (IsBigThreeRoles)
-            {
-                await GetDiscount();
-                await GetExpenses();
-                await GetNetSales();
-                await GetProfit();
-            }
+            //if (IsBigThreeRoles)
+            //{
+            //    await GetDiscount();
+            //    await GetExpenses();
+            //    await GetNetSales();
+            //    await GetProfit();
+            //}
         
             IsLoading = false;
         }

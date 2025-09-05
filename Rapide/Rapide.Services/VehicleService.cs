@@ -11,7 +11,53 @@ namespace Rapide.Services
 {
     public class VehicleService(IVehicleRepo repo) : BaseService<Vehicle, VehicleDTO>(repo), IVehicleService
     {
-        
+        public async Task<List<VehicleDTO>> GetAllVehicleAsync()
+        {
+            try
+            {
+                List<VehicleDTO> dtoList = new List<VehicleDTO>();
+                var entityList = await repo.GetAllVehicleAsync();
+
+                if (entityList.IsNullOrEmpty())
+                    return null;
+
+                IMapper mapper = MappingHelper.InitializeMapper();
+                dtoList = mapper.Map<List<VehicleDTO>>(entityList);
+
+                //foreach (var e in entityList)
+                //    dtoList.Add(mapper.Map<VehicleDTO>(e));
+
+                return dtoList;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public async Task<List<VehicleDTO>> GetAllVehicleSummaryAsync()
+        {
+            try
+            {
+                List<VehicleDTO> dtoList = new List<VehicleDTO>();
+                var entityList = await repo.GetAllVehicleSummaryAsync();
+
+                if (entityList.IsNullOrEmpty())
+                    return null;
+
+                IMapper mapper = MappingHelper.InitializeMapper();
+                dtoList = mapper.Map<List<VehicleDTO>>(entityList);
+
+                //foreach (var e in entityList)
+                //    dtoList.Add(mapper.Map<VehicleDTO>(e));
+
+                return dtoList;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
         public async Task<List<VehicleDTO>> GetAllVehicleByCustomerIdAsync(int customerId)
         {
             try
@@ -27,30 +73,6 @@ namespace Rapide.Services
 
                 //IMapper mapper = InitializeMapper();
                 //dtoList = mapper.Map<List<VehicleDTO>>(entityList);
-
-                //foreach (var e in entityList)
-                //    dtoList.Add(mapper.Map<VehicleDTO>(e));
-
-                return dtoList;
-            }
-            catch (Exception ex)
-            {
-                throw;
-            }
-        }
-
-        public async Task<List<VehicleDTO>> GetAllVehicleAsync()
-        {
-            try
-            {
-                List<VehicleDTO> dtoList = new List<VehicleDTO>();
-                var entityList = await repo.GetAllVehicleAsync();
-
-                if (entityList.IsNullOrEmpty())
-                    return null;
-
-                IMapper mapper = MappingHelper.InitializeMapper();
-                dtoList = mapper.Map<List<VehicleDTO>>(entityList);
 
                 //foreach (var e in entityList)
                 //    dtoList.Add(mapper.Map<VehicleDTO>(e));
