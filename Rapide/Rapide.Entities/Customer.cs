@@ -5,6 +5,9 @@ namespace Rapide.Entities
     public class Customer : BaseEntity
     {
         [Required]
+        public bool IsChangan { get; set; }
+
+        [Required]
         [StringLength(100)]
         public string? FirstName { get; set; }
 

@@ -13,6 +13,13 @@
         public const string AudienceValue = "http://localhost/";
         public const int TokenExpiryValue = 1;
 
+        public static class ClientType
+        {
+            public const string All = "ALL";
+            public const string Rapide = "RAPIDE";
+            public const string Changan = "CHANGAN";
+        }
+
         public static class ReportType
         {
             public const string Customers = "Customers";

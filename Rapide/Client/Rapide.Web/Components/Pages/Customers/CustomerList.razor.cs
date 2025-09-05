@@ -7,6 +7,7 @@ using Rapide.Contracts.Services;
 using Rapide.Web.Components.Utilities;
 using Rapide.Web.Helpers;
 using Rapide.Web.Models;
+using static MudBlazor.CategoryTypes;
 
 namespace Rapide.Web.Components.Pages.Customers
 {
@@ -38,6 +39,10 @@ namespace Rapide.Web.Components.Pages.Customers
         private MudMessageBox mboxError { get; set; }
         private bool isViewOnly = false;
         private bool isBigThreeRoles = false;
+        
+        // 1: Rapide | 2: Changan | 3: ALL
+        public string clientType { get; set; } = Constants.ClientType.All;
+        private string clientTypeFilter;
         #endregion
 
         protected override async Task OnInitializedAsync()
@@ -77,6 +82,7 @@ namespace Rapide.Web.Components.Pages.Customers
             }
         }
 
+        
         private async Task<GridData<CustomerModel>> ServerReload(GridState<CustomerModel> state)
         {
             if (!CustomerRequestModel.Any())
@@ -99,8 +105,19 @@ namespace Rapide.Web.Components.Pages.Customers
                 }
                 if (element.MobileNumber.Contains(searchString, StringComparison.OrdinalIgnoreCase))
                     return true;
+
                 return false;
             }).ToArray();
+
+            if (!string.IsNullOrEmpty(clientTypeFilter))
+            {
+                if ($"{Constants.ClientType.Rapide}_{Constants.ClientType.Changan}".Contains(clientTypeFilter))
+                {
+                    bool clientType = clientTypeFilter.Equals(Constants.ClientType.Changan.ToString());
+
+                    data = data.Where(x => x.IsChangan == clientType);
+                }
+            }
 
             var totalItems = data.Count();
 
@@ -142,6 +159,13 @@ namespace Rapide.Web.Components.Pages.Customers
         private Task OnSearch(string text)
         {
             searchString = text;
+            return dataGrid.ReloadServerData();
+        }
+
+        private Task OnFilter(string text)
+        {
+            clientType = text;
+            clientTypeFilter = text;
             return dataGrid.ReloadServerData();
         }
 
