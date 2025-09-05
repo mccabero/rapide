@@ -6,6 +6,9 @@ namespace Rapide.Entities
     public class Inspection : BaseEntity
     {
         [Required]
+        public bool IsChangan { get; set; }
+
+        [Required]
         [StringLength(255)]
         public string? ReferenceNo { get; set; }
 

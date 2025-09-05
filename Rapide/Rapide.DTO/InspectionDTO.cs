@@ -2,6 +2,8 @@
 {
     public class InspectionDTO : BaseDTO
     {
+        public bool IsChangan { get; set; }
+
         public string? ReferenceNo { get; set; }
 
         public DateTime? TransactionDate { get; set; }
