@@ -6,6 +6,9 @@ namespace Rapide.Entities
     public class Expenses : BaseEntity
     {
         [Required]
+        public bool IsChangan { get; set; }
+
+        [Required]
         public bool IsPaid { get; set; }
 
         [Required]

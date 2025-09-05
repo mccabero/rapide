@@ -4,6 +4,8 @@ namespace Rapide.DTO
 {
     public class DepositDTO : BaseDTO
     {
+        public bool IsChangan { get; set; }
+
         public string ReferenceNo { get; set; }
 
         public JobStatusDTO JobStatus { get; set; }

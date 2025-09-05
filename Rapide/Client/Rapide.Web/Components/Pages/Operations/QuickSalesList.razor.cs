@@ -52,6 +52,10 @@ namespace Rapide.Web.Components.Pages.Operations
 
         private bool isQuickSalesLocked = false;
         private bool isViewOnly = false;
+
+        // 1: Rapide | 2: Changan | 3: ALL
+        public string clientType { get; set; } = Constants.ClientType.All;
+        private string clientTypeFilter;
         #endregion
 
         protected override async Task OnInitializedAsync()
@@ -93,6 +97,7 @@ namespace Rapide.Web.Components.Pages.Operations
 
                     QuickSalesRequestModel.Add(new QuickSalesModel()
                     {
+                        IsChangan = ul.IsChangan,
                         IsAllowedToOverride = TokenHelper.IsBigThreeRoles(await AuthState),
                         StatusChipColor = statusColor,
                         Id = ul.Id,
@@ -169,6 +174,16 @@ namespace Rapide.Web.Components.Pages.Operations
                 return false;
             }).ToArray();
 
+            if (!string.IsNullOrEmpty(clientTypeFilter))
+            {
+                if ($"{Constants.ClientType.Rapide}_{Constants.ClientType.Changan}".Contains(clientTypeFilter))
+                {
+                    bool clientType = clientTypeFilter.Equals(Constants.ClientType.Changan.ToString());
+
+                    data = data.Where(x => x.IsChangan == clientType);
+                }
+            }
+
             var totalItems = data.Count();
 
             var sortDefinition = state.SortDefinitions.FirstOrDefault();
@@ -216,6 +231,13 @@ namespace Rapide.Web.Components.Pages.Operations
         private Task OnSearch(string text)
         {
             searchString = text;
+            return dataGrid.ReloadServerData();
+        }
+
+        private Task OnFilter(string text)
+        {
+            clientType = text;
+            clientTypeFilter = text;
             return dataGrid.ReloadServerData();
         }
 

@@ -109,10 +109,17 @@
 
                         <div class="card-body">
                             <div class="row">
-                                <div class="col-md-3">
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label>Changan Client?</label>
+                                        <MudSwitch @bind-Value="ExpensesRequestModel.IsChangan" Color="Color.Info" />
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
                                     <label>Is Settled?<code> *</code></label>
                                     <MudSwitch @bind-Value="ExpensesRequestModel.IsPaid" Color="Color.Success">@(ExpensesRequestModel.IsPaid ? "Paid" : "Unpaid")</MudSwitch>
                                 </div>
+                                <div class="col-md-8"></div>
                             </div>
                             <div class="row">
                                 <div class="col-md-3">

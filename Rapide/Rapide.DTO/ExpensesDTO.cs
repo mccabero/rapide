@@ -2,6 +2,8 @@
 {
     public class ExpensesDTO : BaseDTO
     {
+        public bool IsChangan { get; set; }
+
         public bool IsPaid { get; set; }
 
         public string ReferenceNo { get; set; }

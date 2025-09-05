@@ -7,6 +7,8 @@ namespace Rapide.Web.Models
     {
         public int Id { get; set; }
 
+        public bool IsChangan { get; set; }
+
         public string ReferenceNo { get; set; }
 
         public JobStatusModel JobStatus { get; set; }

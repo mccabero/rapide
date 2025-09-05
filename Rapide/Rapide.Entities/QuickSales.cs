@@ -6,6 +6,9 @@ namespace Rapide.Entities
     public class QuickSales : BaseEntity
     {
         [Required]
+        public bool IsChangan { get; set; }
+
+        [Required]
         public string ReferenceNo { get; set; }
 
         [Required]
