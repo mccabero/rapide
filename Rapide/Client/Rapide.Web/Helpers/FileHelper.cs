@@ -18,6 +18,22 @@
             return bytes;
         }
 
+        public static byte[] GetChanganLogo()
+        {
+            var image = new FileInfo("wwwroot/images/changan-default-logo/changan-default-logo.png");
+            byte[] bytes = File.ReadAllBytes(image.FullName);
+
+            return bytes;
+        }
+
+        public static byte[] GetChanganCompanyLogo()
+        {
+            var image = new FileInfo("wwwroot/images/changan-logo/changan-logo.png");
+            byte[] bytes = File.ReadAllBytes(image.FullName);
+
+            return bytes;
+        }
+
         public static string GetInspectionTemplate()
         {
             var text = File.ReadAllText("wwwroot/inspection-template.json");

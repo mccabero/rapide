@@ -328,9 +328,14 @@ namespace Rapide.Web.Components.Pages.Operations
             var technicians = await InspectionTechnicianService.GetAllInspectionTechnicianByInspectionIdAsync(inspectionId);
             inspectionData.TechnicianList = technicians.Where(x => x.TechnicianUser.Role.Name == "SENIOR TECHNICIAN").ToList();
 
-            InspectionReportGenerator.ImageFile = FileHelper.GetRapideLogo();
-            InspectionReportGenerator.ImageFileCompany = FileHelper.GetCompanyLogo();
-            await InspectionReportGenerator.Generate(inspectionData, JSRuntime, inspectionTemplateSequenced, companyData);
+            InspectionReportGenerator.ImageFile = inspectionData.IsChangan 
+                ? FileHelper.GetChanganLogo()
+                : FileHelper.GetRapideLogo();
+            InspectionReportGenerator.ImageFileCompany = inspectionData.IsChangan
+                ? FileHelper.GetChanganCompanyLogo()
+                : FileHelper.GetCompanyLogo();
+
+            await InspectionReportGenerator.Generate(inspectionData, JSRuntime, inspectionTemplateSequenced, companyData, inspectionData.IsChangan);
 
             IsLoading = false;
         }
