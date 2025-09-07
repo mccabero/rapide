@@ -7,6 +7,7 @@ using Rapide.Contracts.Services;
 using Rapide.DTO;
 using Rapide.Services;
 using Rapide.Web.Helpers;
+using System.Linq.Expressions;
 
 namespace Rapide.Web.Components.Pages.Administrator
 {
@@ -38,33 +39,47 @@ namespace Rapide.Web.Components.Pages.Administrator
         private MudMessageBox mbox { get; set; }
         private bool IsLoading { get; set; }
         private bool IsEditMode { get; set; }
-        private string imageSource = string.Empty;
 
+        private string imageSource = string.Empty;
         private List<string> companyLogo = new List<string>();
         private List<string> defaultlogo = new List<string>();
+
+        private string imageSourceChangan = string.Empty;
+        private List<string> companyLogoChangan = new List<string>();
+        private List<string> defaultlogoChangan = new List<string>();
 
         private CompanyInfoDTO CompanyRequestModel { get; set; } = new();
         #endregion
 
         protected override async Task OnInitializedAsync()
         {
-            CompanyRequestModel = new CompanyInfoDTO();
-
-            IsEditMode = false;
-            var companyInfo = await CompanyInfoService.GetAllAsync();
-
-            if (companyInfo != null && companyInfo.Any())
+            try
             {
-                IsEditMode = true;
-                CompanyRequestModel = companyInfo.FirstOrDefault();
-            }
+                CompanyRequestModel = new CompanyInfoDTO();
 
-            if (IsEditMode)
+                IsEditMode = false;
+                var companyInfo = await CompanyInfoService.GetAllAsync();
+
+                if (companyInfo != null && companyInfo.Any())
+                {
+                    IsEditMode = true;
+                    CompanyRequestModel = companyInfo.FirstOrDefault();
+                }
+
+                if (IsEditMode)
+                {
+                    GetApplicationLogo();
+                    GetApplicationLogoChangan();
+                }
+
+                await base.OnInitializedAsync();
+            }
+            catch (Exception ex)
             {
-                GetApplicationLogo();
-            }
 
-            await base.OnInitializedAsync();
+                throw;
+            }
+            
         }
 
         private void OpenFileDefault(string filename, bool isDefault)
@@ -74,6 +89,16 @@ namespace Rapide.Web.Components.Pages.Administrator
                 : "company-logo";
 
             imageSource = $"/images/{folderLocation}/{Path.GetFileName(filename)}";
+            StateHasChanged();
+        }
+
+        private void OpenFileDefaultChangan(string filename, bool isDefault)
+        {
+            var folderLocation = isDefault
+                ? "changan-default-logo"
+                : "changan-logo";
+
+            imageSourceChangan = $"/images/{folderLocation}/{Path.GetFileName(filename)}";
             StateHasChanged();
         }
 
@@ -97,6 +122,27 @@ namespace Rapide.Web.Components.Pages.Administrator
 
         }
 
+        private void GetApplicationLogoChangan()
+        {
+            var filesDirectory = Path.Combine(_environment.WebRootPath, "images", "changan-logo");
+            var filesDirectoryDefault = Path.Combine(_environment.WebRootPath, "images", "changan-default-logo");
+
+
+            string[] fileEntries = Directory.GetFiles(filesDirectory);
+            string[] fileEntriesDefault = Directory.GetFiles(filesDirectoryDefault);
+
+            companyLogoChangan = new List<string>();
+            defaultlogoChangan = new List<string>();
+
+            foreach (string fileName in fileEntries)
+                companyLogoChangan.Add(fileName);
+
+            foreach (string fileName in fileEntriesDefault)
+                defaultlogoChangan.Add(fileName);
+
+        }
+
+        #region Rapide
         IList<IBrowserFile> _files = new List<IBrowserFile>();
         private async Task UploadFiles(InputFileChangeEventArgs args)
         {
@@ -175,6 +221,88 @@ namespace Rapide.Web.Components.Pages.Administrator
                 IsLoading = false;
             }
         }
+        #endregion
+
+        #region Changan
+        IList<IBrowserFile> _filesChangan = new List<IBrowserFile>();
+        private async Task UploadFilesChangan(InputFileChangeEventArgs args)
+        {
+            try
+            {
+                _filesChangan.Add(args.File);
+
+                var uploadDirectory = Path.Combine(_environment.WebRootPath, "images", "changan-logo");
+
+                if (!Directory.Exists(uploadDirectory))
+                    Directory.CreateDirectory(uploadDirectory);
+
+                string[] fileEntries = Directory.GetFiles(uploadDirectory);
+                foreach (string fileName in fileEntries)
+                    File.Delete(fileName);
+
+                //var fileName = $"{Guid.NewGuid()}{fileExtension}";
+                var fileExtension = new FileInfo(args.File.Name);
+                var path = Path.Combine(uploadDirectory, $"changan-logo{fileExtension.Extension}");
+
+
+                await using var fs = new FileStream(path, FileMode.Create);
+                await args.File.OpenReadStream(9512000).CopyToAsync(fs);
+
+                GetApplicationLogoChangan();
+                StateHasChanged();
+                NavigationManager.NavigateToCustom("/administrators/company", true);
+            }
+            catch (Exception ex)
+            {
+                SnackbarService.Add(
+                    $"Error occurred while processing the transaction. Please contact your systems administrator.{Environment.NewLine}" +
+                    $"Error Message: {ex.Message} ",
+                    Severity.Error,
+                    config => { config.ShowCloseIcon = true; });
+
+                IsLoading = false;
+            }
+        }
+
+        private async Task UploadFilesDefaultChangan(InputFileChangeEventArgs args)
+        {
+            try
+            {
+                _filesChangan.Add(args.File);
+
+                var uploadDirectory = Path.Combine(_environment.WebRootPath, "images", "changan-default-logo");
+
+                if (!Directory.Exists(uploadDirectory))
+                    Directory.CreateDirectory(uploadDirectory);
+
+                string[] fileEntries = Directory.GetFiles(uploadDirectory);
+                foreach (string fileName in fileEntries)
+                    File.Delete(fileName);
+
+                //var fileName = $"{Guid.NewGuid()}{fileExtension}";
+                var fileExtension = new FileInfo(args.File.Name);
+                var path = Path.Combine(uploadDirectory, $"changan-default-logo{fileExtension.Extension}");
+
+
+                await using var fs = new FileStream(path, FileMode.Create);
+                await args.File.OpenReadStream(9512000).CopyToAsync(fs);
+
+                GetApplicationLogoChangan();
+                StateHasChanged();
+                NavigationManager.NavigateToCustom("/administrators/company", true);
+            }
+            catch (Exception ex)
+            {
+                SnackbarService.Add(
+                    $"Error occurred while processing the transaction. Please contact your systems administrator.{Environment.NewLine}" +
+                    $"Error Message: {ex.Message} ",
+                    Severity.Error,
+                    config => { config.ShowCloseIcon = true; });
+
+                IsLoading = false;
+            }
+        }
+        #endregion
 
         private async Task OnSaveClick()
         {

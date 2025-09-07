@@ -31,5 +31,33 @@ namespace Rapide.Entities
         [Required]
         [StringLength(100)]
         public string? BankNo { get; set; }
+
+        [Required]
+        [StringLength(100)]
+        public string? Name1 { get; set; }
+
+        [Required]
+        [StringLength(255)]
+        public string? Address1 { get; set; }
+
+        [Required]
+        [StringLength(100)]
+        public string? Email1 { get; set; }
+
+        [Required]
+        [StringLength(50)]
+        public string? MobileNumber1 { get; set; }
+
+        [Required]
+        [StringLength(50)]
+        public string? TIN1 { get; set; }
+
+        [Required]
+        [StringLength(50)]
+        public string? GCash1 { get; set; }
+
+        [Required]
+        [StringLength(100)]
+        public string? BankNo1 { get; set; }
     }
 }
