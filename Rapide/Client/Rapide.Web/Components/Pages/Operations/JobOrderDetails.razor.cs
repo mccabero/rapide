@@ -1009,14 +1009,21 @@ namespace Rapide.Web.Components.Pages.Operations
                 ? new()
                 : companyInfo.FirstOrDefault();
 
-            JobOrderReportGenerator.ImageFile = FileHelper.GetRapideLogo();
-            JobOrderReportGenerator.ImageFileCompany = FileHelper.GetCompanyLogo();
-
             var model = JobOrderRequestModel;
+
+            JobOrderReportGenerator.ImageFile = model.IsChangan
+                ? FileHelper.GetChanganLogo()
+                : FileHelper.GetRapideLogo();
+
+            JobOrderReportGenerator.ImageFileCompany = model.IsChangan
+                ? FileHelper.GetChanganCompanyLogo()
+                : FileHelper.GetCompanyLogo();
+
+
             var technicians = await JobOrderTechnicianService.GetAllJobOrderTechnicianByJobOrderIdAsync(JobOrderRequestModel.Id);
             model.TechnicianList = technicians.Where(x => x.TechnicianUser.Role.Name == "SENIOR TECHNICIAN").ToList();
 
-            await JobOrderReportGenerator.Generate(model, JSRuntime, companyData);
+            await JobOrderReportGenerator.Generate(model, JSRuntime, companyData, model.IsChangan);
 
             IsLoading = false;
         }

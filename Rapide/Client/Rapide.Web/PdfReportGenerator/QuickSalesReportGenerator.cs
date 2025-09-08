@@ -14,10 +14,17 @@ namespace Rapide.Web.PdfReportGenerator
         private static QuickSalesDTO data { get; set; }
         private static CompanyInfoDTO companyInfo { get; set; }
 
-        public static async Task Generate(QuickSalesDTO dto, IJSRuntime JSRuntime, CompanyInfoDTO companyInfoDto)
+        private static bool IsChangan { get; set; }
+
+        public static async Task Generate(
+            QuickSalesDTO dto, 
+            IJSRuntime JSRuntime, 
+            CompanyInfoDTO companyInfoDto,
+            bool isChangan)
         {
             data = dto;
             companyInfo = companyInfoDto;
+            IsChangan = isChangan;
 
             QuestPDF.Settings.License = LicenseType.Community;
 
@@ -72,11 +79,11 @@ namespace Rapide.Web.PdfReportGenerator
 
                 row.RelativeItem().AlignCenter().Column(column =>
                 {
-                    column.Item().AlignCenter().Text(companyInfo.Name).FontSize(12).SemiBold();
-                    column.Item().AlignCenter().Text(companyInfo.Address).FontSize(8);
-                    column.Item().AlignCenter().Text(companyInfo.MobileNumber).FontSize(8);
-                    column.Item().AlignCenter().Text(companyInfo.Email).FontSize(8).Underline();
-                    column.Item().AlignCenter().Text(companyInfo.TIN).FontSize(8);
+                    column.Item().AlignCenter().Text(IsChangan ? companyInfo.Name1 : companyInfo.Name).FontSize(12).SemiBold();
+                    column.Item().AlignCenter().Text(IsChangan ? companyInfo.Address1 : companyInfo.Address).FontSize(8);
+                    column.Item().AlignCenter().Text(IsChangan ? companyInfo.MobileNumber1 : companyInfo.MobileNumber).FontSize(8);
+                    column.Item().AlignCenter().Text(IsChangan ? companyInfo.Email1 : companyInfo.Email).FontSize(8).Underline();
+                    column.Item().AlignCenter().Text(IsChangan ? companyInfo.TIN1 : companyInfo.TIN).FontSize(8);
                 });
 
                 // Change image with "PLARIDEL, BULACAN and underline

@@ -318,13 +318,17 @@ namespace Rapide.Web.Components.Pages.Operations
             
             var technicians = await EstimateTechnicianService.GetAllEstimateTechnicianByEstimateIdAsync(EstimateRequestModel.Id);
             EstimateRequestModel.TechnicianList = technicians.Where(x => x.TechnicianUser.Role.Name == "SENIOR TECHNICIAN").ToList();
-
-
             EstimateRequestModel.PackageList = await EstimatePackageService.GetAllEstimatePackageByEstimateIdAsync(EstimateRequestModel.Id);
 
-            EstimateReportGenerator.ImageFile = FileHelper.GetRapideLogo();
-            EstimateReportGenerator.ImageFileCompany = FileHelper.GetCompanyLogo();
-            await EstimateReportGenerator.Generate(EstimateRequestModel, JSRuntime, companyData);
+            EstimateReportGenerator.ImageFile = EstimateRequestModel.IsChangan
+                ? FileHelper.GetChanganLogo()
+                : FileHelper.GetRapideLogo();
+
+            EstimateReportGenerator.ImageFileCompany = EstimateRequestModel.IsChangan
+                ? FileHelper.GetChanganCompanyLogo()
+                : FileHelper.GetCompanyLogo();
+
+            await EstimateReportGenerator.Generate(EstimateRequestModel, JSRuntime, companyData, EstimateRequestModel.IsChangan);
         }
     }
 }

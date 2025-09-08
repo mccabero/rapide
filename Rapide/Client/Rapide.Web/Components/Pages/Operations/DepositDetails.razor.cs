@@ -294,9 +294,15 @@ namespace Rapide.Web.Components.Pages.Operations
 
             depositRequestModel.PreparedBy = await UserService.GetUserRoleByIdAsync(depositRequestModel.UpdatedById);
 
-            DepositReportGenerator.ImageFile = FileHelper.GetRapideLogo();
-            DepositReportGenerator.ImageFileCompany = FileHelper.GetCompanyLogo();
-            await DepositReportGenerator.Generate(depositRequestModel, JSRuntime, companyData);
+            DepositReportGenerator.ImageFile = depositRequestModel.IsChangan
+                ? FileHelper.GetChanganLogo()
+                : FileHelper.GetRapideLogo();
+
+            DepositReportGenerator.ImageFileCompany = depositRequestModel.IsChangan
+                ? FileHelper.GetChanganCompanyLogo()
+                : FileHelper.GetCompanyLogo();
+
+            await DepositReportGenerator.Generate(depositRequestModel, JSRuntime, companyData, depositRequestModel.IsChangan);
         }
     }
 }

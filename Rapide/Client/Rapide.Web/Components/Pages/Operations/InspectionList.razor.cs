@@ -331,6 +331,7 @@ namespace Rapide.Web.Components.Pages.Operations
             InspectionReportGenerator.ImageFile = inspectionData.IsChangan 
                 ? FileHelper.GetChanganLogo()
                 : FileHelper.GetRapideLogo();
+
             InspectionReportGenerator.ImageFileCompany = inspectionData.IsChangan
                 ? FileHelper.GetChanganCompanyLogo()
                 : FileHelper.GetCompanyLogo();

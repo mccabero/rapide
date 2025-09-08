@@ -309,9 +309,15 @@ namespace Rapide.Web.Components.Pages.Operations
             var technicians = await JobOrderTechnicianService.GetAllJobOrderTechnicianByJobOrderIdAsync(JobOrderRequestModel.Id);
             JobOrderRequestModel.TechnicianList = technicians.Where(x => x.TechnicianUser.Role.Name == "SENIOR TECHNICIAN").ToList();
 
-            JobOrderReportGenerator.ImageFile = FileHelper.GetRapideLogo();
-            JobOrderReportGenerator.ImageFileCompany = FileHelper.GetCompanyLogo();
-            await JobOrderReportGenerator.Generate(JobOrderRequestModel, JSRuntime, companyData);
+            JobOrderReportGenerator.ImageFile = JobOrderRequestModel.IsChangan
+                ? FileHelper.GetChanganLogo()
+                : FileHelper.GetRapideLogo();
+
+            JobOrderReportGenerator.ImageFileCompany = JobOrderRequestModel.IsChangan
+                ? FileHelper.GetChanganCompanyLogo()
+                : FileHelper.GetCompanyLogo();
+
+            await JobOrderReportGenerator.Generate(JobOrderRequestModel, JSRuntime, companyData, JobOrderRequestModel.IsChangan);
         }
     }
 }

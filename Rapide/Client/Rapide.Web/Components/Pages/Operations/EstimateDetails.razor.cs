@@ -1061,14 +1061,21 @@ namespace Rapide.Web.Components.Pages.Operations
                 ? new()
                 : companyInfo.FirstOrDefault();
 
-            EstimateReportGenerator.ImageFile = FileHelper.GetRapideLogo();
-            EstimateReportGenerator.ImageFileCompany = FileHelper.GetCompanyLogo();
-
             var model = EstimateRequestModel;
+
+            EstimateReportGenerator.ImageFile = model.IsChangan
+                ? FileHelper.GetChanganLogo()
+                : FileHelper.GetRapideLogo();
+
+            EstimateReportGenerator.ImageFileCompany = model.IsChangan
+                ? FileHelper.GetChanganCompanyLogo()
+                : FileHelper.GetCompanyLogo();
+
+           
             var technicians = await EstimateTechnicianService.GetAllEstimateTechnicianByEstimateIdAsync(EstimateRequestModel.Id);
             model.TechnicianList = technicians.Where(x => x.TechnicianUser.Role.Name == "SENIOR TECHNICIAN").ToList();
 
-            await EstimateReportGenerator.Generate(model, JSRuntime, companyData);
+            await EstimateReportGenerator.Generate(model, JSRuntime, companyData, model.IsChangan);
 
             IsLoading = false;
         }

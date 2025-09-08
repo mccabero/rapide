@@ -475,9 +475,15 @@ namespace Rapide.Web.Components.Pages.Operations
             if (QuickSalesRequestModel == null)
                 return;
 
-            QuickSalesReportGenerator.ImageFile = FileHelper.GetRapideLogo();
-            QuickSalesReportGenerator.ImageFileCompany = FileHelper.GetCompanyLogo();
-            await QuickSalesReportGenerator.Generate(QuickSalesRequestModel, JSRuntime, companyData);
+            QuickSalesReportGenerator.ImageFile = QuickSalesRequestModel.IsChangan
+                ? FileHelper.GetChanganLogo()
+                : FileHelper.GetRapideLogo();
+
+            QuickSalesReportGenerator.ImageFileCompany = QuickSalesRequestModel.IsChangan
+                ? FileHelper.GetChanganCompanyLogo()
+                : FileHelper.GetCompanyLogo();
+
+            await QuickSalesReportGenerator.Generate(QuickSalesRequestModel, JSRuntime, companyData, QuickSalesRequestModel.IsChangan);
         }
     }
 }

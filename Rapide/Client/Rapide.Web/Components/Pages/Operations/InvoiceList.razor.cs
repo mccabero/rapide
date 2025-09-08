@@ -350,9 +350,15 @@ namespace Rapide.Web.Components.Pages.Operations
             // payment information
             var PaymentRequestModel = new PaymentDTO();
 
-            InvoiceReportGenerator.ImageFile = FileHelper.GetRapideLogo();
-            InvoiceReportGenerator.ImageFileCompany = FileHelper.GetCompanyLogo();
-            await InvoiceReportGenerator.Generate(invoiceInfo, JSRuntime, PaymentRequestModel, companyData);
+            InvoiceReportGenerator.ImageFile = invoiceInfo.IsChangan
+                ? FileHelper.GetChanganLogo()
+                : FileHelper.GetRapideLogo();
+
+            InvoiceReportGenerator.ImageFileCompany = invoiceInfo.IsChangan
+                ? FileHelper.GetChanganCompanyLogo()
+                : FileHelper.GetCompanyLogo();
+
+            await InvoiceReportGenerator.Generate(invoiceInfo, JSRuntime, PaymentRequestModel, companyData, invoiceInfo.IsChangan);
 
             IsLoading = false;
 

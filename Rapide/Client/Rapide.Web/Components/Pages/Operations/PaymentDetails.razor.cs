@@ -634,9 +634,15 @@ namespace Rapide.Web.Components.Pages.Operations
 
             // payment information
 
-            InvoiceReportGenerator.ImageFile = FileHelper.GetRapideLogo();
-            InvoiceReportGenerator.ImageFileCompany = FileHelper.GetCompanyLogo();
-            await InvoiceReportGenerator.Generate(invoiceInfo, JSRuntime, PaymentRequestModel, companyData);
+            InvoiceReportGenerator.ImageFile = invoiceInfo.IsChangan
+                ? FileHelper.GetChanganLogo()
+                : FileHelper.GetRapideLogo();
+
+            InvoiceReportGenerator.ImageFileCompany = invoiceInfo.IsChangan
+                ? FileHelper.GetChanganCompanyLogo()
+                : FileHelper.GetCompanyLogo();
+
+            await InvoiceReportGenerator.Generate(invoiceInfo, JSRuntime, PaymentRequestModel, companyData, invoiceInfo.IsChangan);
 
             IsLoading = false;
         }
@@ -657,9 +663,15 @@ namespace Rapide.Web.Components.Pages.Operations
                 return;
             }
 
-            GatePassReportGenerator.ImageFile = FileHelper.GetRapideLogo();
-            GatePassReportGenerator.ImageFileCompany = FileHelper.GetCompanyLogo();
-            await GatePassReportGenerator.Generate(JobOrderRequestModel.FirstOrDefault(), JSRuntime, companyData);
+            GatePassReportGenerator.ImageFile = JobOrderRequestModel.FirstOrDefault().IsChangan
+                ? FileHelper.GetChanganLogo()
+                : FileHelper.GetRapideLogo();
+
+            GatePassReportGenerator.ImageFileCompany = JobOrderRequestModel.FirstOrDefault().IsChangan
+                ? FileHelper.GetChanganCompanyLogo()
+                : FileHelper.GetCompanyLogo();
+
+            await GatePassReportGenerator.Generate(JobOrderRequestModel.FirstOrDefault(), JSRuntime, companyData, JobOrderRequestModel.FirstOrDefault().IsChangan);
 
             IsLoading = false;
         }
