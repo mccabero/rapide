@@ -20,7 +20,7 @@
 
         public static byte[] GetChanganLogo()
         {
-            var image = new FileInfo("wwwroot/images/changan-default-logo/changan-default-logo.png");
+            var image = new FileInfo("wwwroot/images/changan-default-logo/changan-default-logo.jpg");
             byte[] bytes = File.ReadAllBytes(image.FullName);
 
             return bytes;
@@ -28,7 +28,7 @@
 
         public static byte[] GetChanganCompanyLogo()
         {
-            var image = new FileInfo("wwwroot/images/changan-logo/changan-logo.png");
+            var image = new FileInfo("wwwroot/images/changan-logo/changan-logo.jpg");
             byte[] bytes = File.ReadAllBytes(image.FullName);
 
             return bytes;
