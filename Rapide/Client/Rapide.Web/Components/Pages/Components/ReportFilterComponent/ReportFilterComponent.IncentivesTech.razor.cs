@@ -7,10 +7,20 @@ namespace Rapide.Web.Components.Pages.Components
 {
     public partial class ReportFilterComponent
     {
-        private async Task PrintIncentivesTechReport(CompanyInfoDTO companyData, string preparedBy)
+        private async Task PrintIncentivesTechReport(CompanyInfoDTO companyData, string preparedBy, string clientType)
         {
-            IncentivesTechReportGenerator.ImageFile = FileHelper.GetRapideLogo();
-            IncentivesTechReportGenerator.ImageFileCompany = FileHelper.GetCompanyLogo();
+            bool isClientTypeAll = clientType.Equals(Constants.ClientType.All);
+            bool isChangan = isClientTypeAll
+                ? false
+                : clientType.Equals(Constants.ClientType.Changan);
+
+            IncentivesTechReportGenerator.ImageFile = isChangan
+                ? FileHelper.GetChanganLogo()
+                : FileHelper.GetRapideLogo();
+
+            IncentivesTechReportGenerator.ImageFileCompany = isChangan
+                ? FileHelper.GetChanganCompanyLogo()
+                : FileHelper.GetCompanyLogo();
 
             var users = await UserService.GetAllUserRoleAsync();
             var jobOrders = await JobOrderService.GetAllJobOrderAsync();
@@ -23,6 +33,11 @@ namespace Rapide.Web.Components.Pages.Components
             var filteredInvoice = invoice.Where(x => x.InvoiceDate >= _dateRange.Start && x.InvoiceDate <= _dateRange.End).ToList();
             filteredInvoice = filteredInvoice.Where(x => x.JobOrder.JobStatus.Name != Constants.JobStatus.Cancelled).ToList();
 
+            // Filter payment if changan
+            if (!isClientTypeAll)
+            {
+                filteredInvoice = filteredInvoice.Where(x => x.IsChangan == isChangan).ToList();
+            }
 
             if (!filteredInvoice.Any())
             {
@@ -71,7 +86,13 @@ namespace Rapide.Web.Components.Pages.Components
                 invoiceList.Add(i);
             }
 
-            await IncentivesTechReportGenerator.Generate(invoiceList, JSRuntime, companyData, preparedBy, technicians);
+            await IncentivesTechReportGenerator.Generate(
+                invoiceList, 
+                JSRuntime, 
+                companyData, 
+                preparedBy, 
+                technicians,
+                isChangan);
         }
     }
 }

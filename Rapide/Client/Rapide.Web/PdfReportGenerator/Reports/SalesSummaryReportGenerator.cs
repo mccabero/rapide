@@ -17,18 +17,23 @@ namespace Rapide.Web.PdfReportGenerator.Reports
         private static List<ExpensesDTO> expenses { get; set; }
         private static List<QuickSalesDTO> quickSales { get; set; }
 
+        private static bool IsChangan { get; set; }
+
         public static async Task Generate(
             List<PaymentDTO> paymentData, 
             IJSRuntime JSRuntime, 
             CompanyInfoDTO companyInfoDto, 
             string preparedBy,
             List<ExpensesDTO> expensesData,
-            List<QuickSalesDTO> quickSalesData)
+            List<QuickSalesDTO> quickSalesData,
+            bool isChangan)
         {
             payments = paymentData;
             companyInfo = companyInfoDto;
             expenses = expensesData;
             quickSales = quickSalesData;
+
+            IsChangan = isChangan;
 
             QuestPDF.Settings.License = LicenseType.Community;
 
@@ -116,11 +121,11 @@ namespace Rapide.Web.PdfReportGenerator.Reports
 
                 row.RelativeItem().Column(column =>
                 {
-                    column.Item().Text(companyInfo.Name).FontSize(12).SemiBold();
-                    column.Item().Text(companyInfo.Address).FontSize(8);
-                    column.Item().Text(companyInfo.MobileNumber).FontSize(8);
-                    column.Item().Text(companyInfo.Email).FontSize(8).Underline();
-                    column.Item().Text(companyInfo.TIN).FontSize(8);
+                    column.Item().AlignCenter().Text(IsChangan ? companyInfo.Name1 : companyInfo.Name).FontSize(12).SemiBold();
+                    column.Item().AlignCenter().Text(IsChangan ? companyInfo.Address1 : companyInfo.Address).FontSize(8);
+                    column.Item().AlignCenter().Text(IsChangan ? companyInfo.MobileNumber1 : companyInfo.MobileNumber).FontSize(8);
+                    column.Item().AlignCenter().Text(IsChangan ? companyInfo.Email1 : companyInfo.Email).FontSize(8).Underline();
+                    column.Item().AlignCenter().Text(IsChangan ? companyInfo.TIN1 : companyInfo.TIN).FontSize(8);
                 });
 
                 // Change image with "PLARIDEL, BULACAN and underline

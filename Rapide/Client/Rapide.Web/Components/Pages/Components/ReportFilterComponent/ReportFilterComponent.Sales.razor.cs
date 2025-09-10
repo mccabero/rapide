@@ -8,10 +8,20 @@ namespace Rapide.Web.Components.Pages.Components
 {
     public partial class ReportFilterComponent
     {
-        private async Task PrintSalesReport(CompanyInfoDTO companyData, string preparedBy)
+        private async Task PrintSalesReport(CompanyInfoDTO companyData, string preparedBy, string clientType)
         {
-            SalesReportGenerator.ImageFile = FileHelper.GetRapideLogo();
-            SalesReportGenerator.ImageFileCompany = FileHelper.GetCompanyLogo();
+            bool isClientTypeAll = clientType.Equals(Constants.ClientType.All);
+            bool isChangan = isClientTypeAll
+                ? false
+                : clientType.Equals(Constants.ClientType.Changan);
+
+            SalesReportGenerator.ImageFile = isChangan
+                ? FileHelper.GetChanganLogo()
+                : FileHelper.GetRapideLogo();
+
+            SalesReportGenerator.ImageFileCompany = isChangan
+                ? FileHelper.GetChanganCompanyLogo()
+                : FileHelper.GetCompanyLogo();
 
             var jobOrders = await JobOrderService.GetAllJobOrderAsync();
             var invoice = await InvoiceService.GetAllInvoiceAsync();
@@ -30,7 +40,13 @@ namespace Rapide.Web.Components.Pages.Components
                 .Where(x => ((DateTime)x.PaymentDate!).Date >= ((DateTime)_dateRange.Start!).Date 
                         && ((DateTime)x.PaymentDate!).Date <= ((DateTime)_dateRange.End!).Date)
                 .ToList();
-            
+
+            // Filter payment if changan
+            if (!isClientTypeAll)
+            {
+                filteredPayments = filteredPayments.Where(x => x.IsChangan == isChangan).ToList();
+            }
+
             var invoiceFromPayments = filteredPayments.Select(x => x.InvoiceList);
             var paymentDetails = await PaymentDetailsService.GetAllPaymentDetailsAsync();
 
@@ -39,15 +55,33 @@ namespace Rapide.Web.Components.Pages.Components
 
             var filteredInvoice = invoiceIds;
 
+            // Filter payment if changan
+            if (!isClientTypeAll)
+            {
+                filteredInvoice = filteredInvoice.Where(x => x.IsChangan == isChangan).ToList();
+            }
+
             var filteredExpenses = expenses
                 .Where(x => ((DateTime)x.ExpenseDateTime!).Date >= ((DateTime)_dateRange.Start!).Date 
                     && ((DateTime)x.ExpenseDateTime!).Date <= ((DateTime)_dateRange.End!).Date)
                 .ToList();
 
+            // Filter payment if changan
+            if (!isClientTypeAll)
+            {
+                filteredExpenses = filteredExpenses.Where(x => x.IsChangan == isChangan).ToList();
+            }
+
             var filteredQuickSales = quickSales
                 .Where(x => ((DateTime)x.TransactionDate!).Date >= ((DateTime)_dateRange.Start!).Date 
                     && ((DateTime)x.TransactionDate!).Date <= ((DateTime)_dateRange.End!).Date)
                 .ToList();
+
+            // Filter payment if changan
+            if (!isClientTypeAll)
+            {
+                filteredQuickSales = filteredQuickSales.Where(x => x.IsChangan == isChangan).ToList();
+            }
 
             var invoiceToCheck = filteredInvoice.Except(invoiceIds).ToList();
             if (invoiceToCheck.Any())
@@ -158,7 +192,16 @@ namespace Rapide.Web.Components.Pages.Components
                     && ((DateTime)x.TransactionDateTime!).Date <= ((DateTime)_dateRange.End!).Date)
                 .ToList();
 
-            await SalesReportGenerator.Generate(invoiceList, JSRuntime, companyData, preparedBy, filteredExpenses, quickSalesList, filteredDeposit, isCashier);
+            await SalesReportGenerator.Generate(
+                invoiceList, 
+                JSRuntime, 
+                companyData, 
+                preparedBy, 
+                filteredExpenses, 
+                quickSalesList, 
+                filteredDeposit, 
+                isCashier,
+                isChangan);
         }
     }
 }

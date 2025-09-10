@@ -1,5 +1,6 @@
 ﻿using Rapide.DTO;
 using Rapide.Entities;
+using Rapide.Web.Components.Utilities;
 using Rapide.Web.Helpers;
 using Rapide.Web.PdfReportGenerator.Reports;
 
@@ -7,10 +8,20 @@ namespace Rapide.Web.Components.Pages.Components
 {
     public partial class ReportFilterComponent
     {
-        private async Task PrintSalesSummaryReport(CompanyInfoDTO companyData, string preparedBy)
+        private async Task PrintSalesSummaryReport(CompanyInfoDTO companyData, string preparedBy, string clientType)
         {
-            SalesSummaryReportGenerator.ImageFile = FileHelper.GetRapideLogo();
-            SalesSummaryReportGenerator.ImageFileCompany = FileHelper.GetCompanyLogo();
+            bool isClientTypeAll = clientType.Equals(Constants.ClientType.All);
+            bool isChangan = isClientTypeAll
+                ? false
+                : clientType.Equals(Constants.ClientType.Changan);
+
+            SalesSummaryReportGenerator.ImageFile = isChangan
+                ? FileHelper.GetChanganLogo()
+                : FileHelper.GetRapideLogo();
+
+            SalesSummaryReportGenerator.ImageFileCompany = isChangan
+                ? FileHelper.GetChanganCompanyLogo()
+                : FileHelper.GetCompanyLogo();
 
             var invoices = await InvoiceService.GetAllInvoiceAsync();
             var payments = await PaymentService.GetAllPaymentAsync();
@@ -29,14 +40,33 @@ namespace Rapide.Web.Components.Pages.Components
                     && ((DateTime)x.ExpenseDateTime!).Date <= ((DateTime)_dateRange.End!).Date)
                 .ToList();
 
+            // Filter payment if changan
+            if (!isClientTypeAll)
+            {
+                filteredExpenses = filteredExpenses.Where(x => x.IsChangan == isChangan).ToList();
+            }
+
             var filteredQuickSales = quickSales
                 .Where(x => ((DateTime)x.TransactionDate!).Date >= ((DateTime)_dateRange.Start!).Date
                     && ((DateTime)x.TransactionDate!).Date <= ((DateTime)_dateRange.End!).Date)
                 .ToList();
+
+            // Filter payment if changan
+            if (!isClientTypeAll)
+            {
+                filteredQuickSales = filteredQuickSales.Where(x => x.IsChangan == isChangan).ToList();
+            }
+
             var filteredPayments = payments
                 .Where(x => ((DateTime)x.PaymentDate!).Date >= ((DateTime)_dateRange.Start!).Date 
                     && ((DateTime)x.PaymentDate!).Date <= ((DateTime)_dateRange.End!).Date)
                 .ToList();
+
+            // Filter payment if changan
+            if (!isClientTypeAll)
+            {
+                filteredPayments = filteredPayments.Where(x => x.IsChangan == isChangan).ToList();
+            }
 
             var filteredPaymentDetails = paymentDetails.Where(x => filteredPayments.Any(y => y.Id == x.PaymentId)).ToList();
             //filteredPaymentDetails.Where(x => x.PaymentId == payment.Id).ToList();
@@ -69,7 +99,14 @@ namespace Rapide.Web.Components.Pages.Components
                 return;
             }
 
-            await SalesSummaryReportGenerator.Generate(paymentsWithDetails, JSRuntime, companyData, preparedBy, filteredExpenses, filteredQuickSales);
+            await SalesSummaryReportGenerator.Generate(
+                paymentsWithDetails, 
+                JSRuntime, 
+                companyData, 
+                preparedBy, 
+                filteredExpenses, 
+                filteredQuickSales,
+                isChangan);
         }
     }
 }

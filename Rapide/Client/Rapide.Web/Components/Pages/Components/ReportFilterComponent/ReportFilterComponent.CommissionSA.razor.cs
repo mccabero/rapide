@@ -1,16 +1,27 @@
 ﻿using Rapide.DTO;
 using Rapide.Web.Components.Utilities;
 using Rapide.Web.Helpers;
+using Rapide.Web.PdfReportGenerator;
 using Rapide.Web.PdfReportGenerator.Reports;
 
 namespace Rapide.Web.Components.Pages.Components
 {
     public partial class ReportFilterComponent
     {
-        private async Task PrintCommissionsSAReport(CompanyInfoDTO companyData, string preparedBy)
+        private async Task PrintCommissionsSAReport(CompanyInfoDTO companyData, string preparedBy, string clientType)
         {
-            CommissionsSAReportGenerator.ImageFile = FileHelper.GetRapideLogo();
-            CommissionsSAReportGenerator.ImageFileCompany = FileHelper.GetCompanyLogo();
+            bool isClientTypeAll = clientType.Equals(Constants.ClientType.All);
+            bool isChangan = isClientTypeAll
+                ? false
+                : clientType.Equals(Constants.ClientType.Changan);
+
+            CommissionsSAReportGenerator.ImageFile = isChangan
+                ? FileHelper.GetChanganLogo()
+                : FileHelper.GetRapideLogo();
+
+            CommissionsSAReportGenerator.ImageFileCompany = isChangan
+                ? FileHelper.GetChanganCompanyLogo()
+                : FileHelper.GetCompanyLogo();
 
             var usersData = await UserService.GetAllUserRoleAsync();
             var users = new List<UserDTO>();
@@ -37,6 +48,12 @@ namespace Rapide.Web.Components.Pages.Components
                         && ((DateTime)x.PaymentDate!).Date <= ((DateTime)_dateRange.End!).Date)
                 .ToList();
 
+            // Filter payment if changan
+            if (!isClientTypeAll)
+            {
+                filteredPayments = filteredPayments.Where(x => x.IsChangan == isChangan).ToList();
+            }
+
             var invoiceFromPayments = filteredPayments.Select(x => x.InvoiceList);
             var paymentDetails = await PaymentDetailsService.GetAllPaymentDetailsAsync();
 
@@ -44,6 +61,12 @@ namespace Rapide.Web.Components.Pages.Components
             var invoiceIds = invoice.Where(x => invoiceNew.Any(y => y.InvoiceId == x.Id)).ToList();
 
             var filteredInvoice = invoiceIds;
+
+            // Filter payment if changan
+            if (!isClientTypeAll)
+            {
+                filteredInvoice = filteredInvoice.Where(x => x.IsChangan == isChangan).ToList();
+            }
 
             var invoiceToCheck = filteredInvoice.Except(invoiceIds).ToList();
             if (invoiceToCheck.Any())
@@ -106,7 +129,13 @@ namespace Rapide.Web.Components.Pages.Components
                 invoiceList.Add(i);
             }
 
-            await CommissionsSAReportGenerator.Generate(invoiceList, JSRuntime, companyData, preparedBy, serviceAdvisors);
+            await CommissionsSAReportGenerator.Generate(
+                invoiceList, 
+                JSRuntime, 
+                companyData, 
+                preparedBy, 
+                serviceAdvisors,
+                isChangan);
         }
     }
 }

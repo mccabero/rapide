@@ -90,6 +90,8 @@ namespace Rapide.Web.Components.Pages.Components
         private DateTime? _date;
         private bool isBigThreeRoles = false;
         private bool isCashier = false;
+
+        public string clientType { get; set; } = Constants.ClientType.All;
         #endregion
 
         protected override async Task OnInitializedAsync()
@@ -139,27 +141,27 @@ namespace Rapide.Web.Components.Pages.Components
             {
                 case Constants.ReportType.SalesReport:
                     reportName = $"{Constants.ReportType.SalesReport} Report";
-                    await PrintSalesReport(companyData!, fullName);
+                    await PrintSalesReport(companyData!, fullName, clientType);
                     break;
                 case Constants.ReportType.SalesSummaryReport:
                     reportName = $"{Constants.ReportType.SalesSummaryReport} Report";
-                    await PrintSalesSummaryReport(companyData!, fullName);
+                    await PrintSalesSummaryReport(companyData!, fullName, clientType);
                     break;
                 case Constants.ReportType.CommissionsTech:
                     reportName = $"{Constants.ReportType.CommissionsTech} Report";
-                    await PrintCommissionsTechReport(companyData!, fullName);
+                    await PrintCommissionsTechReport(companyData!, fullName, clientType);
                     break;
                 case Constants.ReportType.CommissionsSA:
                     reportName = $"{Constants.ReportType.CommissionsSA} Report";
-                    await PrintCommissionsSAReport(companyData!, fullName);
+                    await PrintCommissionsSAReport(companyData!, fullName, clientType);
                     break;
                 case Constants.ReportType.IncentivesTech:
                     reportName = $"{Constants.ReportType.IncentivesTech} Report";
-                    await PrintIncentivesTechReport(companyData!, fullName);
+                    await PrintIncentivesTechReport(companyData!, fullName, clientType);
                     break;
                 case Constants.ReportType.IncentivesSA:
                     reportName = $"{Constants.ReportType.IncentivesSA} Report";
-                    await PrintIncentivesSAReport(companyData!, fullName);
+                    await PrintIncentivesSAReport(companyData!, fullName, clientType);
                     break;
                 case Constants.ReportType.Customers:
                     var customerData = await CustomerService.GetAllAsync();
@@ -180,7 +182,7 @@ namespace Rapide.Web.Components.Pages.Components
                     break;
                 case Constants.ReportType.CreditCardPayment:
                     reportName = "Credit Card Payment Report";
-                    await PrintCreditCardPaymentReport(companyData!, fullName);
+                    await PrintCreditCardPaymentReport(companyData!, fullName, clientType);
                     break;
             }
 

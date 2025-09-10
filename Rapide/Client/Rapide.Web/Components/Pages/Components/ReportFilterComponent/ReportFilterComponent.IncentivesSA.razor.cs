@@ -1,4 +1,5 @@
 ﻿using Rapide.DTO;
+using Rapide.Web.Components.Utilities;
 using Rapide.Web.Helpers;
 using Rapide.Web.PdfReportGenerator.Reports;
 
@@ -6,10 +7,20 @@ namespace Rapide.Web.Components.Pages.Components
 {
     public partial class ReportFilterComponent
     {
-        private async Task PrintIncentivesSAReport(CompanyInfoDTO companyData, string preparedBy)
+        private async Task PrintIncentivesSAReport(CompanyInfoDTO companyData, string preparedBy, string clientType)
         {
-            IncentivesSAReportGenerator.ImageFile = FileHelper.GetRapideLogo();
-            IncentivesSAReportGenerator.ImageFileCompany = FileHelper.GetCompanyLogo();
+            bool isClientTypeAll = clientType.Equals(Constants.ClientType.All);
+            bool isChangan = isClientTypeAll
+                ? false
+                : clientType.Equals(Constants.ClientType.Changan);
+
+            IncentivesSAReportGenerator.ImageFile = isChangan
+                ? FileHelper.GetChanganLogo()
+                : FileHelper.GetRapideLogo();
+
+            IncentivesSAReportGenerator.ImageFileCompany = isChangan
+                ? FileHelper.GetChanganCompanyLogo()
+                : FileHelper.GetCompanyLogo();
 
             var usersData = await UserService.GetAllUserRoleAsync();
             var users = new List<UserDTO>();
@@ -29,6 +40,12 @@ namespace Rapide.Web.Components.Pages.Components
             var serviceAdvisors = users.Where(x => x.UserRoles.Any(x => x.Role.Name.ToUpper().Contains("ADVISOR")) && x.IsActive == true).ToList();
 
             var filteredInvoice = invoice.Where(x => x.InvoiceDate >= _dateRange.Start && x.InvoiceDate <= _dateRange.End).ToList();
+
+            // Filter payment if changan
+            if (!isClientTypeAll)
+            {
+                filteredInvoice = filteredInvoice.Where(x => x.IsChangan == isChangan).ToList();
+            }
 
             if (!filteredInvoice.Any())
             {
@@ -77,7 +94,13 @@ namespace Rapide.Web.Components.Pages.Components
                 invoiceList.Add(i);
             }
 
-            await IncentivesSAReportGenerator.Generate(invoiceList, JSRuntime, companyData, preparedBy, serviceAdvisors);
+            await IncentivesSAReportGenerator.Generate(
+                invoiceList, 
+                JSRuntime, 
+                companyData, 
+                preparedBy, 
+                serviceAdvisors,
+                isChangan);
         }
     }
 }

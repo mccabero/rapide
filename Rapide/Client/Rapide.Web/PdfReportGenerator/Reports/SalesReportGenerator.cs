@@ -18,6 +18,7 @@ namespace Rapide.Web.PdfReportGenerator.Reports
         private static List<DepositDTO> depositInfo { get; set; }
 
         private static bool isCashier { get; set; }
+        private static bool IsChangan { get; set; }
 
         public static async Task Generate(
             List<InvoiceDTO> invoiceData, 
@@ -27,7 +28,8 @@ namespace Rapide.Web.PdfReportGenerator.Reports
             List<ExpensesDTO> expensesData,
             List<QuickSalesDTO> quickSalesData,
             List<DepositDTO> depositData,
-            bool isCashierInfo)
+            bool isCashierInfo,
+            bool isChangan)
         {
             invoice = invoiceData;
             companyInfo = companyInfoDto;
@@ -35,6 +37,8 @@ namespace Rapide.Web.PdfReportGenerator.Reports
             quickSales = quickSalesData;
             isCashier = isCashierInfo;
             depositInfo = depositData;
+
+            IsChangan = isChangan;
 
             QuestPDF.Settings.License = LicenseType.Community;
 
@@ -130,11 +134,11 @@ namespace Rapide.Web.PdfReportGenerator.Reports
 
                 row.RelativeItem().Column(column =>
                 {
-                    column.Item().Text(companyInfo.Name).FontSize(12).SemiBold();
-                    column.Item().Text(companyInfo.Address).FontSize(8);
-                    column.Item().Text(companyInfo.MobileNumber).FontSize(8);
-                    column.Item().Text(companyInfo.Email).FontSize(8).Underline();
-                    column.Item().Text(companyInfo.TIN).FontSize(8);
+                    column.Item().AlignCenter().Text(IsChangan ? companyInfo.Name1 : companyInfo.Name).FontSize(12).SemiBold();
+                    column.Item().AlignCenter().Text(IsChangan ? companyInfo.Address1 : companyInfo.Address).FontSize(8);
+                    column.Item().AlignCenter().Text(IsChangan ? companyInfo.MobileNumber1 : companyInfo.MobileNumber).FontSize(8);
+                    column.Item().AlignCenter().Text(IsChangan ? companyInfo.Email1 : companyInfo.Email).FontSize(8).Underline();
+                    column.Item().AlignCenter().Text(IsChangan ? companyInfo.TIN1 : companyInfo.TIN).FontSize(8);
                 });
 
                 // Change image with "PLARIDEL, BULACAN and underline

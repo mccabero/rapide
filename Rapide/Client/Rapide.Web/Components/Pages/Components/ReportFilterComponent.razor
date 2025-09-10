@@ -4,6 +4,7 @@
 @using MudBlazor
 @using Rapide.DTO
 @using Rapide.Web.Components.Pages.Components
+@using Rapide.Web.Components.Utilities
 @using Rapide.Web.Helpers
 
 @if (IsLoading)
@@ -121,6 +122,17 @@
                                         </MudStack>
                                     </div>
 
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <MudRadioGroup T="string" @bind-Value="@clientType">
+                                            <MudRadio Value="@Constants.ClientType.All" Color="Color.Success" Dense="true">@Constants.ClientType.All</MudRadio>
+                                            <MudRadio Value="@Constants.ClientType.Rapide" Color="Color.Warning" Dense="true" sele>@Constants.ClientType.Rapide</MudRadio>
+                                            <MudRadio Value="@Constants.ClientType.Changan" Color="Color.Info" Dense="true">@Constants.ClientType.Changan</MudRadio>
+                                        </MudRadioGroup>
+                                    </div>
                                 </div>
                             </div>
                             

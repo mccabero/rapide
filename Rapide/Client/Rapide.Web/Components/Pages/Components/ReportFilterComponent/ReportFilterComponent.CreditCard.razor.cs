@@ -1,4 +1,5 @@
 ﻿using Rapide.DTO;
+using Rapide.Web.Components.Utilities;
 using Rapide.Web.Helpers;
 using Rapide.Web.PdfReportGenerator.Reports;
 
@@ -6,10 +7,20 @@ namespace Rapide.Web.Components.Pages.Components
 {
     public partial class ReportFilterComponent
     {
-        private async Task PrintCreditCardPaymentReport(CompanyInfoDTO companyData, string preparedBy)
+        private async Task PrintCreditCardPaymentReport(CompanyInfoDTO companyData, string preparedBy, string clientType)
         {
-            CreditCardPaymentReportGenerator.ImageFile = FileHelper.GetRapideLogo();
-            CreditCardPaymentReportGenerator.ImageFileCompany = FileHelper.GetCompanyLogo();
+            bool isClientTypeAll = clientType.Equals(Constants.ClientType.All);
+            bool isChangan = isClientTypeAll
+                ? false
+                : clientType.Equals(Constants.ClientType.Changan);
+
+            CreditCardPaymentReportGenerator.ImageFile = isChangan
+                ? FileHelper.GetChanganLogo()
+                : FileHelper.GetRapideLogo();
+
+            CreditCardPaymentReportGenerator.ImageFileCompany = isChangan
+                ? FileHelper.GetChanganCompanyLogo()
+                : FileHelper.GetCompanyLogo();
 
             var jobOrders = await JobOrderService.GetAllJobOrderAsync();
             var invoice = await InvoiceService.GetAllInvoiceAsync();
@@ -22,7 +33,17 @@ namespace Rapide.Web.Components.Pages.Components
 
             // Convert filter from invoice to payment:
             var payments = await PaymentService.GetAllPaymentAsync();
-            var filteredPayments = payments.Where(x => ((DateTime)x.PaymentDate!).Date >= ((DateTime)_dateRange.Start!).Date && ((DateTime)x.PaymentDate!).Date <= ((DateTime)_dateRange.End!).Date).ToList();
+            var filteredPayments = payments
+                .Where(x => ((DateTime)x.PaymentDate!).Date >= ((DateTime)_dateRange.Start!).Date 
+                    && ((DateTime)x.PaymentDate!).Date <= ((DateTime)_dateRange.End!).Date)
+                .ToList();
+
+            // Filter payment if changan
+            if (!isClientTypeAll)
+            {
+                filteredPayments = filteredPayments.Where(x => x.IsChangan == isChangan).ToList();
+            }
+
             var invoiceFromPayments = filteredPayments.Select(x => x.InvoiceList);
             var paymentDetails = await PaymentDetailsService.GetAllPaymentDetailsAsync();
 
@@ -34,7 +55,22 @@ namespace Rapide.Web.Components.Pages.Components
             //    .Where(x => x.InvoiceDate >= _dateRange.Start && x.InvoiceDate <= _dateRange.End)
             //    .ToList();
 
-            var filteredQuickSales = quickSales.Where(x => ((DateTime)x.TransactionDate!).Date >= ((DateTime)_dateRange.Start!).Date && ((DateTime)x.TransactionDate!).Date <= ((DateTime)_dateRange.End!).Date).ToList();
+            // Filter payment if changan
+            if (!isClientTypeAll)
+            {
+                filteredInvoice = filteredInvoice.Where(x => x.IsChangan == isChangan).ToList();
+            }
+
+            var filteredQuickSales = quickSales
+                .Where(x => ((DateTime)x.TransactionDate!).Date >= ((DateTime)_dateRange.Start!).Date 
+                    && ((DateTime)x.TransactionDate!).Date <= ((DateTime)_dateRange.End!).Date)
+                .ToList();
+
+            // Filter payment if changan
+            if (!isClientTypeAll)
+            {
+                filteredQuickSales = filteredQuickSales.Where(x => x.IsChangan == isChangan).ToList();
+            }
 
             if (!filteredInvoice.Any())
             {
@@ -67,7 +103,13 @@ namespace Rapide.Web.Components.Pages.Components
                 quickSalesList.Add(qsp);
             }
 
-            await CreditCardPaymentReportGenerator.Generate(invoiceList, quickSalesList, JSRuntime, companyData, preparedBy);
+            await CreditCardPaymentReportGenerator.Generate(
+                invoiceList, 
+                quickSalesList, 
+                JSRuntime, 
+                companyData, 
+                preparedBy,
+                isChangan);
         }
     }
 }
