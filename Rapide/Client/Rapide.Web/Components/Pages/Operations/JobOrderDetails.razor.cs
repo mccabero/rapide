@@ -1021,7 +1021,7 @@ namespace Rapide.Web.Components.Pages.Operations
 
 
             var technicians = await JobOrderTechnicianService.GetAllJobOrderTechnicianByJobOrderIdAsync(JobOrderRequestModel.Id);
-            model.TechnicianList = technicians.Where(x => x.TechnicianUser.Role.Name == "SENIOR TECHNICIAN").ToList();
+            model.TechnicianList = technicians.OrderByDescending(x => x.TechnicianUser.Role.Name).ToList();
 
             await JobOrderReportGenerator.Generate(model, JSRuntime, companyData, model.IsChangan);
 

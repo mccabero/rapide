@@ -307,7 +307,7 @@ namespace Rapide.Web.Components.Pages.Operations
             JobOrderRequestModel.PackageList = await JobOrderPackageService.GetAllJobOrderPackageByJobOrderIdAsync(JobOrderRequestModel.Id);
 
             var technicians = await JobOrderTechnicianService.GetAllJobOrderTechnicianByJobOrderIdAsync(JobOrderRequestModel.Id);
-            JobOrderRequestModel.TechnicianList = technicians.Where(x => x.TechnicianUser.Role.Name == "SENIOR TECHNICIAN").ToList();
+            JobOrderRequestModel.TechnicianList = technicians.OrderByDescending(x => x.TechnicianUser.Role.Name).ToList();
 
             JobOrderReportGenerator.ImageFile = JobOrderRequestModel.IsChangan
                 ? FileHelper.GetChanganLogo()
