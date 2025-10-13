@@ -127,15 +127,5 @@ namespace Rapide.Services
 
             return dto;
         }
-
-        public Task<PettyCashDetailsDTO?> GetPettyCashDetailsByIdAsync(int id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<List<PettyCashDetailsDTO>> GetAllPettyCashDetailsAsync()
-        {
-            throw new NotImplementedException();
-        }
     }
 }

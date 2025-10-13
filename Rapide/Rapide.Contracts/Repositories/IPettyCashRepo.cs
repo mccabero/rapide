@@ -7,9 +7,5 @@ namespace Rapide.Contracts.Repositories
         Task<PettyCash?> GetPettyCashByIdAsync(int id);
 
         Task<List<PettyCash>> GetAllPettyCashAsync();
-
-        Task<PettyCashDetails?> GetPettyCashDetailsByIdAsync(int id);
-
-        Task<List<PettyCashDetails>> GetAllPettyCashDetailsAsync();
     }
 }

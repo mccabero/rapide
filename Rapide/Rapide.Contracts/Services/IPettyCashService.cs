@@ -8,9 +8,5 @@ namespace Rapide.Contracts.Services
         Task<PettyCashDTO?> GetPettyCashByIdAsync(int id);
 
         Task<List<PettyCashDTO>> GetAllPettyCashAsync();
-
-        Task<PettyCashDetailsDTO?> GetPettyCashDetailsByIdAsync(int id);
-
-        Task<List<PettyCashDetailsDTO>> GetAllPettyCashDetailsAsync();
     }
 }

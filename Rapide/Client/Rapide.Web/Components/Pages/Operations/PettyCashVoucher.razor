@@ -1,0 +1,273 @@
+@page "/operations/petty-cash-vouchers"
+@page "/operations/petty-cash-vouchers/{PettyCashVoucherId}"
+
+@using Rapide.Web.Components.Utilities
+@using Rapide.Web.Models
+
+@if (IsLoading)
+{
+    <MudOverlay Visible="true" DarkBackground="true" ZIndex="9999">
+        <MudProgressCircular Color="Color.Secondary" Size="Size.Large" Class="ms-n1" Indeterminate="true" />
+    </MudOverlay>
+}
+
+<!-- #region Message Box -->
+
+<MudMessageBox @ref="mbox" Title="Confirmation" CancelText="No">
+    <MessageContent>
+        <i class="bi bi-exclamation-triangle"></i> Are you sure you want to save changes?
+    </MessageContent>
+    <YesButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Check">Yes</MudButton>
+    </YesButton>
+</MudMessageBox>
+
+<MudMessageBox @ref="mboxCustom" Title="Confirmation" CancelText="No">
+    <MessageContent>
+        <i class="bi bi-exclamation-triangle"></i> @mBoxCustomMessage
+    </MessageContent>
+    <YesButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Check">Yes</MudButton>
+    </YesButton>
+</MudMessageBox>
+
+<MudMessageBox @ref="mboxError" Title="Warning!">
+    <MessageContent>
+        <i class="bi bi-exclamation-triangle"></i> @mBoxCustomMessage
+    </MessageContent>
+    <YesButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Error" StartIcon="@Icons.Material.Filled.Check">OK</MudButton>
+    </YesButton>
+</MudMessageBox>
+
+<!-- #endregion -->
+
+<PageTitle>Petty Cash Voucher</PageTitle>
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-6">
+                <h1 class="m-0">Petty Cash Voucher</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="/">Home</a></li>
+                    <li class="breadcrumb-item"><a href="/operations/petty-cash-vouchers">Petty Cash Voucher</a></li>
+                    <li class="breadcrumb-item active">Manage Petty Cash Voucher</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="content">
+    <div class="container-fluid">
+
+        <div class="row">
+            <div class="col-md-12" style="padding-bottom: 10px !important;">
+                <MudStack Row>
+                    <MudButton @onclick="OnPettyCashNewClick" Size="@Size.Medium" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Create" Disabled="!IsEditMode">New</MudButton>
+                </MudStack>
+            </div>
+        </div>
+
+        
+        <div class="row">
+            <MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors" Class="mud-form-custom">
+                <div class="col-md-12">
+                    <div class="card card-secondary">
+                        <div class="card-header">
+                            <h3 class="card-title">Petty Cash Information</h3>
+                            <div class="card-tools">
+                                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label>Changan Transaction?</label>
+                                        <MudSwitch @bind-Value="PettyCashModel.IsChangan" Color="Color.Info" />
+                                    </div>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>@(isCashIn ? "Transaction Type: Cash In" : "Transaction Type: Cash Out")</label>
+                                        <MudSwitch @bind-Value="isCashIn" Color="Color.Info" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- New row: PC No (disabled) + Transaction Date & Time -->
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Petty Cash No.</label>
+                                        <MudTextField T="string"
+                                                      Disabled="true"
+                                                      Variant="Variant.Outlined"
+                                                      Margin="Margin.Dense"
+                                                      Adornment="Adornment.Start"
+                                                      AdornmentIcon="@Icons.Material.Filled.Numbers" />
+                                    </div>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Transaction Date</label>
+                                        <MudDatePicker DateFormat="MM/dd/yyyy"
+                                                       Date="@DateTime.Now"
+                                                       Variant="Variant.Outlined"
+                                                       Margin="Margin.Dense" />
+                                    </div>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Transaction Time</label>
+                                        <MudTimePicker Time="@DateTime.Now.TimeOfDay"
+                                                       Variant="Variant.Outlined"
+                                                       Margin="Margin.Dense" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- New row: Pay To and Amount (equal width) -->
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Pay To</label>
+                                        <MudTextField T="string"
+                                                      @bind-Value="PayTo"
+                                                      Variant="Variant.Outlined"
+                                                      Margin="Margin.Dense" />
+                                    </div>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Amount</label>
+                                        <MudNumericField T="decimal"
+                                                         @bind-Value="Amount"
+                                                         Format="N2"
+                                                         Min="0"
+                                                         Variant="Variant.Outlined"
+                                                         Margin="Margin.Dense"
+                                                         Adornment="Adornment.Start"
+                                                         AdornmentIcon="@Icons.Material.Filled.AttachMoney" />
+                                    </div>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Balance</label>
+                                        <MudNumericField T="decimal"
+                                                         @bind-Value="Amount"
+                                                         Format="N2"
+                                                         Min="0"
+                                                         Variant="Variant.Outlined"
+                                                         Margin="Margin.Dense"
+                                                         Adornment="Adornment.Start"
+                                                         AdornmentIcon="@Icons.Material.Filled.AttachMoney"
+                                                         Disabled />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- New row: Particulars (multiline) -->
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label>Particulars</label>
+                                        <MudTextField T="string"
+                                                      @bind-Value="Particulars"
+                                                      Lines="3"
+                                                      Variant="Variant.Outlined"
+                                                      Margin="Margin.Dense"
+                                                      Clearable />
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="card-footer">
+                        </div>
+                    </div>
+                </div>
+            </MudForm>
+        </div>
+
+        <div class="row" style="padding-bottom: 3% !important;">
+            @if (!isPettyCashLocked)
+            {
+                <div class="col-md-6" style="padding-bottom: 10px !important;">
+                    <button @onclick="OnSavePettyCashClick" type="button" class="btn btn-primary btn-block"><i class="fa fa-floppy-o"></i> Save</button>
+                </div>
+            }
+
+            <div class="@(!isPettyCashLocked ? "col-md-6" : "col-md-12")">
+                <button @onclick="OnCancelPettyCashClick" type="button" class="btn btn-danger btn-block"><i class="fa fa-ban"></i> Cancel</button>
+            </div>
+        </div>
+
+    </div>
+
+    @* History Table for Petty Cash *@
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card card-secondary">
+                    <div class="card-header">
+                        <h3 class="card-title">Petty Cash History</h3>
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                        </div>
+                    </div>
+
+
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <MudDataGrid Dense T="PettyCashModel" @ref="dataGrid" ServerData="ServerReload" Filterable="false" RowsPerPage="100">
+                                    <ToolBarContent>
+                                        <MudRadioGroup T="string" Value="@clientType" ValueChanged="@(s => OnFilter(s))">
+                                            <MudRadio Value="@Constants.ClientType.All" Color="Color.Success" Dense="true">@Constants.ClientType.All</MudRadio>
+                                            <MudRadio Value="@Constants.ClientType.Rapide" Color="Color.Warning" Dense="true" sele>@Constants.ClientType.Rapide</MudRadio>
+                                            <MudRadio Value="@Constants.ClientType.Changan" Color="Color.Info" Dense="true">@Constants.ClientType.Changan</MudRadio>
+                                        </MudRadioGroup>
+                                        <MudSpacer />
+                                        <MudTextField T="string" ValueChanged="@(s => OnSearch(s))" Placeholder="Search" Adornment="Adornment.Start"
+                                                      AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Small" Class="mt-0"></MudTextField>
+                                    </ToolBarContent>
+
+                                    <Columns>
+                                        <PropertyColumn Property="x => x.TransactionDateTime" Title="Transaction Date" Format="MM/dd/yyyy" />
+                                        <PropertyColumn Property="x => x.PayTo" Title="Pay To" />
+                                        <PropertyColumn Property="x => x.Particulars" Title="Particulars" />
+                                        <PropertyColumn Property="x => x.CashIn" Title="Cash In" Align="Align.Right" Format="N2" />
+                                        <PropertyColumn Property="x => x.CashOut" Title="Cash Out" Align="Align.Right" Format="N2" />
+                                        <PropertyColumn Property="x => x.Balance" Title="Balance" Align="Align.Right" Format="N2" />
+                                    </Columns>
+                                    <PagerContent>
+                                        <MudDataGridPager T="PettyCashModel" />
+                                    </PagerContent>
+                                </MudDataGrid>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</section>

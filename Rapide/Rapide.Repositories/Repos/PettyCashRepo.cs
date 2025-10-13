@@ -34,23 +34,5 @@ namespace Rapide.Repositories.Repos
                 .AsNoTracking()
                 .SingleOrDefaultAsync(x => x.Id == id);
         }
-
-        public async Task<List<PettyCashDetails>> GetAllPettyCashDetailsAsync()
-        {
-            await using var context = await Factory.CreateDbContextAsync();
-
-            return await context.Set<PettyCashDetails>()
-                .AsNoTracking()
-                .ToListAsync();
-        }
-
-        public async Task<PettyCashDetails?> GetPettyCashDetailsByIdAsync(int id)
-        {
-            await using var context = await Factory.CreateDbContextAsync();
-
-            return await context.Set<PettyCashDetails>()
-                .AsNoTracking()
-                .SingleOrDefaultAsync(x => x.Id == id);
-        }
     }
 }

@@ -12,6 +12,9 @@ namespace Rapide.Web.Models
 
         public string PayTo { get; set; }
 
+        // Added Particulars property
+        public string Particulars { get; set; }
+
         public decimal CashIn { get; set; }
 
         public decimal CashOut { get; set; }
@@ -35,5 +38,7 @@ namespace Rapide.Web.Models
 
         // Additional property
         public bool IsAllowedToOverride { get; set; }
+
+        public bool IsChangan { get; set; }
     }
 }
