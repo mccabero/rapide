@@ -909,6 +909,14 @@ namespace Rapide.Web.Components.Pages.Operations
                 return false;
             }
 
+            if (JobOrderTechnicians.Count() > 4)
+            {
+                mBoxCustomMessage = "Maximum number of technician has been reached (Allowed Technician is 4)!";
+                await mboxError.ShowAsync();
+
+                return false;
+            }
+
             return true;
         }
 
