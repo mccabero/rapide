@@ -156,7 +156,9 @@
                                     <div class="form-group">
                                         <label>Amount</label>
                                         <MudNumericField T="decimal"
-                                                         @bind-Value="Amount"
+                                                         Value="Amount"
+                                                         ValueChanged="@((i) => OnAmountValueChanged(PettyCashModel, i))"
+                                                         Immediate="true"
                                                          Format="N2"
                                                          Min="0"
                                                          Variant="Variant.Outlined"

@@ -44,6 +44,7 @@ namespace Rapide.Web.Components.Pages.Operations
         private bool IsEditMode { get; set; }
 
         private PettyCashModel PettyCashModel { get; set; } = new();
+        private PettyCashDTO? LastPettyCashDto { get; set; }
 
         // Petty cash form fields
         private decimal Amount { get; set; } = 0;
@@ -66,24 +67,23 @@ namespace Rapide.Web.Components.Pages.Operations
         private string clientTypeFilter;
         #endregion
 
-        private static IMapper InitializeMapper()
-        {
-            var map = new MapperConfiguration(cfg =>
-            {
-                cfg.CreateMap<PettyCashModel, PettyCashDTO>();
-
-                cfg.CreateMap<PettyCashDTO, PettyCashModel>();
-            });
-            var mapper = map.CreateMapper();
-            return mapper;
-        }
-
         protected override async Task OnInitializedAsync()
         {
             isBigThreeRoles = TokenHelper.IsBigThreeRoles(await AuthState);
 
+            // Get the last transaction to get the current balance.
+            var pettyCashList = await PettyCashService.GetAllPettyCashAsync();
+
+            LastPettyCashDto = pettyCashList == null
+                ? new()
+                : pettyCashList.OrderByDescending(x => x.Id).FirstOrDefault();
+
             PettyCashModel.PCNo = await ReferenceNumberHelper.GetRNPettyCash(PettyCashService);
             PettyCashModel.TransactionDateTime = DateTime.Now;
+
+            PettyCashModel.Balance = LastPettyCashDto == null 
+                ? 0 
+                : LastPettyCashDto.Balance;
         }
 
         // Button handlers
@@ -164,6 +164,26 @@ namespace Rapide.Web.Components.Pages.Operations
             }
         }
 
+        private void OnAmountValueChanged(PettyCashModel model, decimal i)
+        {
+            if (isCashIn)
+            { 
+                // Add to balance
+                PettyCashModel.Balance = (LastPettyCashDto == null ? i : LastPettyCashDto.Balance) + i;
+                PettyCashModel.CashIn = i;
+                PettyCashModel.CashOut = 0;
+            }
+            else
+            {
+                // Deduct from balance
+                PettyCashModel.Balance = (LastPettyCashDto == null ? i : LastPettyCashDto.Balance) - i;
+                PettyCashModel.CashOut = i;
+                PettyCashModel.CashIn = 0;
+            }
+
+            Amount = i;
+            StateHasChanged();
+        }
         private Task OnFilter(string text)
         {
             clientType = text;
@@ -176,6 +196,7 @@ namespace Rapide.Web.Components.Pages.Operations
             searchString = text;
             return dataGrid.ReloadServerData();
         }
+
 
         private async Task<GridData<PettyCashModel>> ServerReload(GridState<PettyCashModel> state)
         {
@@ -236,6 +257,18 @@ namespace Rapide.Web.Components.Pages.Operations
                 TotalItems = totalItems,
                 Items = pagedData
             };
+        }
+
+        private static IMapper InitializeMapper()
+        {
+            var map = new MapperConfiguration(cfg =>
+            {
+                cfg.CreateMap<PettyCashModel, PettyCashDTO>();
+
+                cfg.CreateMap<PettyCashDTO, PettyCashModel>();
+            });
+            var mapper = map.CreateMapper();
+            return mapper;
         }
     }
 }
