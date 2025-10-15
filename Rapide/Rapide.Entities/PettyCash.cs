@@ -32,8 +32,6 @@ namespace Rapide.Entities
         public User PaidByUser { get; set; }
         public int PaidByUserId { get; set; }
 
-        public bool IsPaymentReceived { get; set; }
-
         [Required]
         public string PaymentReceivedBy { get; set; }
     }

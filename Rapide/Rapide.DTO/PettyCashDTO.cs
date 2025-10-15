@@ -19,8 +19,6 @@
         public UserDTO PaidByUser { get; set; }
         public int PaidByUserId { get; set; }
 
-        public bool IsPaymentReceived { get; set; }
-
         public string? PaymentReceivedBy { get; set; }
     }
 }

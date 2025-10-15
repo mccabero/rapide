@@ -23,8 +23,6 @@ namespace Rapide.Web.Models
         public UserModel PaidByUser { get; set; }
         public int PaidByUserId { get; set; }
 
-        public bool IsPaymentReceived { get; set; }
-
         public string? PaymentReceivedBy { get; set; }
 
         // Additional property
