@@ -8,7 +8,7 @@ namespace Rapide.Entities
         [Required]
         public string PCNo { get; set; }
 
-        public DateTime? TransactionDateTime { get; set; }
+        public DateTime TransactionDateTime { get; set; }
 
         public string Particulars { get; set; }
 

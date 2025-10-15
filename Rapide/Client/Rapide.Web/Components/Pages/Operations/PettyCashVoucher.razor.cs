@@ -1,7 +1,10 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.JSInterop;
 using MudBlazor;
+using Rapide.Contracts.Services;
+using Rapide.DTO;
 using Rapide.Web.Components.Utilities;
 using Rapide.Web.Helpers;
 using Rapide.Web.Models;
@@ -24,6 +27,8 @@ namespace Rapide.Web.Components.Pages.Operations
         protected Task<AuthenticationState> AuthState { get; set; }
         [Inject]
         private IJSRuntime JSRuntime { get; set; }
+        [Inject]
+        private IPettyCashService PettyCashService { get; set; }
         #endregion
 
         #region Private Properties
@@ -61,6 +66,26 @@ namespace Rapide.Web.Components.Pages.Operations
         private string clientTypeFilter;
         #endregion
 
+        private static IMapper InitializeMapper()
+        {
+            var map = new MapperConfiguration(cfg =>
+            {
+                cfg.CreateMap<PettyCashModel, PettyCashDTO>();
+
+                cfg.CreateMap<PettyCashDTO, PettyCashModel>();
+            });
+            var mapper = map.CreateMapper();
+            return mapper;
+        }
+
+        protected override async Task OnInitializedAsync()
+        {
+            isBigThreeRoles = TokenHelper.IsBigThreeRoles(await AuthState);
+
+            PettyCashModel.PCNo = await ReferenceNumberHelper.GetRNPettyCash(PettyCashService);
+            PettyCashModel.TransactionDateTime = DateTime.Now;
+        }
+
         // Button handlers
         private async Task OnPettyCashNewClick()
         {
@@ -93,6 +118,24 @@ namespace Rapide.Web.Components.Pages.Operations
                 IsLoading = true;
 
                 // TODO: Implement actual save logic for Petty Cash Voucher here.
+                PettyCashModel.PaidByUserId = TokenHelper.GetCurrentUserId(authState: await AuthState);
+
+                if (isCashIn)
+                    PettyCashModel.CashIn = Amount;
+                else
+                    PettyCashModel.CashOut = Amount;
+
+
+                IMapper mapper = InitializeMapper();
+                var pettyCashDTO = mapper.Map<PettyCashDTO>(PettyCashModel);
+
+                pettyCashDTO.CreatedById = TokenHelper.GetCurrentUserId(await AuthState);
+                pettyCashDTO.CreatedDateTime = DateTime.Now;
+                pettyCashDTO.UpdatedById = TokenHelper.GetCurrentUserId(await AuthState);
+                pettyCashDTO.UpdatedDateTime = DateTime.Now;
+
+                await PettyCashService.CreateAsync(pettyCashDTO);
+
                 // Placeholder - show success message and navigate back to list.
                 SnackbarService.Add("Petty Cash Voucher successfully saved!", Severity.Normal, config => { config.ShowCloseIcon = true; });
                 NavigationManager.NavigateToCustom("/operations/petty-cash-vouchers", true);

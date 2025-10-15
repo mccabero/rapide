@@ -131,7 +131,7 @@
 
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label>Pay To</label>
+                                        <label>@(isCashIn ? "Check No." : "Pay To")</label>
                                         <MudTextField T="string"
                                                       @bind-Value="PettyCashModel.PayTo"
                                                       Variant="Variant.Outlined"

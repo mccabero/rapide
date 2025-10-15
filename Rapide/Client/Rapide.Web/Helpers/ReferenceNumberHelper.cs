@@ -4,6 +4,22 @@ namespace Rapide.Web.Helpers
 {
     public static class ReferenceNumberHelper
     {
+        public static async Task<string> GetRNPettyCash(IPettyCashService service)
+        {
+            var data = await service.GetAllPettyCashAsync();
+            var lastId = 1;
+
+            if (data != null)
+            {
+                lastId = data.Count;
+                lastId++;
+
+                return $"PCV{lastId.ToString("0000000")}";
+            }
+
+            return $"PCV{lastId.ToString("0000000")}";
+        }
+
         public static async Task<string> GetRNInspection(IInspectionService service)
         {
             var data = await service.GetAllInspectionSummaryAsync();
@@ -17,7 +33,7 @@ namespace Rapide.Web.Helpers
                 return $"VI{lastId.ToString("0000000")}";
             }
 
-            return string.Empty;
+            return $"VI{lastId.ToString("0000000")}";
         }
 
         public static async Task<string> GetRNEstimate(IEstimateService service)
@@ -33,7 +49,7 @@ namespace Rapide.Web.Helpers
                 return $"EST{lastId.ToString("0000000")}";
             }
 
-            return string.Empty;
+            return $"EST{lastId.ToString("0000000")}";
         }
 
         public static async Task<string> GetRNJobOrder(IJobOrderService service)
@@ -49,7 +65,7 @@ namespace Rapide.Web.Helpers
                 return $"JO{lastId.ToString("0000000")}";
             }
 
-            return string.Empty;
+            return $"JO{lastId.ToString("0000000")}";
         }
 
         public static async Task<string> GetRNInvoice(IInvoiceService service)
@@ -65,7 +81,7 @@ namespace Rapide.Web.Helpers
                 return $"INV{lastId.ToString("0000000")}";
             }
 
-            return string.Empty;
+            return $"INV{lastId.ToString("0000000")}";
         }
 
         public static async Task<string> GetRNDeposit(IDepositService service)
@@ -81,7 +97,7 @@ namespace Rapide.Web.Helpers
                 return $"DP{lastId.ToString("0000000")}";
             }
 
-            return string.Empty;
+            return $"DP{lastId.ToString("0000000")}";
         }
 
         public static async Task<string> GetRNPayment(IPaymentService service)
@@ -97,7 +113,7 @@ namespace Rapide.Web.Helpers
                 return $"PY{lastId.ToString("0000000")}";
             }
 
-            return string.Empty;
+            return $"PY{lastId.ToString("0000000")}";
         }
 
         public static async Task<string> GetRNQuickSales(IQuickSalesService service)
@@ -113,7 +129,7 @@ namespace Rapide.Web.Helpers
                 return $"QS{lastId.ToString("0000000")}";
             }
 
-            return string.Empty;
+            return $"QS{lastId.ToString("0000000")}";
         }
 
         public static async Task<string> GetRNExpenses(IExpensesService service)
@@ -129,7 +145,7 @@ namespace Rapide.Web.Helpers
                 return $"EXP{lastId.ToString("0000000")}";
             }
 
-            return string.Empty;
+            return $"EXP{lastId.ToString("0000000")}";
         }
     }
 }

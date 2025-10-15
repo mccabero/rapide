@@ -4,7 +4,7 @@
     {
         public string PCNo { get; set; }
 
-        public DateTime? TransactionDateTime { get; set; }
+        public DateTime TransactionDateTime { get; set; }
 
         public string PayTo { get; set; }
 
