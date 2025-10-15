@@ -259,6 +259,19 @@
                                         <PropertyColumn Property="x => x.CashIn" Title="Cash In" Align="Align.Right" Format="N2" />
                                         <PropertyColumn Property="x => x.CashOut" Title="Cash Out" Align="Align.Right" Format="N2" />
                                         <PropertyColumn Property="x => x.Balance" Title="Balance" Align="Align.Right" Format="N2" />
+                                        <TemplateColumn Title="Action" Filterable="false" Sortable="false">
+                                            <CellTemplate>
+                                                <MudStack Row>
+                                                    <MudButton Size="@Size.Medium" Variant="@Variant.Filled" Color="@Color.Primary"><i class="fa fa-pencil-square-o"></i></MudButton>
+                                                    <MudButton Size="@Size.Medium" Variant="@Variant.Filled" Color="@Color.Success"><i class="fa fa-print"></i></MudButton>
+
+                                                    @if (context.Item.IsAllowedToOverride)
+                                                    {
+                                                        <MudButton Size="@Size.Medium" Variant="@Variant.Filled" Color="@Color.Error"><i class="fa fa-trash"></i></MudButton>
+                                                    }
+                                                </MudStack>
+                                            </CellTemplate>
+                                        </TemplateColumn>
                                     </Columns>
                                     <PagerContent>
                                         <MudDataGridPager T="PettyCashModel" />

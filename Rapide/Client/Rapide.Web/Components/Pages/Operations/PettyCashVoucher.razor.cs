@@ -69,6 +69,8 @@ namespace Rapide.Web.Components.Pages.Operations
 
         protected override async Task OnInitializedAsync()
         {
+            IsLoading = true;
+
             isBigThreeRoles = TokenHelper.IsBigThreeRoles(await AuthState);
 
             // Get the last transaction to get the current balance.
@@ -84,6 +86,10 @@ namespace Rapide.Web.Components.Pages.Operations
             PettyCashModel.Balance = LastPettyCashDto == null 
                 ? 0 
                 : LastPettyCashDto.Balance;
+
+            IsLoading = false;
+            StateHasChanged();
+            await base.OnInitializedAsync();
         }
 
         // Button handlers
@@ -197,11 +203,35 @@ namespace Rapide.Web.Components.Pages.Operations
             return dataGrid.ReloadServerData();
         }
 
+        private async Task ReloadRequestModel()
+        {
+            try
+            {
+                var dataList = await PettyCashService.GetAllPettyCashAsync();
+
+                if (dataList == null)
+                {
+                    IsLoading = false;
+                    return;
+                }
+
+                IMapper mapper = InitializeMapper();
+                PettyCashModels = mapper.Map<List<PettyCashModel>>(dataList);
+            }
+            catch (Exception ex)
+            {
+                IsLoading = false;
+                StateHasChanged();
+
+                throw new Exception(ex.Message);
+            }
+
+        }
 
         private async Task<GridData<PettyCashModel>> ServerReload(GridState<PettyCashModel> state)
         {
-            //if (!PettyCashModel.Any())
-            //    await ReloadRequestModel();
+            if (!PettyCashModels.Any())
+                await ReloadRequestModel();
 
             IEnumerable<PettyCashModel> data = new List<PettyCashModel>();
             data = PettyCashModels.OrderByDescending(x => x.Id);
@@ -264,8 +294,12 @@ namespace Rapide.Web.Components.Pages.Operations
             var map = new MapperConfiguration(cfg =>
             {
                 cfg.CreateMap<PettyCashModel, PettyCashDTO>();
+                cfg.CreateMap<UserModel, UserDTO>();
+                cfg.CreateMap<RoleModel, RoleDTO>();
 
                 cfg.CreateMap<PettyCashDTO, PettyCashModel>();
+                cfg.CreateMap<UserDTO, UserModel>();
+                cfg.CreateMap<RoleDTO, RoleModel>();
             });
             var mapper = map.CreateMapper();
             return mapper;
