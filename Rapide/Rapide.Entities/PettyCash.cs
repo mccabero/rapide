@@ -10,6 +10,8 @@ namespace Rapide.Entities
 
         public DateTime? TransactionDateTime { get; set; }
 
+        public string Particulars { get; set; }
+
         [Required]
         public string PayTo { get; set; }
 
@@ -26,11 +28,6 @@ namespace Rapide.Entities
         public decimal Balance { get; set; }
 
         [Required]
-        [ForeignKey("ApprovedByUserId")]
-        public User ApprovedByUser { get; set; }
-        public int ApprovedByUserId { get; set; }
-
-        [Required]
         [ForeignKey("PaidByUserId")]
         public User PaidByUser { get; set; }
         public int PaidByUserId { get; set; }
@@ -39,10 +36,5 @@ namespace Rapide.Entities
 
         [Required]
         public string PaymentReceivedBy { get; set; }
-
-        [Required]
-        [ForeignKey("JobStatusId")]
-        public JobStatus JobStatus { get; set; }
-        public int JobStatusId { get; set; }
     }
 }

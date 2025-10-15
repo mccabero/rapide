@@ -12,9 +12,6 @@ namespace Rapide.Repositories.Repos
             await using var context = await Factory.CreateDbContextAsync();
 
             return await context.Set<PettyCash>()
-                .Include(x => x.JobStatus)
-                .Include(x => x.ApprovedByUser)
-                    .ThenInclude(x => x.Role)
                 .Include(x => x.PaidByUser)
                     .ThenInclude(x => x.Role)
                 .AsNoTracking()
@@ -26,9 +23,6 @@ namespace Rapide.Repositories.Repos
             await using var context = await Factory.CreateDbContextAsync();
 
             return await context.Set<PettyCash>()
-                .Include(x => x.JobStatus)
-                .Include(x => x.ApprovedByUser)
-                    .ThenInclude(x => x.Role)
                 .Include(x => x.PaidByUser)
                     .ThenInclude(x => x.Role)
                 .AsNoTracking()

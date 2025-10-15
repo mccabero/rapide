@@ -2,13 +2,9 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.JSInterop;
 using MudBlazor;
-using Rapide.Contracts.Services;
-using Rapide.DTO;
 using Rapide.Web.Components.Utilities;
 using Rapide.Web.Helpers;
 using Rapide.Web.Models;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace Rapide.Web.Components.Pages.Operations
 {
@@ -28,20 +24,6 @@ namespace Rapide.Web.Components.Pages.Operations
         protected Task<AuthenticationState> AuthState { get; set; }
         [Inject]
         private IJSRuntime JSRuntime { get; set; }
-        [Inject]
-        private IJobStatusService JobStatusService { get; set; }
-        [Inject]
-        private ICustomerService CustomerService { get; set; }
-        [Inject]
-        private IParameterService ParameterService { get; set; }
-        [Inject]
-        private IUserService UserService { get; set; }
-        [Inject]
-        private IQuickSalesService QuickSalesService { get; set; }
-        [Inject]
-        private IQuickSalesProductService QuickSalesProductService { get; set; }
-        [Inject]
-        private ICompanyInfoService CompanyInfoService { get; set; }
         #endregion
 
         #region Private Properties
@@ -59,17 +41,8 @@ namespace Rapide.Web.Components.Pages.Operations
         private PettyCashModel PettyCashModel { get; set; } = new();
 
         // Petty cash form fields
-        private string PayTo { get; set; } = string.Empty;
         private decimal Amount { get; set; } = 0;
-        private string Particulars { get; set; } = string.Empty;
 
-        private List<JobStatusDTO> JobStatusList { get; set; } = new();
-        private List<CustomerDTO> CustomerList { get; set; } = new();
-        private List<ParameterDTO> PaymentTypeList { get; set; } = new();
-        private List<UserDTO> SalesPersonUserList { get; set; } = new();
-
-        private string JobStatusName = string.Empty;
-        private string CustomerName = string.Empty;
         private bool isPettyCashLocked = false;
         private bool isBigThreeRoles = false;
         private bool isViewOnly = false;
@@ -175,8 +148,6 @@ namespace Rapide.Web.Components.Pages.Operations
                 if (string.IsNullOrWhiteSpace(searchString))
                     return true;
                 if (element.PayTo.ToString().Contains(searchString, StringComparison.OrdinalIgnoreCase))
-                    return true;
-                if (element.JobStatus.Name.ToString().Contains(searchString, StringComparison.OrdinalIgnoreCase))
                     return true;
 
                 return false;

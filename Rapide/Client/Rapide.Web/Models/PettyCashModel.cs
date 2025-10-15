@@ -12,7 +12,6 @@ namespace Rapide.Web.Models
 
         public string PayTo { get; set; }
 
-        // Added Particulars property
         public string Particulars { get; set; }
 
         public decimal CashIn { get; set; }
@@ -21,20 +20,12 @@ namespace Rapide.Web.Models
 
         public decimal Balance { get; set; }
 
-        public UserModel ApprovedByUser { get; set; }
-        public int ApprovedByUserId { get; set; }
-
         public UserModel PaidByUser { get; set; }
         public int PaidByUserId { get; set; }
 
         public bool IsPaymentReceived { get; set; }
 
         public string? PaymentReceivedBy { get; set; }
-
-        public JobStatusModel JobStatus { get; set; }
-        public int JobStatusId { get; set; }
-
-        public Color StatusChipColor { get; set; }
 
         // Additional property
         public bool IsAllowedToOverride { get; set; }

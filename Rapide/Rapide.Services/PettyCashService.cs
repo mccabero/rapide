@@ -100,9 +100,7 @@ namespace Rapide.Services
             IMapper mapper = InitializeMapper();
 
             // Remove FKs. only parent table is tobe inserted
-            dto.ApprovedByUser = null;
             dto.PaidByUser = null;
-            dto.JobStatus = null;
 
             var createdDto = await base.CreateAsync(dto);
 
@@ -117,9 +115,7 @@ namespace Rapide.Services
             IMapper mapper = InitializeMapper();
 
             // Remove FKs. only parent table is tobe inserted
-            dto.ApprovedByUser = null;
             dto.PaidByUser = null;
-            dto.JobStatus = null;
 
             var dtoMap = mapper.Map<PettyCash>(dto);
 

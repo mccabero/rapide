@@ -110,6 +110,7 @@
                                         <label>Petty Cash No.</label>
                                         <MudTextField T="string"
                                                       Disabled="true"
+                                                      @bind-Value="PettyCashModel.PCNo"
                                                       Variant="Variant.Outlined"
                                                       Margin="Margin.Dense"
                                                       Adornment="Adornment.Start"
@@ -122,17 +123,19 @@
                                         <label>Transaction Date</label>
                                         <MudDatePicker DateFormat="MM/dd/yyyy"
                                                        Date="@DateTime.Now"
+                                                       @bind-Value="PettyCashModel.TransactionDateTime"
                                                        Variant="Variant.Outlined"
                                                        Margin="Margin.Dense" />
                                     </div>
                                 </div>
 
-                                <div class="col-md-3">
+                                <div class="col-md-6">
                                     <div class="form-group">
-                                        <label>Transaction Time</label>
-                                        <MudTimePicker Time="@DateTime.Now.TimeOfDay"
-                                                       Variant="Variant.Outlined"
-                                                       Margin="Margin.Dense" />
+                                        <label>Pay To</label>
+                                        <MudTextField T="string"
+                                                      @bind-Value="PettyCashModel.PayTo"
+                                                      Variant="Variant.Outlined"
+                                                      Margin="Margin.Dense" />
                                     </div>
                                 </div>
                             </div>
@@ -141,9 +144,9 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label>Pay To</label>
+                                        <label>Payment Received By</label>
                                         <MudTextField T="string"
-                                                      @bind-Value="PayTo"
+                                                      @bind-Value="PettyCashModel.PaymentReceivedBy"
                                                       Variant="Variant.Outlined"
                                                       Margin="Margin.Dense" />
                                     </div>
@@ -167,7 +170,7 @@
                                     <div class="form-group">
                                         <label>Balance</label>
                                         <MudNumericField T="decimal"
-                                                         @bind-Value="Amount"
+                                                         @bind-Value="PettyCashModel.Balance"
                                                          Format="N2"
                                                          Min="0"
                                                          Variant="Variant.Outlined"
@@ -185,7 +188,7 @@
                                     <div class="form-group">
                                         <label>Particulars</label>
                                         <MudTextField T="string"
-                                                      @bind-Value="Particulars"
+                                                      @bind-Value="PettyCashModel.Particulars"
                                                       Lines="3"
                                                       Variant="Variant.Outlined"
                                                       Margin="Margin.Dense"
