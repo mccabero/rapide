@@ -5,13 +5,15 @@ using Microsoft.JSInterop;
 using MudBlazor;
 using Rapide.Contracts.Services;
 using Rapide.DTO;
+using Rapide.Entities;
 using Rapide.Web.Components.Utilities;
 using Rapide.Web.Helpers;
 using Rapide.Web.Models;
+using static MudBlazor.CategoryTypes;
 
 namespace Rapide.Web.Components.Pages.Operations
 {
-    public partial class PettyCashVoucher : ComponentBase
+    public partial class PettyCashVoucher
     {
         #region Parameters
         [Parameter]
@@ -70,9 +72,9 @@ namespace Rapide.Web.Components.Pages.Operations
         protected override async Task OnInitializedAsync()
         {
             IsLoading = true;
-
             isBigThreeRoles = TokenHelper.IsBigThreeRoles(await AuthState);
 
+            #region Load Table
             // Get the last transaction to get the current balance.
             var pettyCashList = await PettyCashService.GetAllPettyCashAsync();
 
@@ -83,10 +85,58 @@ namespace Rapide.Web.Components.Pages.Operations
             PettyCashModel.PCNo = await ReferenceNumberHelper.GetRNPettyCash(PettyCashService);
             PettyCashModel.TransactionDateTime = DateTime.Now;
 
-            PettyCashModel.Balance = LastPettyCashDto == null 
-                ? 0 
+            PettyCashModel.Balance = LastPettyCashDto == null
+                ? 0
                 : LastPettyCashDto.Balance;
+            #endregion
 
+            // If route parameter is the literal "add", treat as create mode
+            var isAddRoute = !string.IsNullOrEmpty(PettyCashVoucherId) &&
+                             PettyCashVoucherId.Equals("add", StringComparison.OrdinalIgnoreCase);
+
+            IsEditMode = !isAddRoute && !string.IsNullOrEmpty(PettyCashVoucherId);
+
+            if (form != null)
+                form.Disabled = true;
+
+            // normalize PettyCashVoucherId for create route
+            if (isAddRoute)
+            {
+                PettyCashVoucherId = null;
+                form.Disabled = false;
+            }
+
+            if (IsEditMode)
+            {
+                if (int.TryParse(PettyCashVoucherId, out int pettyCashId))
+                {
+                    var pettyCashDto = await PettyCashService.GetPettyCashByIdAsync(pettyCashId);
+                    if (pettyCashDto != null)
+                    {
+                        IMapper mapper = InitializeMapper();
+                        PettyCashModel = mapper.Map<PettyCashModel>(pettyCashDto);
+                        isChangan = PettyCashModel.IsChangan;
+                        isCashIn = PettyCashModel.CashIn > 0;
+                        Amount = isCashIn ? PettyCashModel.CashIn : PettyCashModel.CashOut;
+
+                        form.Disabled = false;
+                        StateHasChanged();
+                    }
+                    else
+                    {
+                        // If the record is not found, navigate back to list with error message.
+                        SnackbarService.Add("Petty Cash Voucher not found.", Severity.Error, config => { config.ShowCloseIcon = true; });
+                        NavigationManager.NavigateToCustom("/operations/petty-cash-vouchers", true);
+                    }
+                }
+                else
+                {
+                    // If the id is not valid, navigate back to list with error message.
+                    SnackbarService.Add("Invalid Petty Cash Voucher ID.", Severity.Error, config => { config.ShowCloseIcon = true; });
+                    NavigationManager.NavigateToCustom("/operations/petty-cash-vouchers", true);
+                }
+            }
+                
             IsLoading = false;
             StateHasChanged();
             await base.OnInitializedAsync();
@@ -95,7 +145,7 @@ namespace Rapide.Web.Components.Pages.Operations
         // Button handlers
         private async Task OnPettyCashNewClick()
         {
-            mBoxCustomMessage = "Are you sure you want to cancel the current transaction?";
+            mBoxCustomMessage = "Are you sure you want to add new record?";
 
             bool? result = await mboxCustom.ShowAsync();
             var proceedAddNew = result == null ? false : true;
@@ -160,7 +210,7 @@ namespace Rapide.Web.Components.Pages.Operations
         {
             mBoxCustomMessage = "Are you sure you want to cancel the this transaction?";
 
-            bool? result = await mboxCustom.ShowAsync();
+            bool? result = await mbox.ShowAsync();
             var proceedCancel = result == null ? false : true;
 
             if (proceedCancel)
@@ -190,6 +240,68 @@ namespace Rapide.Web.Components.Pages.Operations
             Amount = i;
             StateHasChanged();
         }
+
+        // Action handlers called from the grid template
+        private async Task OnPettyCashEdit(PettyCashModel model)
+        {
+            if (model == null)
+                return;
+
+            // Prevent edit if the selected record is not the latest transaction
+            if (LastPettyCashDto != null && LastPettyCashDto.Id != model.Id)
+            {
+                mBoxCustomMessage = "Updating old petty cash voucher is not allowed to prevent incorrect calculation of current balance." +
+                    "Please delete the latest record/s to enable editing this record.";
+                await mboxError.ShowAsync();
+                return;
+            }
+
+            // Navigate to same page with record id for editing
+            NavigationManager.NavigateToCustom($"/operations/petty-cash-vouchers/{model.Id}", true);
+        }
+
+        private async Task OnPettyCashDelete(PettyCashModel model)
+        {
+            try
+            {
+                if (model != null)
+                {
+                    // Prevent deletion if the selected record is not the latest transaction
+                    if (LastPettyCashDto != null && LastPettyCashDto.Id != model.Id)
+                    {
+                        mBoxCustomMessage = "Deleting old petty cash voucher is not allowed to prevent incorrect calculation of current balance.";
+                        await mboxError.ShowAsync();
+                        return;
+                    }
+
+                    bool? result = await mbox.ShowAsync();
+                    var proceed = result == null ? false : true;
+
+                    if (proceed)
+                    {
+                        IsLoading = true;
+
+                        await PettyCashService.DeleteAsync(model.Id);
+                        SnackbarService.Add("Petty Cash Successfully Deleted!", Severity.Normal, config => { config.ShowCloseIcon = true; });
+
+                        IsLoading = false;
+                        StateHasChanged();
+
+                        NavigationManager.NavigateToCustom("/operations/petty-cash-vouchers", true);
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                mBoxCustomMessage = "Unable to delete this record. This might be used in another transaction.";
+                await mboxError.ShowAsync();
+
+                IsLoading = false;
+                StateHasChanged();
+                return;
+            }
+        }
+
         private Task OnFilter(string text)
         {
             clientType = text;

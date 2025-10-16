@@ -67,7 +67,7 @@
         <div class="row">
             <div class="col-md-12" style="padding-bottom: 10px !important;">
                 <MudStack Row>
-                    <MudButton @onclick="OnPettyCashNewClick" Size="@Size.Medium" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Create" Disabled="!IsEditMode">New</MudButton>
+                    <MudButton @onclick="OnPettyCashNewClick" Size="@Size.Medium" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Create">New</MudButton>
                 </MudStack>
             </div>
         </div>
@@ -120,9 +120,10 @@
 
                                 <div class="col-md-3">
                                     <div class="form-group">
-                                        <label>Transaction Date</label>
+                                        <label>Transaction Date<code> *</code></label>
                                         <MudDatePicker DateFormat="MM/dd/yyyy"
                                                        Date="@DateTime.Now"
+                                                       Required="true" RequiredError="This field is required!"
                                                        @bind-Value="PettyCashModel.TransactionDateTime"
                                                        Variant="Variant.Outlined"
                                                        Margin="Margin.Dense" />
@@ -131,9 +132,10 @@
 
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label>@(isCashIn ? "Check No." : "Pay To")</label>
+                                        <label>@(isCashIn ? "Check No." : "Pay To")<code> *</code></label>
                                         <MudTextField T="string"
                                                       @bind-Value="PettyCashModel.PayTo"
+                                                      Required="true" RequiredError="This field is required!"
                                                       Variant="Variant.Outlined"
                                                       Margin="Margin.Dense" />
                                     </div>
@@ -144,9 +146,10 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label>Payment Received By</label>
+                                        <label>Payment Received By<code> *</code></label>
                                         <MudTextField T="string"
                                                       @bind-Value="PettyCashModel.PaymentReceivedBy"
+                                                      Required="true" RequiredError="This field is required!"
                                                       Variant="Variant.Outlined"
                                                       Margin="Margin.Dense" />
                                     </div>
@@ -154,11 +157,12 @@
 
                                 <div class="col-md-3">
                                     <div class="form-group">
-                                        <label>Amount</label>
+                                        <label>Amount<code> *</code></label>
                                         <MudNumericField T="decimal"
                                                          Value="Amount"
                                                          ValueChanged="@((i) => OnAmountValueChanged(PettyCashModel, i))"
                                                          Immediate="true"
+                                                         Required="true" RequiredError="This field is required!"
                                                          Format="N2"
                                                          Min="0"
                                                          Variant="Variant.Outlined"
@@ -188,9 +192,10 @@
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="form-group">
-                                        <label>Particulars</label>
+                                        <label>Particulars<code> *</code></label>
                                         <MudTextField T="string"
                                                       @bind-Value="PettyCashModel.Particulars"
+                                                      Required="true" RequiredError="This field is required!"
                                                       Lines="3"
                                                       Variant="Variant.Outlined"
                                                       Margin="Margin.Dense"
@@ -262,13 +267,8 @@
                                         <TemplateColumn Title="Action" Filterable="false" Sortable="false">
                                             <CellTemplate>
                                                 <MudStack Row>
-                                                    <MudButton Size="@Size.Medium" Variant="@Variant.Filled" Color="@Color.Primary"><i class="fa fa-pencil-square-o"></i></MudButton>
-                                                    <MudButton Size="@Size.Medium" Variant="@Variant.Filled" Color="@Color.Success"><i class="fa fa-print"></i></MudButton>
-
-                                                    @if (context.Item.IsAllowedToOverride)
-                                                    {
-                                                        <MudButton Size="@Size.Medium" Variant="@Variant.Filled" Color="@Color.Error"><i class="fa fa-trash"></i></MudButton>
-                                                    }
+                                                    <MudButton Size="@Size.Medium" @onclick="(() => OnPettyCashEdit(context.Item))" Variant="@Variant.Filled" Color="@Color.Primary"><i class="fa fa-pencil-square-o"></i></MudButton>
+                                                    <MudButton Size="@Size.Medium" @onclick="(() => OnPettyCashDelete(context.Item))" Variant="@Variant.Filled" Color="@Color.Error"><i class="fa fa-trash"></i></MudButton>
                                                 </MudStack>
                                             </CellTemplate>
                                         </TemplateColumn>
