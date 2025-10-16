@@ -79,7 +79,7 @@ namespace Rapide.Web.Components.Pages.Operations
             var pettyCashList = await PettyCashService.GetAllPettyCashAsync();
 
             LastPettyCashDto = pettyCashList == null
-                ? new()
+                ? null
                 : pettyCashList.OrderByDescending(x => x.Id).FirstOrDefault();
 
             PettyCashModel.PCNo = await ReferenceNumberHelper.GetRNPettyCash(PettyCashService);
@@ -170,6 +170,14 @@ namespace Rapide.Web.Components.Pages.Operations
                     return;
             }
 
+            if (PettyCashModel.Balance <= 0)
+            {
+                mBoxCustomMessage = "Invalid input. The transaction will result to negative or zero (0) balance.";
+                await mboxError.ShowAsync();
+                return;
+            }
+            
+
             bool? result = await mbox.ShowAsync();
             var proceedSaving = result == null ? false : true;
 
@@ -247,14 +255,14 @@ namespace Rapide.Web.Components.Pages.Operations
             if (isCashIn)
             { 
                 // Add to balance
-                PettyCashModel.Balance = (LastPettyCashDto == null ? i : LastPettyCashDto.Balance) + i;
+                PettyCashModel.Balance = (LastPettyCashDto == null ? 0 : LastPettyCashDto.Balance) + i;
                 PettyCashModel.CashIn = i;
                 PettyCashModel.CashOut = 0;
             }
             else
             {
                 // Deduct from balance
-                PettyCashModel.Balance = (LastPettyCashDto == null ? i : LastPettyCashDto.Balance) - i;
+                PettyCashModel.Balance = (LastPettyCashDto == null ? 0 : LastPettyCashDto.Balance) - i;
                 PettyCashModel.CashOut = i;
                 PettyCashModel.CashIn = 0;
             }
