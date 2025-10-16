@@ -3,12 +3,15 @@ using Rapide.DTO;
 
 namespace Rapide.Web.Models
 {
-    public class PettyCashModel
+    public class PettyCashModel 
     {
         public int Id { get; set; }
+
+        public bool IsChangan { get; set; }
+
         public string PCNo { get; set; }
 
-        public DateTime TransactionDateTime { get; set; }
+        public DateTime? TransactionDateTime { get; set; }
 
         public string PayTo { get; set; }
 
@@ -28,6 +31,5 @@ namespace Rapide.Web.Models
         // Additional property
         public bool IsAllowedToOverride { get; set; }
 
-        public bool IsChangan { get; set; }
     }
 }

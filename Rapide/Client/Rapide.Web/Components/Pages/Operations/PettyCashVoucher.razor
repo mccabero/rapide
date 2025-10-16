@@ -122,9 +122,8 @@
                                     <div class="form-group">
                                         <label>Transaction Date<code> *</code></label>
                                         <MudDatePicker DateFormat="MM/dd/yyyy"
-                                                       Date="@DateTime.Now"
                                                        Required="true" RequiredError="This field is required!"
-                                                       @bind-Value="PettyCashModel.TransactionDateTime"
+                                                       @bind-Date="PettyCashModel.TransactionDateTime"
                                                        Variant="Variant.Outlined"
                                                        Margin="Margin.Dense" />
                                     </div>
@@ -258,6 +257,17 @@
                                     </ToolBarContent>
 
                                     <Columns>
+                                        <PropertyColumn Property="x => x.IsChangan" Title="Client Type" Sortable="false" Filterable="false">
+                                            <CellTemplate>
+                                                <MudStack Row>
+                                                    <MudChip T="string"
+                                                             Size="@Size.Medium"
+                                                             Color="@(@context.Item.IsChangan ? Color.Info : Color.Warning)">
+                                                        @(@context.Item.IsChangan? Constants.ClientType.Changan : Constants.ClientType.Rapide)
+                                                    </MudChip>
+                                                </MudStack>
+                                            </CellTemplate>
+                                        </PropertyColumn>
                                         <PropertyColumn Property="x => x.TransactionDateTime" Title="Transaction Date" Format="MM/dd/yyyy" />
                                         <PropertyColumn Property="x => x.PayTo" Title="Pay To" />
                                         <PropertyColumn Property="x => x.Particulars" Title="Particulars" />

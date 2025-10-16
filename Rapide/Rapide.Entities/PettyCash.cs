@@ -6,6 +6,9 @@ namespace Rapide.Entities
     public class PettyCash : BaseEntity
     {
         [Required]
+        public bool IsChangan { get; set; }
+
+        [Required]
         public string PCNo { get; set; }
 
         public DateTime TransactionDateTime { get; set; }

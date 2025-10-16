@@ -84,10 +84,19 @@ namespace Rapide.Web.Components.Pages.Operations
 
             PettyCashModel.PCNo = await ReferenceNumberHelper.GetRNPettyCash(PettyCashService);
             PettyCashModel.TransactionDateTime = DateTime.Now;
+            StateHasChanged();
 
             PettyCashModel.Balance = LastPettyCashDto == null
                 ? 0
                 : LastPettyCashDto.Balance;
+
+            PettyCashModel.TransactionDateTime = LastPettyCashDto == null
+                ? DateTime.Now
+                : LastPettyCashDto.TransactionDateTime;
+            StateHasChanged();
+
+            // TEMP VALUE ONLY FOR DATA ENTRY
+            PettyCashModel.PaymentReceivedBy = "SYSTEM ENTRY";
             #endregion
 
             // If route parameter is the literal "add", treat as create mode
@@ -185,12 +194,27 @@ namespace Rapide.Web.Components.Pages.Operations
                 IMapper mapper = InitializeMapper();
                 var pettyCashDTO = mapper.Map<PettyCashDTO>(PettyCashModel);
 
-                pettyCashDTO.CreatedById = TokenHelper.GetCurrentUserId(await AuthState);
-                pettyCashDTO.CreatedDateTime = DateTime.Now;
-                pettyCashDTO.UpdatedById = TokenHelper.GetCurrentUserId(await AuthState);
-                pettyCashDTO.UpdatedDateTime = DateTime.Now;
+                if (IsEditMode)
+                {
+                    var pettyCashDto = await PettyCashService.GetPettyCashByIdAsync(PettyCashModel.Id);
+                    pettyCashDTO.CreatedById = pettyCashDto.CreatedById;
+                    pettyCashDTO.CreatedDateTime = pettyCashDto.CreatedDateTime;
 
-                await PettyCashService.CreateAsync(pettyCashDTO);
+                    pettyCashDTO.UpdatedById = TokenHelper.GetCurrentUserId(await AuthState);
+                    pettyCashDTO.UpdatedDateTime = DateTime.Now;
+
+                    await PettyCashService.UpdateAsync(pettyCashDTO);
+                }
+                else
+                {
+                    pettyCashDTO.CreatedById = TokenHelper.GetCurrentUserId(await AuthState);
+                    pettyCashDTO.CreatedDateTime = DateTime.Now;
+                    pettyCashDTO.UpdatedById = TokenHelper.GetCurrentUserId(await AuthState);
+                    pettyCashDTO.UpdatedDateTime = DateTime.Now;
+
+                    await PettyCashService.CreateAsync(pettyCashDTO);
+                }
+
 
                 // Placeholder - show success message and navigate back to list.
                 SnackbarService.Add("Petty Cash Voucher successfully saved!", Severity.Normal, config => { config.ShowCloseIcon = true; });

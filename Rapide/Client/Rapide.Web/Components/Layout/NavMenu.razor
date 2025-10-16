@@ -39,8 +39,11 @@
                             <MudNavLink Href="/operations/expenses" Icon="@Icons.Material.Filled.MoneyOff" IconColor="Color.Info">Expenses</MudNavLink>
                         }
 
-                        <MudNavLink Href="/operations/petty-cash-vouchers" Icon="@Icons.Material.Filled.AttachMoney" IconColor="Color.Info">Petty Cash Voucher</MudNavLink>
-
+                        @if (isCashier || isBigThreeRoles)
+                        {
+                            <MudNavLink Href="/operations/petty-cash-vouchers" Icon="@Icons.Material.Filled.AttachMoney" IconColor="Color.Info">Petty Cash Voucher</MudNavLink>
+                        }
+                        
                     </MudNavGroup>
                     <MudNavGroup Title="Management" Icon="@Icons.Material.Filled.ManageHistory">
                         <MudNavLink Href="/configurations/packages" Icon="@Icons.Material.Filled.AllInbox" IconColor="Color.Success">Packages</MudNavLink>

@@ -2,6 +2,8 @@
 {
     public class PettyCashDTO : BaseDTO
     {
+        public bool IsChangan { get; set; }
+
         public string PCNo { get; set; }
 
         public DateTime TransactionDateTime { get; set; }
