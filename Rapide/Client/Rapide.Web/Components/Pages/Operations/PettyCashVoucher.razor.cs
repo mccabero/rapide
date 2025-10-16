@@ -252,12 +252,19 @@ namespace Rapide.Web.Components.Pages.Operations
 
         private void OnAmountValueChanged(PettyCashModel model, decimal i)
         {
+            PettyCashModel.Balance = 0;
+
             if (isCashIn)
             { 
                 // Add to balance
                 PettyCashModel.Balance = (LastPettyCashDto == null ? 0 : LastPettyCashDto.Balance) + i;
                 PettyCashModel.CashIn = i;
                 PettyCashModel.CashOut = 0;
+
+                if (IsEditMode)
+                {
+                    PettyCashModel.Balance = i;
+                }
             }
             else
             {
@@ -265,6 +272,11 @@ namespace Rapide.Web.Components.Pages.Operations
                 PettyCashModel.Balance = (LastPettyCashDto == null ? 0 : LastPettyCashDto.Balance) - i;
                 PettyCashModel.CashOut = i;
                 PettyCashModel.CashIn = 0;
+
+                if (IsEditMode)
+                {
+                    PettyCashModel.Balance = i;
+                }
             }
 
             Amount = i;

@@ -69,6 +69,8 @@ namespace Rapide.Web.Components.Pages.Components
         private IParameterService ParameterService { get; set; }
         [Inject]
         private IDepositService DepositService { get; set; }
+        [Inject]
+        private IPettyCashService PettyCashService { get; set; }
         #endregion
 
         #region Private Properties
@@ -163,6 +165,10 @@ namespace Rapide.Web.Components.Pages.Components
                     reportName = $"{Constants.ReportType.IncentivesSA} Report";
                     await PrintIncentivesSAReport(companyData!, fullName, clientType);
                     break;
+                case Constants.ReportType.PettyCashVoucher:
+                    reportName = $"{Constants.ReportType.PettyCashVoucher} Report";
+                    await PrintPettyCashVoucheReportr(companyData!, fullName, clientType);
+                    break;
                 case Constants.ReportType.Customers:
                     var customerData = await CustomerService.GetAllAsync();
 
@@ -186,6 +192,7 @@ namespace Rapide.Web.Components.Pages.Components
                     break;
             }
 
+            StateHasChanged();
             IsLoading = false;
 
         }

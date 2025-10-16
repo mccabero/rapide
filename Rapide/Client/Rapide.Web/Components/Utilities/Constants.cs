@@ -33,6 +33,7 @@
             public const string CommissionsTech = "Commissions-Tech";
             public const string CommissionsSA = "Commissions-SA";
             public const string CreditCardPayment = "Credit-Card-Payment";
+            public const string PettyCashVoucher = "Petty-Cash-Voucher";
         }
 
         public static class ParameterType
