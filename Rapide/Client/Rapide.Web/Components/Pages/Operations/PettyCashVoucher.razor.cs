@@ -95,8 +95,6 @@ namespace Rapide.Web.Components.Pages.Operations
                 : LastPettyCashDto.TransactionDateTime;
             StateHasChanged();
 
-            // TEMP VALUE ONLY FOR DATA ENTRY
-            PettyCashModel.PaymentReceivedBy = "SYSTEM ENTRY";
             #endregion
 
             // If route parameter is the literal "add", treat as create mode
