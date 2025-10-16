@@ -520,6 +520,14 @@ namespace Rapide.Web.Components.Pages.Operations
                 return false;
             }
 
+            if (InspectionTechnicians.Count() > 4)
+            {
+                mBoxCustomMessage = "Maximum number of technician has been reached (Allowed Technician is 4)!";
+                await mboxError.ShowAsync();
+
+                return false;
+            }
+
             return true;
         }
 
@@ -668,7 +676,7 @@ namespace Rapide.Web.Components.Pages.Operations
             }
 
             var technicians = await InspectionTechnicianService.GetAllInspectionTechnicianByInspectionIdAsync(InspectionRequestModel.Id);
-            inspectionData.TechnicianList = technicians.Where(x => x.TechnicianUser.Role.Name == "SENIOR TECHNICIAN").ToList();
+            inspectionData.TechnicianList = technicians.ToList();
 
             InspectionReportGenerator.ImageFile = inspectionData.IsChangan
                 ? FileHelper.GetChanganLogo()
