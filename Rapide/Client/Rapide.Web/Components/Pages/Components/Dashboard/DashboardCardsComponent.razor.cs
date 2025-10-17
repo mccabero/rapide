@@ -94,14 +94,14 @@ namespace Rapide.Web.Components.Pages.Components.Dashboard
 
             isAllowOverride = TokenHelper.IsBigThreeRoles(await AuthState);
 
-            //if (IsBigThreeRoles)
-            //{
-            //    await GetDiscount();
-            //    await GetExpenses();
-            //    await GetNetSales();
-            //    await GetProfit();
-            //}
-        
+            if (IsBigThreeRoles)
+            {
+                await GetDiscount();
+                await GetExpenses();
+                await GetNetSales();
+                await GetProfit();
+            }
+
             IsLoading = false;
         }
 
