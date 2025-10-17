@@ -210,6 +210,27 @@ namespace Rapide.Web.Components.Pages.Operations
                     pettyCashDTO.UpdatedDateTime = DateTime.Now;
 
                     await PettyCashService.UpdateAsync(pettyCashDTO);
+
+                    // re-process records after update to adjust balances
+                    var pettyCashList = await PettyCashService.GetAllPettyCashAsync();
+                    var pettyCashListAfterDelete = pettyCashList
+                        .Where(x => x.Id > pettyCashDTO.Id)
+                        .OrderBy(x => x.Id)
+                        .ToList();
+
+                    foreach (var pc in pettyCashListAfterDelete)
+                    {
+                        var lastPc = pettyCashList
+                            .Where(x => x.Id < pc.Id)
+                            .OrderByDescending(x => x.Id).FirstOrDefault();
+
+                        if (pc.CashIn > 0)
+                            pc.Balance = (lastPc == null ? 0 : lastPc.Balance) + pc.CashIn;
+                        else
+                            pc.Balance = (lastPc == null ? 0 : lastPc.Balance) - pc.CashOut;
+                       
+                        await PettyCashService.UpdateAsync(pc);
+                    }
                 }
                 else
                 {
@@ -253,30 +274,23 @@ namespace Rapide.Web.Components.Pages.Operations
         private void OnAmountValueChanged(PettyCashModel model, decimal i)
         {
             PettyCashModel.Balance = 0;
+            var lastPc = PettyCashModels
+                            .Where(x => x.Id < model.Id)
+                            .OrderByDescending(x => x.Id).FirstOrDefault();
 
             if (isCashIn)
             { 
                 // Add to balance
-                PettyCashModel.Balance = (LastPettyCashDto == null ? 0 : LastPettyCashDto.Balance) + i;
+                PettyCashModel.Balance = (lastPc == null ? 0 : lastPc.Balance) + i;
                 PettyCashModel.CashIn = i;
                 PettyCashModel.CashOut = 0;
-
-                if (IsEditMode)
-                {
-                    PettyCashModel.Balance = i;
-                }
             }
             else
             {
                 // Deduct from balance
-                PettyCashModel.Balance = (LastPettyCashDto == null ? 0 : LastPettyCashDto.Balance) - i;
+                PettyCashModel.Balance = (lastPc == null ? 0 : lastPc.Balance) - i;
                 PettyCashModel.CashOut = i;
                 PettyCashModel.CashIn = 0;
-
-                if (IsEditMode)
-                {
-                    PettyCashModel.Balance = i;
-                }
             }
 
             Amount = i;
@@ -289,14 +303,14 @@ namespace Rapide.Web.Components.Pages.Operations
             if (model == null)
                 return;
 
-            // Prevent edit if the selected record is not the latest transaction
-            if (LastPettyCashDto != null && LastPettyCashDto.Id != model.Id)
-            {
-                mBoxCustomMessage = "Updating old petty cash voucher is not allowed to prevent incorrect calculation of current balance." +
-                    "Please delete the latest record/s to enable editing this record.";
-                await mboxError.ShowAsync();
-                return;
-            }
+            //// Prevent edit if the selected record is not the latest transaction
+            //if (LastPettyCashDto != null && LastPettyCashDto.Id != model.Id)
+            //{
+            //    mBoxCustomMessage = "Updating old petty cash voucher is not allowed to prevent incorrect calculation of current balance." +
+            //        "Please delete the latest record/s to enable editing this record.";
+            //    await mboxError.ShowAsync();
+            //    return;
+            //}
 
             // Navigate to same page with record id for editing
             NavigationManager.NavigateToCustom($"/operations/petty-cash-vouchers/{model.Id}", true);
