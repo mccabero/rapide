@@ -110,6 +110,8 @@ namespace Rapide.Web.Components.Pages.Operations
             if (isAddRoute)
             {
                 PettyCashVoucherId = null;
+                PettyCashModel.TransactionDateTime = DateTime.Now;
+
                 form.Disabled = false;
             }
 
@@ -275,20 +277,28 @@ namespace Rapide.Web.Components.Pages.Operations
         {
             PettyCashModel.Balance = 0;
             var lastPc = PettyCashModels
-                            .Where(x => x.Id < model.Id)
-                            .OrderByDescending(x => x.Id).FirstOrDefault();
+                .Where(x => x.Id < model.Id)
+                .OrderByDescending(x => x.Id).FirstOrDefault();
 
             if (isCashIn)
-            { 
+            {
                 // Add to balance
-                PettyCashModel.Balance = (lastPc == null ? 0 : lastPc.Balance) + i;
+                if (!IsEditMode)
+                    PettyCashModel.Balance = (LastPettyCashDto == null ? 0 : LastPettyCashDto.Balance) + i;
+                else
+                    PettyCashModel.Balance = (lastPc == null ? 0 : lastPc.Balance) + i;
+
                 PettyCashModel.CashIn = i;
                 PettyCashModel.CashOut = 0;
             }
             else
             {
                 // Deduct from balance
-                PettyCashModel.Balance = (lastPc == null ? 0 : lastPc.Balance) - i;
+                if (!IsEditMode)
+                    PettyCashModel.Balance = (LastPettyCashDto == null ? 0 : LastPettyCashDto.Balance) - i;
+                else
+                    PettyCashModel.Balance = (lastPc == null ? 0 : lastPc.Balance) - i;
+
                 PettyCashModel.CashOut = i;
                 PettyCashModel.CashIn = 0;
             }
@@ -303,14 +313,13 @@ namespace Rapide.Web.Components.Pages.Operations
             if (model == null)
                 return;
 
-            //// Prevent edit if the selected record is not the latest transaction
-            //if (LastPettyCashDto != null && LastPettyCashDto.Id != model.Id)
-            //{
-            //    mBoxCustomMessage = "Updating old petty cash voucher is not allowed to prevent incorrect calculation of current balance." +
-            //        "Please delete the latest record/s to enable editing this record.";
-            //    await mboxError.ShowAsync();
-            //    return;
-            //}
+            // Prevent edit if the selected record is not the latest transaction
+            if (model.TransactionDateTime.Value.Day != DateTime.Now.Day)
+            {
+                mBoxCustomMessage = "Only transactions made on the same day are allowed to be modified.";
+                await mboxError.ShowAsync();
+                return;
+            }
 
             // Navigate to same page with record id for editing
             NavigationManager.NavigateToCustom($"/operations/petty-cash-vouchers/{model.Id}", true);
