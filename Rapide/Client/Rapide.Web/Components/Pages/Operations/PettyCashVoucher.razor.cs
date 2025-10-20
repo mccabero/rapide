@@ -313,7 +313,7 @@ namespace Rapide.Web.Components.Pages.Operations
             if (model == null)
                 return;
 
-            // Prevent edit if the selected record is not the latest transaction
+            // Prevent edit if the selected record is not dated within the same day
             if (model.TransactionDateTime.Value.Day != DateTime.Now.Day)
             {
                 mBoxCustomMessage = "Only transactions made on the same day are allowed to be modified.";
@@ -331,10 +331,10 @@ namespace Rapide.Web.Components.Pages.Operations
             {
                 if (model != null)
                 {
-                    // Prevent deletion if the selected record is not the latest transaction
-                    if (LastPettyCashDto != null && LastPettyCashDto.Id != model.Id)
+                    // Prevent delete if the selected record is not dated within the same day
+                    if (model.TransactionDateTime.Value.Day != DateTime.Now.Day)
                     {
-                        mBoxCustomMessage = "Deleting old petty cash voucher is not allowed to prevent incorrect calculation of current balance.";
+                        mBoxCustomMessage = "Only transactions made on the same day are allowed to be deleted.";
                         await mboxError.ShowAsync();
                         return;
                     }
@@ -347,6 +347,28 @@ namespace Rapide.Web.Components.Pages.Operations
                         IsLoading = true;
 
                         await PettyCashService.DeleteAsync(model.Id);
+
+                        // re-process records after update to adjust balances
+                        var pettyCashList = await PettyCashService.GetAllPettyCashAsync();
+                        var pettyCashListAfterDelete = pettyCashList
+                            .Where(x => x.Id > model.Id)
+                            .OrderBy(x => x.Id)
+                            .ToList();
+
+                        foreach (var pc in pettyCashListAfterDelete)
+                        {
+                            var lastPc = pettyCashList
+                                .Where(x => x.Id < pc.Id)
+                                .OrderByDescending(x => x.Id).FirstOrDefault();
+
+                            if (pc.CashIn > 0)
+                                pc.Balance = (lastPc == null ? 0 : lastPc.Balance) + pc.CashIn;
+                            else
+                                pc.Balance = (lastPc == null ? 0 : lastPc.Balance) - pc.CashOut;
+
+                            await PettyCashService.UpdateAsync(pc);
+                        }
+
                         SnackbarService.Add("Petty Cash Successfully Deleted!", Severity.Normal, config => { config.ShowCloseIcon = true; });
 
                         IsLoading = false;
