@@ -126,6 +126,18 @@ namespace Rapide.Web.Components.Pages.Administrator
 
         private async Task OnSaveClick()
         {
+            if (!string.IsNullOrEmpty(UserRequestModel.MobileNumber))
+            {
+                bool mobileHasCharacter = UserRequestModel.MobileNumber!.Any(ch => !char.IsLetterOrDigit(ch) && !char.IsWhiteSpace(ch));
+                if (mobileHasCharacter)
+                {
+                    ErrorMessage = "Mobile number contains character. Please input valid mobile number!";
+                    IsError = true;
+
+                    return;
+                }
+            }
+
             await form.Validate();
             if (!form.IsValid)
                 return;

@@ -87,7 +87,7 @@ namespace Rapide.Web.Components.Pages.Components
 
         private async Task OnSaveClick()
         {
-            bool mobileHasCharacter = CustomerRequestModel.MobileNumber.Any(x => char.IsLetter(x));
+            bool mobileHasCharacter = CustomerRequestModel.MobileNumber.Any(ch => !char.IsLetterOrDigit(ch) && !char.IsWhiteSpace(ch));
             if (mobileHasCharacter)
             {
                 mBoxCustomMessage = "Mobile number contains character. Please input valid mobile number!";
