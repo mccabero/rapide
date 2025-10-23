@@ -469,6 +469,37 @@ namespace Rapide.Web.Components.Pages.Operations
             }
         }
 
+        private async Task PaymentInvoiceItemHasChanged(List<InvoiceDTO> e)
+        {
+            var selectedInvoiceList = e.Where(x => x.PaymentFor == true).ToList();
+            var jobStatusOpen = JobStatusList.Where(x => x.Name.Equals(Constants.JobStatus.Open)).FirstOrDefault();
+
+            var jobOrderId = selectedInvoiceList.FirstOrDefault()!.JobOrderId;
+            var depositData = await DepositService.GetAllDepositByJobOrderIdAsync(jobOrderId);
+            var depositOpen = depositData == null ? null : depositData.Where(x => x.JobStatusId == jobStatusOpen!.Id);
+
+            var invoiceTotalAmount = selectedInvoiceList == null
+                ? 0
+                : selectedInvoiceList.Sum(x => x.TotalAmount);
+
+            PaymentRequestModel.InvoiceTotalAmount = invoiceTotalAmount;
+            PaymentRequestModel.VAT12 = invoiceTotalAmount == 0 ? 0 : invoiceTotalAmount * 12 / 100;
+            PaymentRequestModel.DepositAmount = depositOpen == null ? 0 : depositOpen.Sum(x => x.DepositAmount);
+            PaymentRequestModel.AmountPayable = invoiceTotalAmount;
+
+            //PaymentRequestModel.PaymentDetailsList = new List<PaymentDetailsDTO>();
+
+            var invoiceId = selectedInvoiceList!.FirstOrDefault()!.Id;
+            var paymentDetails = await PaymentDetailsService.GetAllPaymentDetailsByInvoiceIdAsync(invoiceId);
+            PaymentRequestModel.PaymentDetailsList = paymentDetails;
+
+            var paidAmount = PaymentRequestModel.PaymentDetailsList == null ? 0 : PaymentRequestModel.PaymentDetailsList.Sum(x => x.AmountPaid);
+            PaymentRequestModel.Balance = invoiceTotalAmount - paidAmount;
+            PaymentRequestModel.TotalPaidAmount = paidAmount;
+
+            StateHasChanged();
+        }
+
         private void PaymentDetailsItemHasChanged(List<PaymentDetailsDTO> e)
         {
             PaymentRequestModel.PaymentDetailsList = e;
@@ -499,43 +530,43 @@ namespace Rapide.Web.Components.Pages.Operations
             PaymentRequestModel.Customer = i;
             PaymentRequestModel.InvoiceList = Invoices;
 
-            var depositInfo = await DepositService.GetAllDepositByCustomerIdAsync(i.Id);
-            PaymentRequestModel.DepositAmount = 0;
-            if (depositInfo != null)
-            {
-                PaymentRequestModel.DepositAmount = depositInfo.Sum(x => x.DepositAmount);
+            //var depositInfo = await DepositService.GetAllDepositByCustomerIdAsync(i.Id);
+            //PaymentRequestModel.DepositAmount = 0;
+            //if (depositInfo != null)
+            //{
+            //    PaymentRequestModel.DepositAmount = depositInfo.Sum(x => x.DepositAmount);
 
-                foreach (var di in depositInfo)
-                {
-                    PaymentRequestModel.PaymentDetailsList.Add(
-                        new PaymentDetailsDTO()
-                        {
-                            Payment = PaymentRequestModel,
-                            PaymentId = PaymentRequestModel.Id,
-                            PaymentTypeParameter = di.PaymentTypeParameter,
-                            PaymentTypeParameterId = di.PaymentTypeParameterId,
-                            Invoice = PaymentRequestModel.InvoiceList.FirstOrDefault(),
-                            InvoiceId = PaymentRequestModel.InvoiceList.FirstOrDefault().Id,
-                            IsFullyPaid = true,
-                            IsDeposit = true,
-                            PaymentDate = di.TransactionDateTime.Value,
-                            //DepositAmount = 0,
-                            AmountPaid = di.DepositAmount,
-                            PaymentReferenceNo = di.PaymentReferenceNo
-                        });
-                }
-            }
+            //    foreach (var di in depositInfo)
+            //    {
+            //        PaymentRequestModel.PaymentDetailsList.Add(
+            //            new PaymentDetailsDTO()
+            //            {
+            //                Payment = PaymentRequestModel,
+            //                PaymentId = PaymentRequestModel.Id,
+            //                PaymentTypeParameter = di.PaymentTypeParameter,
+            //                PaymentTypeParameterId = di.PaymentTypeParameterId,
+            //                Invoice = PaymentRequestModel.InvoiceList.FirstOrDefault(),
+            //                InvoiceId = PaymentRequestModel.InvoiceList.FirstOrDefault().Id,
+            //                IsFullyPaid = true,
+            //                IsDeposit = true,
+            //                PaymentDate = di.TransactionDateTime.Value,
+            //                //DepositAmount = 0,
+            //                AmountPaid = di.DepositAmount,
+            //                PaymentReferenceNo = di.PaymentReferenceNo
+            //            });
+            //    }
+            //}
             
 
-            var invoiceTotalAmount = Invoices == null 
-                ? 0 
-                : Invoices.Sum(x => x.TotalAmount);
+            //var invoiceTotalAmount = Invoices == null 
+            //    ? 0 
+            //    : Invoices.Sum(x => x.TotalAmount);
 
-            PaymentRequestModel.InvoiceTotalAmount = invoiceTotalAmount;
+            //PaymentRequestModel.InvoiceTotalAmount = invoiceTotalAmount;
 
-            PaymentRequestModel.VAT12 = invoiceTotalAmount == 0 ? 0 : invoiceTotalAmount * 12 / 100;
+            //PaymentRequestModel.VAT12 = invoiceTotalAmount == 0 ? 0 : invoiceTotalAmount * 12 / 100;
 
-            PaymentRequestModel.AmountPayable = invoiceTotalAmount - PaymentRequestModel.DepositAmount;
+            //PaymentRequestModel.AmountPayable = invoiceTotalAmount - PaymentRequestModel.DepositAmount;
 
             StateHasChanged();
         }

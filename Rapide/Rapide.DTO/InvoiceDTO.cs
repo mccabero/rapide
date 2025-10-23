@@ -1,4 +1,6 @@
-﻿namespace Rapide.DTO
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace Rapide.DTO
 {
     public class InvoiceDTO : BaseDTO
     {
@@ -46,5 +48,7 @@
         public virtual List<InvoicePackageDTO> PackageList { get; set; }
 
         public virtual List<PaymentDetailsDTO> PaymentDetailsList { get; set; }
+
+        public virtual bool PaymentFor { get; set; }
     }
 }

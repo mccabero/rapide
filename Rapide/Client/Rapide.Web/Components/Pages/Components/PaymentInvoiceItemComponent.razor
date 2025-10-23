@@ -7,14 +7,21 @@
         <div class="col-sm-12">
             <MudTable Items="InvoiceListParam" Dense="true" Hover="true">
                 <HeaderContent>
-                    <MudTh Style="width: 40%">Invoice No.</MudTh>
+                    <MudTh>Payment For</MudTh>
+                    <MudTh Style="width: 20%">Invoice No.</MudTh>
                     <MudTh>Invoice Date</MudTh>
                     <MudTh>Due Date</MudTh>
                     <MudTh>Job Order No.</MudTh>
                     <MudTh>Total Amount</MudTh>
                     <MudTh></MudTh>
                 </HeaderContent>
+               
                 <RowTemplate>
+                    <MudTd DataLabel="PaymnetFor">
+                        <div class="form-group">
+                            <MudSwitch T="bool" @bind-Value="context.PaymentFor" Color="Color.Info" />
+                        </div>
+                    </MudTd>
                     <MudTd DataLabel="InvoiceNo">
                         <div class="form-group">
                             <MudTextField Disabled="true"
@@ -60,5 +67,14 @@
                 </RowTemplate>
             </MudTable>
         </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3" style="padding-top: 15px !important;">
+            <button type="button" @onclick="OnProcessPaymentClick" class="btn btn-success btn-block"><i class="fa fa-money"></i> Process Payment</button>
+        </div>
+        <div class="col-md-3"></div>
+        <div class="col-md-3"></div>
+        <div class="col-md-3"></div>
     </div>
 </div>

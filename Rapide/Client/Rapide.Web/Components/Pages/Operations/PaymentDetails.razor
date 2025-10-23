@@ -235,7 +235,7 @@
 
                         <div class="card-body">
                             <div class="row">
-                                <PaymentInvoiceItemComponent InvoiceListParam="Invoices" />
+                                <PaymentInvoiceItemComponent InvoiceListParam="Invoices" OnDataChanged="@(e => PaymentInvoiceItemHasChanged(e))" />
                             </div>
                         </div>
                         <div class="card-footer">
