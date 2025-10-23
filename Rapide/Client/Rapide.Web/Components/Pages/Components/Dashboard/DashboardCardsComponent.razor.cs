@@ -153,17 +153,19 @@ namespace Rapide.Web.Components.Pages.Components.Dashboard
                 var paymentIds = new HashSet<int>(filteredPayments.Select(p => p.Id));
 
                 var filteredPaymentDetails = paymentDetails.Where(pd => paymentIds.Contains(pd.PaymentId)).ToList();
+                // Use HashSet for faster lookup
+                var invoiceIds = new HashSet<int>(filteredPaymentDetails.Select(p => p.InvoiceId).ToList());
 
                 var filteredQuickSales = quickSales.Where(q => q.TransactionDate.HasValue && q.TransactionDate.Value.Date >= start && q.TransactionDate.Value.Date < endExclusive).ToList();
                 
-                quickSalesAmount = filteredQuickSales.Sum(x => x.TotalAmount);
-                netSalesAmount = filteredPaymentDetails.Sum(x => x.AmountPaid) + quickSalesAmount;
-                
                 // Discounts
                 var invoices = await invoicesTask;
-                var filteredInvoices = invoices.Where(i => i.InvoiceDate.HasValue && i.InvoiceDate.Value.Date >= start && i.InvoiceDate.Value.Date < endExclusive);
+                var filteredInvoices = invoices.Where(i => invoiceIds.Contains(i.Id)).ToList();
 
                 discountAmount = filteredInvoices.Sum(i => i.AdditionalDiscount + i.LaborDiscount + i.ProductDiscount);
+
+                quickSalesAmount = filteredQuickSales.Sum(x => x.TotalAmount);
+                netSalesAmount = filteredPaymentDetails.Sum(x => x.AmountPaid) + quickSalesAmount + discountAmount;
 
                 // Expenses
                 var expenses = await expensesTask;
