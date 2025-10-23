@@ -58,6 +58,7 @@ namespace Rapide.Web.Components.Pages.Components.Dashboard
         private decimal expenseAmount = 0;
         private decimal netSalesAmount = 0;
         private decimal profitAmount = 0;
+        private decimal quickSalesAmount = 0;
 
         private bool IsBigThreeRoles = false;
         #endregion
@@ -137,6 +138,7 @@ namespace Rapide.Web.Components.Pages.Components.Dashboard
             expenseAmount = 0m;
             netSalesAmount = 0m;
             profitAmount = 0m;
+            quickSalesAmount = 0m;
 
             if (IsBigThreeRoles)
             {
@@ -153,9 +155,10 @@ namespace Rapide.Web.Components.Pages.Components.Dashboard
                 var filteredPaymentDetails = paymentDetails.Where(pd => paymentIds.Contains(pd.PaymentId)).ToList();
 
                 var filteredQuickSales = quickSales.Where(q => q.TransactionDate.HasValue && q.TransactionDate.Value.Date >= start && q.TransactionDate.Value.Date < endExclusive).ToList();
-
-                netSalesAmount = filteredPaymentDetails.Sum(x => x.AmountPaid) + filteredQuickSales.Sum(x => x.TotalAmount);
-
+                
+                quickSalesAmount = filteredQuickSales.Sum(x => x.TotalAmount);
+                netSalesAmount = filteredPaymentDetails.Sum(x => x.AmountPaid) + quickSalesAmount;
+                
                 // Discounts
                 var invoices = await invoicesTask;
                 var filteredInvoices = invoices.Where(i => i.InvoiceDate.HasValue && i.InvoiceDate.Value.Date >= start && i.InvoiceDate.Value.Date < endExclusive);
