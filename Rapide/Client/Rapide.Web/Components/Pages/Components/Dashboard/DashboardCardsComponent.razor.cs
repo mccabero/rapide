@@ -5,6 +5,10 @@ using Rapide.Contracts.Services;
 using Rapide.Services;
 using Rapide.Web.Helpers;
 using System.Threading.Tasks;
+using System.Linq;
+using System.Collections.Generic;
+using Rapide.DTO;
+using MudBlazor.Extensions;
 
 namespace Rapide.Web.Components.Pages.Components.Dashboard
 {
@@ -77,88 +81,102 @@ namespace Rapide.Web.Components.Pages.Components.Dashboard
         {
             IsLoading = true;
 
-            var customers = await CustomerService.GetAllSummaryAsync();
-            var vehicles = await VehicleService.GetAllVehicleSummaryAsync();
-            var estimates = await EstimateService.GetAllEstimateSummaryAsync();
-            var jobOrders = await JobOrderService.GetAllJobOrderSummaryAsync();
+            // Use inclusive start, exclusive end for correct and efficient comparisons
+            var start = _dateRange.Start.Value;
+            var endExclusive = _dateRange.End.Value.AddDays(1);
 
-            customers = customers.Where(x => x.CreatedDateTime >= _dateRange.Start &&  x.CreatedDateTime <= _dateRange.End).ToList();
-            vehicles = vehicles.Where(x => x.CreatedDateTime >= _dateRange.Start && x.CreatedDateTime <= _dateRange.End).ToList();
-            estimates = estimates.Where(x => x.CreatedDateTime >= _dateRange.Start && x.CreatedDateTime <= _dateRange.End).ToList();
-            jobOrders = jobOrders.Where(x => x.CreatedDateTime >= _dateRange.Start && x.CreatedDateTime <= _dateRange.End).ToList();
+            // Start independent fetches in parallel
+            var customersTask = CustomerService.GetAllSummaryAsync();
+            var vehiclesTask = VehicleService.GetAllVehicleSummaryAsync();
+            var estimatesTask = EstimateService.GetAllEstimateSummaryAsync();
+            var jobOrdersTask = JobOrderService.GetAllJobOrderSummaryAsync();
 
-            customerCount = customers == null ? 0 : customers.Count;
-            vehiclesCount = vehicles == null ? 0 : vehicles.Count;
-            estimateCount = estimates == null ? 0 : estimates.Count;
-            jobOrdersCount = jobOrders == null ? 0 : jobOrders.Count;
-
-            isAllowOverride = TokenHelper.IsBigThreeRoles(await AuthState);
+            Task<List<PaymentDTO>> paymentsTask = null;
+            Task<List<PaymentDetailsDTO>> paymentDetailsTask = null;
+            Task<List<QuickSalesDTO>> quickSalesTask = null;
+            Task<List<InvoiceDTO>> invoicesTask = null;
+            Task<List<ExpensesDTO>> expensesTask = null;
 
             if (IsBigThreeRoles)
             {
-                await GetDiscount();
-                await GetExpenses();
-                await GetNetSales();
-                await GetProfit();
+                paymentsTask = PaymentService.GetAllPaymentAsync();
+                paymentDetailsTask = PaymentDetailsService.GetAllPaymentDetailsAsync();
+                quickSalesTask = QuickSalesService.GetAllQuickSalesAsync();
+                invoicesTask = InvoiceService.GetAllInvoiceAsync();
+                expensesTask = ExpensesService.GetAllExpensesAsync();
+            }
+
+            // Build task list
+            var tasks = new List<Task> { customersTask, vehiclesTask, estimatesTask, jobOrdersTask };
+            if (IsBigThreeRoles)
+            {
+                tasks.Add(paymentsTask);
+                tasks.Add(paymentDetailsTask);
+                tasks.Add(quickSalesTask);
+                tasks.Add(invoicesTask);
+                tasks.Add(expensesTask);
+            }
+
+            await Task.WhenAll(tasks);
+
+            // Filter and aggregate client-side (prefer server-side endpoints for best performance)
+            var customers = (await customersTask).Where(x => x.CreatedDateTime >= start && x.CreatedDateTime < endExclusive).ToList();
+            var vehicles = (await vehiclesTask).Where(x => x.CreatedDateTime >= start && x.CreatedDateTime < endExclusive).ToList();
+            var estimates = (await estimatesTask).Where(x => x.CreatedDateTime >= start && x.CreatedDateTime < endExclusive).ToList();
+            var jobOrders = (await jobOrdersTask).Where(x => x.CreatedDateTime >= start && x.CreatedDateTime < endExclusive).ToList();
+
+            customerCount = customers.Count;
+            vehiclesCount = vehicles.Count;
+            estimateCount = estimates.Count;
+            jobOrdersCount = jobOrders.Count;
+
+            isAllowOverride = TokenHelper.IsBigThreeRoles(await AuthState);
+
+            // Reset aggregates
+            discountAmount = 0m;
+            expenseAmount = 0m;
+            netSalesAmount = 0m;
+            profitAmount = 0m;
+
+            if (IsBigThreeRoles)
+            {
+                var payments = await paymentsTask;
+                var paymentDetails = await paymentDetailsTask;
+                var quickSales = await quickSalesTask;
+
+                // Filter payments within date range
+                var filteredPayments = payments.Where(p => p.PaymentDate.HasValue && p.PaymentDate.Value.Date >= start && p.PaymentDate.Value.Date < endExclusive).ToList();
+
+                // Use HashSet for faster lookup
+                var paymentIds = new HashSet<int>(filteredPayments.Select(p => p.Id));
+
+                var filteredPaymentDetails = paymentDetails.Where(pd => paymentIds.Contains(pd.PaymentId)).ToList();
+
+                var filteredQuickSales = quickSales.Where(q => q.TransactionDate.HasValue && q.TransactionDate.Value.Date >= start && q.TransactionDate.Value.Date < endExclusive).ToList();
+
+                netSalesAmount = filteredPaymentDetails.Sum(x => x.AmountPaid) + filteredQuickSales.Sum(x => x.TotalAmount);
+
+                // Discounts
+                var invoices = await invoicesTask;
+                var filteredInvoices = invoices.Where(i => i.InvoiceDate.HasValue && i.InvoiceDate.Value.Date >= start && i.InvoiceDate.Value.Date < endExclusive);
+
+                discountAmount = filteredInvoices.Sum(i => i.AdditionalDiscount + i.LaborDiscount + i.ProductDiscount);
+
+                // Expenses
+                var expenses = await expensesTask;
+                expenseAmount = expenses.Where(e => e.ExpenseDateTime.HasValue && e.ExpenseDateTime.Value.Date >= start && e.ExpenseDateTime.Value.Date < endExclusive).Sum(e => e.Amount);
+
+                // Profit: simple approximation, refine as needed
+                profitAmount = netSalesAmount - expenseAmount - discountAmount;
             }
 
             IsLoading = false;
+            StateHasChanged();
         }
 
         private async Task OnCardFilterApply()
         {
             await ReloadDashboardData();
-        }
-
-        private async Task GetNetSales()
-        {
-            var paymentsData = await PaymentService.GetAllPaymentAsync();
-            var paymentDetailsData = await PaymentDetailsService.GetAllPaymentDetailsAsync();
-            var quickSalesData = await QuickSalesService.GetAllQuickSalesAsync();
-
-            var filteredQuickSales = quickSalesData.Where(x => x.TransactionDate.Value.Date >= _dateRange.Start && x.TransactionDate.Value.Date <= _dateRange.End).ToList();
-            var filteredPayment = paymentsData.Where(x => x.PaymentDate.Value.Date >= _dateRange.Start && x.PaymentDate.Value.Date <= _dateRange.End).ToList();
-            var paymentIds = filteredPayment.Select(x => x.Id).ToList();
-
-            var filteredPaymentDetails = paymentDetailsData.Where(x => paymentIds.Contains(x.PaymentId)).ToList();
-
-            // total sales
-            // less credit card payment total deduction
-            // less purchase cost
-
-            var payments = filteredPaymentDetails.Sum(x => x.AmountPaid);
-            var quickSales = filteredQuickSales.Sum(x => x.TotalAmount);
-
-            netSalesAmount = payments + quickSales;
-        }
-
-        private async Task GetDiscount()
-        {
-            var invoiceData = await InvoiceService.GetAllInvoiceAsync();
-
-            var filteredInvoice = invoiceData.Where(x => x.InvoiceDate.Value.Date >= _dateRange.Start && x.InvoiceDate.Value.Date <= _dateRange.End).ToList(); 
-
-            var additionalDiscount = filteredInvoice.Sum(x => x.AdditionalDiscount);
-            var laborDiscount = filteredInvoice.Sum(x => x.LaborDiscount);
-            var productDiscount = filteredInvoice.Sum(x => x.ProductDiscount);
-
-            discountAmount = additionalDiscount + laborDiscount + productDiscount;
-
-        }
-
-        private async Task GetExpenses()
-        {
-            var expensesData = await ExpensesService.GetAllExpensesAsync();
-            var filteredExpenses = expensesData.Where(x => x.ExpenseDateTime.Value.Date >= _dateRange.Start && x.ExpenseDateTime.Value.Date <= _dateRange.End).ToList();
-
-            expenseAmount = filteredExpenses.Sum(x => x.Amount);
-        }
-
-        private async Task GetProfit()
-        {
-            // payroll is not available
-            // expenses is available
-            profitAmount = decimal.Parse("123.45");
         }
     }
 }
