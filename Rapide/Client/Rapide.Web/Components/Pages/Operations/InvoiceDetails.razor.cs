@@ -157,8 +157,8 @@ namespace Rapide.Web.Components.Pages.Operations
                     ? invoiceList.Sum(x => x.TotalAmount)
                     : 0;
 
-                PaymentRequestModel.InvoiceTotalAmount = invoicePayable;
-                PaymentRequestModel.AmountPayable = invoicePayable;
+                PaymentRequestModel.InvoiceTotalAmount = InvoiceRequestModel.TotalAmount;
+                PaymentRequestModel.AmountPayable = InvoiceRequestModel.TotalAmount;
 
                 PaymentRequestModel.CustomerId = InvoiceRequestModel.Customer.Id;
                 PaymentRequestModel.JobStatusId = newJobStatus.Id;

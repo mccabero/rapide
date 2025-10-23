@@ -107,7 +107,7 @@ namespace Rapide.Web.Components.Pages.Operations
 
                 PaymentRequestModel.InvoiceList = invoiceData.Where(x => x.JobStatusId == jobStatusOpen.Id || x.JobStatusId == jobStatusConverted.Id).ToList();
 
-                PaymentRequestModel.PaymentDetailsList = await PaymentDetailsService.GetAllPaymentDetailsByPaymentIdAsync(PaymentRequestModel.Id);
+                //PaymentRequestModel.PaymentDetailsList = await PaymentDetailsService.GetAllPaymentDetailsByPaymentIdAsync(PaymentRequestModel.Id);
 
                 if (PaymentRequestModel.PaymentDetailsList == null)
                     PaymentRequestModel.PaymentDetailsList = new List<PaymentDetailsDTO>();
@@ -126,13 +126,18 @@ namespace Rapide.Web.Components.Pages.Operations
                 form.Disabled = isPaymentLocked;
                 IsEditMode = !isPaymentLocked;
 
-                // Update footer figures
-                var paidAmount = PaymentRequestModel.PaymentDetailsList.Sum(x => x.AmountPaid);
-                var invoiceAmount = PaymentRequestModel.PaymentDetailsList.GroupBy(x => x.Invoice.Id).Select(x => x.First()).Sum(x => x.Invoice.TotalAmount);
-                PaymentRequestModel.InvoiceTotalAmount = invoiceAmount;
-                PaymentRequestModel.AmountPayable = invoiceAmount;
-                PaymentRequestModel.Balance = invoiceAmount - paidAmount;
-                PaymentRequestModel.TotalPaidAmount = paidAmount;
+                // Temporary Set the footer figures
+                PaymentRequestModel.InvoiceTotalAmount = 0;
+                PaymentRequestModel.DepositAmount = 0;
+                PaymentRequestModel.AmountPayable = 0;
+
+                //// Update footer figures
+                //var paidAmount = PaymentRequestModel.PaymentDetailsList.Sum(x => x.AmountPaid);
+                //var invoiceAmount = PaymentRequestModel.PaymentDetailsList.GroupBy(x => x.Invoice.Id).Select(x => x.First()).Sum(x => x.Invoice.TotalAmount);
+                //PaymentRequestModel.InvoiceTotalAmount = invoiceAmount;
+                //PaymentRequestModel.AmountPayable = invoiceAmount;
+                //PaymentRequestModel.Balance = invoiceAmount - paidAmount;
+                //PaymentRequestModel.TotalPaidAmount = paidAmount;
             }
             else
             {
@@ -290,15 +295,30 @@ namespace Rapide.Web.Components.Pages.Operations
                         var jobStatusCompleted = JobStatusList.Where(x => x.Name.Equals(Constants.JobStatus.Completed)).FirstOrDefault();
 
                         // Validate if the invoice is paid or not before closing
-
                         i.Invoice.JobStatus = jobStatusCompleted;
                         i.Invoice.JobStatusId = jobStatusCompleted.Id;
 
                         await InvoiceService.UpdateAsync(i.Invoice);
+
+                        // close the deposit if checkbox is checked
+                        var depositData = await DepositService.GetAllDepositByJobOrderIdAsync(i.Invoice.JobOrderId);
+                        if (depositData.Any())
+                        {
+                            foreach (var dp in depositData)
+                            {
+                                dp.JobStatus = jobStatusCompleted;
+                                dp.JobStatusId = jobStatusCompleted.Id;
+
+                                await DepositService.UpdateAsync(dp);
+                            }
+                        }
+
+                        // close the payment?
+                        PaymentRequestModel.JobStatus = jobStatusCompleted;
+                        PaymentRequestModel.JobStatusId = jobStatusCompleted.Id;
                     }
                 }
             }
-
 
             // call update endpoint here...
             await PaymentService.UpdateAsync(PaymentRequestModel);
@@ -474,6 +494,8 @@ namespace Rapide.Web.Components.Pages.Operations
             var selectedInvoiceList = e.Where(x => x.PaymentFor == true).ToList();
             var jobStatusOpen = JobStatusList.Where(x => x.Name.Equals(Constants.JobStatus.Open)).FirstOrDefault();
 
+            Invoices = selectedInvoiceList;
+
             var jobOrderId = selectedInvoiceList.FirstOrDefault()!.JobOrderId;
             var depositData = await DepositService.GetAllDepositByJobOrderIdAsync(jobOrderId);
             var depositOpen = depositData == null ? null : depositData.Where(x => x.JobStatusId == jobStatusOpen!.Id);
@@ -487,15 +509,16 @@ namespace Rapide.Web.Components.Pages.Operations
             PaymentRequestModel.DepositAmount = depositOpen == null ? 0 : depositOpen.Sum(x => x.DepositAmount);
             PaymentRequestModel.AmountPayable = invoiceTotalAmount;
 
-            //PaymentRequestModel.PaymentDetailsList = new List<PaymentDetailsDTO>();
-
             var invoiceId = selectedInvoiceList!.FirstOrDefault()!.Id;
             var paymentDetails = await PaymentDetailsService.GetAllPaymentDetailsByInvoiceIdAsync(invoiceId);
             PaymentRequestModel.PaymentDetailsList = paymentDetails;
 
-            var paidAmount = PaymentRequestModel.PaymentDetailsList == null ? 0 : PaymentRequestModel.PaymentDetailsList.Sum(x => x.AmountPaid);
-            PaymentRequestModel.Balance = invoiceTotalAmount - paidAmount;
+            var paidAmount = PaymentRequestModel.PaymentDetailsList == null ? 0 : PaymentRequestModel.PaymentDetailsList.Where(x => x.IsDeposit == false).Sum(x => x.AmountPaid);
+            PaymentRequestModel.Balance = invoiceTotalAmount - paidAmount - PaymentRequestModel.DepositAmount;
             PaymentRequestModel.TotalPaidAmount = paidAmount;
+
+            if (PaymentRequestModel.PaymentDetailsList == null)
+                PaymentRequestModel.PaymentDetailsList = new List<PaymentDetailsDTO>();
 
             StateHasChanged();
         }
@@ -503,7 +526,7 @@ namespace Rapide.Web.Components.Pages.Operations
         private void PaymentDetailsItemHasChanged(List<PaymentDetailsDTO> e)
         {
             PaymentRequestModel.PaymentDetailsList = e;
-            PaymentRequestModel.DepositAmount = e.Where(x => x.IsDeposit == true).Sum(x => x.AmountPaid);
+            //PaymentRequestModel.DepositAmount = e.Where(x => x.IsDeposit == true).Sum(x => x.AmountPaid);
 
             var invoiceAmount = e.GroupBy(x => x.Invoice.Id).Select(x => x.First()).Sum(x => x.Invoice.TotalAmount);
             PaymentRequestModel.InvoiceTotalAmount = invoiceAmount;
