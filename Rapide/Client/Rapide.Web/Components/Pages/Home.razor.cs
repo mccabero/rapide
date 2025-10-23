@@ -11,6 +11,7 @@ using Rapide.Web.Helpers;
 using Rapide.Web.Models;
 using System.Threading.Tasks;
 using static Rapide.Web.Components.Utilities.Constants;
+using System.Linq;
 
 namespace Rapide.Web.Components.Pages
 {
@@ -92,56 +93,73 @@ namespace Rapide.Web.Components.Pages
         {
             try
             {
+                IsLoading = true;
+
                 var dataList = await JobOrderService.GetAllJobOrderSummaryAsync();
 
-                if (dataList == null)
+                if (dataList == null || !dataList.Any())
                 {
+                    JobOrderRequestModel.Clear();
                     IsLoading = false;
                     return;
                 }
 
                 var sixMonthsAgo = DateTime.Now.AddMonths(-6);
-                var filteredDataList = dataList
+
+                // Filter on server ideally; do minimal client filtering and efficient projection.
+                var filtered = dataList
                     .Where(x => x.CreatedDateTime > sixMonthsAgo)
+                    .OrderByDescending(x => x.TransactionDate)
                     .ToList();
 
+                // Initialize mapper once
                 IMapper mapper = MappingWebHelper.InitializeMapper();
 
-                foreach (var ul in filteredDataList)
+                // Determine allowed override once per current user
+                var isAllowedToOverride = TokenHelper.IsBigThreeRoles(await AuthState);
+
+                // Project to JobOrderModel using LINQ (faster than manual add in loop)
+                var projected = filtered.Select(ul =>
                 {
                     Color statusColor = Color.Primary;
-                    if (ul.JobStatus.Name.Equals(Constants.JobStatus.Open))
+                    if (ul.JobStatus?.Name.Equals(Constants.JobStatus.Open) == true)
                         statusColor = Color.Warning;
-                    else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Converted))
+                    else if (ul.JobStatus?.Name.Equals(Constants.JobStatus.Converted) == true)
                         statusColor = Color.Success;
-                    else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Cancelled))
+                    else if (ul.JobStatus?.Name.Equals(Constants.JobStatus.Cancelled) == true)
                         statusColor = Color.Info;
-                    else if (ul.JobStatus.Name.Equals(Constants.JobStatus.Deleted))
+                    else if (ul.JobStatus?.Name.Equals(Constants.JobStatus.Deleted) == true)
                         statusColor = Color.Error;
 
-                    var customerMap = mapper.Map<CustomerModel>(ul.Customer);
-                    var vehicleModelMap = mapper.Map<VehicleModelModel>(ul.Vehicle.VehicleModel);
-                    var jobStatusMap = ul.JobStatus.Map<JobStatusModel>();
+                    var customerMap = ul.Customer != null ? mapper.Map<CustomerModel>(ul.Customer) : new CustomerModel();
+                    var vehicleModelMap = ul.Vehicle?.VehicleModel != null ? mapper.Map<VehicleModelModel>(ul.Vehicle.VehicleModel) : new VehicleModelModel();
+                    var jobStatusMap = ul.JobStatus != null ? ul.JobStatus.Map<JobStatusModel>() : new JobStatusModel();
 
-                    JobOrderRequestModel.Add(new JobOrderModel()
+                    return new JobOrderModel
                     {
                         IsChangan = ul.IsChangan,
-                        IsAllowedToOverride = TokenHelper.IsBigThreeRoles(await AuthState),
+                        IsAllowedToOverride = isAllowedToOverride,
                         StatusChipColor = statusColor,
                         Id = ul.Id,
                         ReferenceNo = ul.ReferenceNo,
                         Customer = customerMap,
-                        Vehicle = new VehiclesModel()
+                        Vehicle = new VehiclesModel
                         {
-                            Id = ul.Vehicle.Id,
+                            Id = ul.Vehicle?.Id ?? 0,
                             VehicleModel = vehicleModelMap,
-                            PlateNo = ul.Vehicle.PlateNo,
-                            YearModel = ul.Vehicle.YearModel
+                            PlateNo = ul.Vehicle?.PlateNo,
+                            YearModel = (int)ul.Vehicle?.YearModel
                         },
                         TransactionDate = ul.TransactionDate,
                         JobStatus = jobStatusMap
-                    });
-                }
+                    };
+                }).ToList();
+
+                // Replace list atomically to avoid multiple redraws
+                JobOrderRequestModel = projected;
+
+                IsLoading = false;
+                StateHasChanged();
             }
             catch (Exception ex)
             {
