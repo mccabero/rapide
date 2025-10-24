@@ -9,6 +9,9 @@ namespace Rapide.Web.Components.Pages.Components
     {
         private async Task PrintPettyCashVoucheReportr(CompanyInfoDTO companyData, string preparedBy, string clientType)
         {
+            var start = _dateRange.Start.Value;
+            var endExclusive = _dateRange.End.Value.AddDays(1);
+
             bool isClientTypeAll = clientType.Equals(Constants.ClientType.All);
             bool isChangan = isClientTypeAll
                 ? false
@@ -25,7 +28,7 @@ namespace Rapide.Web.Components.Pages.Components
             // get all data
             var pettyCashList = await PettyCashService.GetAllPettyCashAsync();
 
-            var filteredPettyCash = pettyCashList.Where(x => x.TransactionDateTime >= _dateRange.Start && x.TransactionDateTime <= _dateRange.End).ToList();
+            var filteredPettyCash = pettyCashList.Where(x => x.TransactionDateTime >= start && x.TransactionDateTime < endExclusive).ToList();
 
             // Filter payment if changan
             if (!isClientTypeAll)
