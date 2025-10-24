@@ -130,16 +130,16 @@ namespace Rapide.Web.PdfReportGenerator
                     t.Span($"{data.Customer.FirstName} {data.Customer.LastName}");
 
                     t.Span(Environment.NewLine);
-                    t.Span("Company: ").Bold();
-                    t.Span(data.Customer.CompanyName);
-
-                    t.Span(Environment.NewLine);
                     t.Span("Address: ").Bold();
                     t.Span(data.Customer.HomeAddress);
 
                     t.Span(Environment.NewLine);
                     t.Span("Mobile No.: ").Bold();
                     t.Span($"0{String.Format("{0:### ### ####}", Convert.ToInt64(data.Customer.MobileNumber))}");
+
+                    t.Span(Environment.NewLine);
+                    t.Span("Engine No.: ").Bold();
+                    t.Span(data.Vehicle.EngineNo);
 
                 });
 
