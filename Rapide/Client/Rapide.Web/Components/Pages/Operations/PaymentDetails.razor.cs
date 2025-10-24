@@ -280,46 +280,6 @@ namespace Rapide.Web.Components.Pages.Operations
             PaymentRequestModel.UpdatedById = TokenHelper.GetCurrentUserId(await AuthState);
             PaymentRequestModel.UpdatedDateTime = DateTime.Now;
 
-            // close the invoice if checkbox is checked.
-            var completedInvoice = PaymentRequestModel.PaymentDetailsList.Where(x => x.IsFullyPaid == true).ToList();
-            if (completedInvoice != null && completedInvoice.Any())
-            {
-                foreach (var i in completedInvoice)
-                {
-                    var amountPaid = completedInvoice.Sum(x => x.AmountPaid);
-                    var invoiceAmount = i.Invoice.TotalAmount;
-
-                    if (amountPaid >= invoiceAmount)
-                    {
-                        // message box here to confirm closing of invoice number
-                        var jobStatusCompleted = JobStatusList.Where(x => x.Name.Equals(Constants.JobStatus.Completed)).FirstOrDefault();
-
-                        // Validate if the invoice is paid or not before closing
-                        i.Invoice.JobStatus = jobStatusCompleted;
-                        i.Invoice.JobStatusId = jobStatusCompleted.Id;
-
-                        await InvoiceService.UpdateAsync(i.Invoice);
-
-                        // close the deposit if checkbox is checked
-                        var depositData = await DepositService.GetAllDepositByJobOrderIdAsync(i.Invoice.JobOrderId);
-                        if (depositData.Any())
-                        {
-                            foreach (var dp in depositData)
-                            {
-                                dp.JobStatus = jobStatusCompleted;
-                                dp.JobStatusId = jobStatusCompleted.Id;
-
-                                await DepositService.UpdateAsync(dp);
-                            }
-                        }
-
-                        // close the payment?
-                        PaymentRequestModel.JobStatus = jobStatusCompleted;
-                        PaymentRequestModel.JobStatusId = jobStatusCompleted.Id;
-                    }
-                }
-            }
-
             // call update endpoint here...
             await PaymentService.UpdateAsync(PaymentRequestModel);
 
@@ -351,6 +311,51 @@ namespace Rapide.Web.Components.Pages.Operations
                 p.UpdatedDateTime = DateTime.Now;
 
                 await PaymentDetailsService.CreateAsync(p);
+            }
+
+            // close the invoice if checkbox is checked.
+            var completedInvoice = PaymentRequestModel.PaymentDetailsList.Where(x => x.IsFullyPaid == true).ToList();
+            var amountPaid = completedInvoice.Sum(x => x.AmountPaid);
+            var invoiceAmount = completedInvoice.Sum(x => x.Invoice.TotalAmount);
+
+            if (completedInvoice != null && completedInvoice.Any())
+            {
+                foreach (var i in completedInvoice)
+                {
+                    
+                    invoiceAmount = i.Invoice.TotalAmount;
+
+                    if (amountPaid >= invoiceAmount)
+                    {
+                        // message box here to confirm closing of invoice number
+                        var jobStatusCompleted = JobStatusList.Where(x => x.Name.Equals(Constants.JobStatus.Completed)).FirstOrDefault();
+
+                        // close the deposit if checkbox is checked
+                        var depositData = await DepositService.GetAllDepositByJobOrderIdAsync(i.Invoice.JobOrderId);
+                        if (depositData != null && depositData.Any())
+                        {
+                            foreach (var dp in depositData)
+                            {
+                                dp.JobStatus = jobStatusCompleted;
+                                dp.JobStatusId = jobStatusCompleted.Id;
+
+                                await DepositService.UpdateAsync(dp);
+                            }
+                        }
+
+                        // Validate if the invoice is paid or not before closing
+                        i.Invoice.JobStatus = jobStatusCompleted;
+                        i.Invoice.JobStatusId = jobStatusCompleted.Id;
+
+                        await InvoiceService.UpdateAsync(i.Invoice);
+
+                        // close the payment?
+                        PaymentRequestModel.JobStatus = jobStatusCompleted;
+                        PaymentRequestModel.JobStatusId = jobStatusCompleted.Id;
+
+                        await PaymentService.UpdateAsync(PaymentRequestModel);
+                    }
+                }
             }
         }
 
