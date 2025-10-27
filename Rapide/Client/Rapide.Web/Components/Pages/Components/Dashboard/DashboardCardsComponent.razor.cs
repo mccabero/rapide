@@ -9,6 +9,8 @@ using System.Linq;
 using System.Collections.Generic;
 using Rapide.DTO;
 using MudBlazor.Extensions;
+using Rapide.Web.Components.Pages.SystemConfiguration;
+using Rapide.Web.Components.Utilities;
 
 namespace Rapide.Web.Components.Pages.Components.Dashboard
 {
@@ -38,6 +40,8 @@ namespace Rapide.Web.Components.Pages.Components.Dashboard
         private IPaymentDetailsService PaymentDetailsService { get; set; }
         [Inject]
         private IQuickSalesService QuickSalesService { get; set; }
+        [Inject]
+        private IJobStatusService JobStatusService { get; set; }
         #endregion
 
         #region Private Properties
@@ -61,10 +65,13 @@ namespace Rapide.Web.Components.Pages.Components.Dashboard
         private decimal quickSalesAmount = 0;
 
         private bool IsBigThreeRoles = false;
+        private List<JobStatusDTO> JobStatusList { get; set; } = new();
         #endregion
 
         protected override async Task OnInitializedAsync()
         {
+            JobStatusList = await JobStatusService.GetAllAsync();
+
             IsBigThreeRoles = TokenHelper.IsBigThreeRoles(await AuthState);
             // As per owner, cards should display only the same day.
             //var firstDayOfTheMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
@@ -81,6 +88,9 @@ namespace Rapide.Web.Components.Pages.Components.Dashboard
         private async Task ReloadDashboardData()
         {
             IsLoading = true;
+            
+            // jobstatus completed
+            var jobStatusCompleted = JobStatusList.Where(x => x.Name.Equals(Constants.JobStatus.Completed)).FirstOrDefault();
 
             // Use inclusive start, exclusive end for correct and efficient comparisons
             var start = _dateRange.Start.Value;
@@ -147,7 +157,9 @@ namespace Rapide.Web.Components.Pages.Components.Dashboard
                 var quickSales = await quickSalesTask;
 
                 // Filter payments within date range
-                var filteredPayments = payments.Where(p => p.PaymentDate.HasValue && p.PaymentDate.Value.Date >= start && p.PaymentDate.Value.Date < endExclusive).ToList();
+                var filteredPayments = payments
+                    .Where(x => x.JobStatusId == jobStatusCompleted!.Id)
+                    .Where(p => p.PaymentDate.HasValue && p.PaymentDate.Value.Date >= start && p.PaymentDate.Value.Date < endExclusive).ToList();
 
                 // Use HashSet for faster lookup
                 var paymentIds = new HashSet<int>(filteredPayments.Select(p => p.Id));
@@ -156,7 +168,9 @@ namespace Rapide.Web.Components.Pages.Components.Dashboard
                 // Use HashSet for faster lookup
                 var invoiceIds = new HashSet<int>(filteredPaymentDetails.Select(p => p.InvoiceId).ToList());
 
-                var filteredQuickSales = quickSales.Where(q => q.TransactionDate.HasValue && q.TransactionDate.Value.Date >= start && q.TransactionDate.Value.Date < endExclusive).ToList();
+                var filteredQuickSales = quickSales
+                    .Where(x => x.JobStatusId == jobStatusCompleted!.Id)
+                    .Where(q => q.TransactionDate.HasValue && q.TransactionDate.Value.Date >= start && q.TransactionDate.Value.Date < endExclusive).ToList();
                 
                 // Discounts
                 var invoices = await invoicesTask;
@@ -169,7 +183,10 @@ namespace Rapide.Web.Components.Pages.Components.Dashboard
 
                 // Expenses
                 var expenses = await expensesTask;
-                expenseAmount = expenses.Where(e => e.ExpenseDateTime.HasValue && e.ExpenseDateTime.Value.Date >= start && e.ExpenseDateTime.Value.Date < endExclusive).Sum(e => e.Amount);
+                expenseAmount = expenses
+                    .Where(x => x.JobStatusId == jobStatusCompleted!.Id)
+                    .Where(e => e.ExpenseDateTime.HasValue && e.ExpenseDateTime.Value.Date >= start && e.ExpenseDateTime.Value.Date < endExclusive)
+                    .Sum(e => e.Amount);
 
                 // Profit: simple approximation, refine as needed
                 profitAmount = netSalesAmount - expenseAmount - discountAmount;
