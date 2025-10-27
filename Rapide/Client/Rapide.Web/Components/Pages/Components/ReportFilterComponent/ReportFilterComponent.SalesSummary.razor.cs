@@ -1,5 +1,7 @@
 ﻿using Rapide.DTO;
 using Rapide.Entities;
+using Rapide.Services;
+using Rapide.Web.Components.Pages.SystemConfiguration;
 using Rapide.Web.Components.Utilities;
 using Rapide.Web.Helpers;
 using Rapide.Web.PdfReportGenerator.Reports;
@@ -10,6 +12,8 @@ namespace Rapide.Web.Components.Pages.Components
     {
         private async Task PrintSalesSummaryReport(CompanyInfoDTO companyData, string preparedBy, string clientType)
         {
+            var jobStatusCompleted = JobStatusList.Where(x => x.Name.Equals(Constants.JobStatus.Completed)).FirstOrDefault();
+
             bool isClientTypeAll = clientType.Equals(Constants.ClientType.All);
             bool isChangan = isClientTypeAll
                 ? false
@@ -36,6 +40,7 @@ namespace Rapide.Web.Components.Pages.Components
 
             // Filtered by date range
             var filteredExpenses = expenses
+                .Where(x => x.JobStatusId == jobStatusCompleted!.Id)
                 .Where(x => ((DateTime)x.ExpenseDateTime!).Date >= ((DateTime)_dateRange.Start!).Date
                     && ((DateTime)x.ExpenseDateTime!).Date <= ((DateTime)_dateRange.End!).Date)
                 .ToList();
@@ -47,6 +52,7 @@ namespace Rapide.Web.Components.Pages.Components
             }
 
             var filteredQuickSales = quickSales
+                .Where(x => x.JobStatusId == jobStatusCompleted!.Id)
                 .Where(x => ((DateTime)x.TransactionDate!).Date >= ((DateTime)_dateRange.Start!).Date
                     && ((DateTime)x.TransactionDate!).Date <= ((DateTime)_dateRange.End!).Date)
                 .ToList();
@@ -58,6 +64,7 @@ namespace Rapide.Web.Components.Pages.Components
             }
 
             var filteredPayments = payments
+                .Where(x => x.JobStatusId == jobStatusCompleted!.Id)
                 .Where(x => ((DateTime)x.PaymentDate!).Date >= ((DateTime)_dateRange.Start!).Date 
                     && ((DateTime)x.PaymentDate!).Date <= ((DateTime)_dateRange.End!).Date)
                 .ToList();

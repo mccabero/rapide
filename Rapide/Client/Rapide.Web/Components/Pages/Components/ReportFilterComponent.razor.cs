@@ -71,6 +71,9 @@ namespace Rapide.Web.Components.Pages.Components
         private IDepositService DepositService { get; set; }
         [Inject]
         private IPettyCashService PettyCashService { get; set; }
+
+        [Inject]
+        private IJobStatusService JobStatusService { get; set; }
         #endregion
 
         #region Private Properties
@@ -94,10 +97,13 @@ namespace Rapide.Web.Components.Pages.Components
         private bool isCashier = false;
 
         public string clientType { get; set; } = Constants.ClientType.All;
+        private List<JobStatusDTO> JobStatusList { get; set; } = new();
         #endregion
 
         protected override async Task OnInitializedAsync()
         {
+            JobStatusList = await JobStatusService.GetAllAsync();
+
             selectedFilter = ReportFilterTypes.Daily;
             _dateRange = new DateRange(DateTime.Now.Date, DateTime.Now.Date);
             _picker = new MudDatePicker();
