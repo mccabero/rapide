@@ -10,6 +10,8 @@ namespace Rapide.Web.Components.Pages.Components
     {
         private async Task PrintSalesReport(CompanyInfoDTO companyData, string preparedBy, string clientType)
         {
+            var jobStatusCompleted = JobStatusList.Where(x => x.Name.Equals(Constants.JobStatus.Completed)).FirstOrDefault();
+
             bool isClientTypeAll = clientType.Equals(Constants.ClientType.All);
             bool isChangan = isClientTypeAll
                 ? false
@@ -22,6 +24,8 @@ namespace Rapide.Web.Components.Pages.Components
             SalesReportGenerator.ImageFileCompany = isChangan
                 ? FileHelper.GetChanganCompanyLogo()
                 : FileHelper.GetCompanyLogo();
+
+            SalesReportGenerator.JobStatusList = JobStatusList;
 
             var jobOrders = await JobOrderService.GetAllJobOrderAsync();
             var invoice = await InvoiceService.GetAllInvoiceAsync();
@@ -50,7 +54,10 @@ namespace Rapide.Web.Components.Pages.Components
             var invoiceFromPayments = filteredPayments.Select(x => x.InvoiceList);
             var paymentDetails = await PaymentDetailsService.GetAllPaymentDetailsAsync();
 
-            var invoiceNew = paymentDetails.Where(x => filteredPayments.Any(y => y.Id == x.PaymentId)).ToList();
+            var invoiceNew = paymentDetails
+                .Where(x => x.Payment.JobStatusId == jobStatusCompleted!.Id)
+                .Where(x => filteredPayments.Any(y => y.Id == x.PaymentId)).ToList();
+
             var invoiceIds = invoice.Where(x => invoiceNew.Any(y => y.InvoiceId == x.Id)).ToList();
 
             var filteredInvoice = invoiceIds;
@@ -62,6 +69,7 @@ namespace Rapide.Web.Components.Pages.Components
             }
 
             var filteredExpenses = expenses
+                .Where(x => x.JobStatusId == jobStatusCompleted!.Id)
                 .Where(x => ((DateTime)x.ExpenseDateTime!).Date >= ((DateTime)_dateRange.Start!).Date 
                     && ((DateTime)x.ExpenseDateTime!).Date <= ((DateTime)_dateRange.End!).Date)
                 .ToList();
@@ -73,6 +81,7 @@ namespace Rapide.Web.Components.Pages.Components
             }
 
             var filteredQuickSales = quickSales
+                .Where(x => x.JobStatusId == jobStatusCompleted!.Id)
                 .Where(x => ((DateTime)x.TransactionDate!).Date >= ((DateTime)_dateRange.Start!).Date 
                     && ((DateTime)x.TransactionDate!).Date <= ((DateTime)_dateRange.End!).Date)
                 .ToList();

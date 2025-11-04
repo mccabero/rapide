@@ -2,6 +2,7 @@
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
+using Rapide.Contracts.Services;
 using Rapide.DTO;
 using Rapide.Web.Components.Utilities;
 
@@ -19,6 +20,8 @@ namespace Rapide.Web.PdfReportGenerator.Reports
 
         private static bool isCashier { get; set; }
         private static bool IsChangan { get; set; }
+
+        public static List<JobStatusDTO> JobStatusList { get; set; }
 
         public static async Task Generate(
             List<InvoiceDTO> invoiceData, 
@@ -39,7 +42,7 @@ namespace Rapide.Web.PdfReportGenerator.Reports
             depositInfo = depositData;
 
             IsChangan = isChangan;
-
+            
             QuestPDF.Settings.License = LicenseType.Community;
 
             try
@@ -163,6 +166,7 @@ namespace Rapide.Web.PdfReportGenerator.Reports
         private static void ComposeTableTop(IContainer container)
         {
             decimal discountTotalFooter = 0;
+            var jobStatusCompleted = JobStatusList.Where(x => x.Name.Equals(Constants.JobStatus.Completed)).FirstOrDefault();
 
             container.Column(column => 
             {
@@ -431,8 +435,17 @@ namespace Rapide.Web.PdfReportGenerator.Reports
                         footer.Cell().Element(CellStyle).PaddingLeft(35).Text(grandTotal.ToString("N2"));
                         footer.Cell().Element(CellStyle).Text("");
 
-                        var paymentDetails = invoice.SelectMany(x => x.PaymentDetailsList).Distinct().ToList();
-                        var paymentTypes = paymentDetails.Select(x => x.PaymentTypeParameter.Name).Distinct().ToList();
+
+
+                        var paymentDetails = invoice
+                            .SelectMany(x => x.PaymentDetailsList)
+                            .Distinct()
+                            .Where(x => x.Payment.JobStatusId == jobStatusCompleted!.Id)
+                            .ToList();
+
+                        var paymentTypes = paymentDetails
+                            .Select(x => x.PaymentTypeParameter.Name)
+                            .Distinct().ToList();
 
                         var totalBalance = paymentDetails.Sum(x => x.Payment.Balance);
 
