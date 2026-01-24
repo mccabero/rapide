@@ -40,12 +40,6 @@ namespace Rapide.Web.Components.Pages
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
-            if (DateTime.Now.Year == 2026)
-            {
-                ErrorMessage = "Unable to login. Please contact your systems administrator.";
-
-                return;
-            }
 
             User = await GetUserPrincipal();
 

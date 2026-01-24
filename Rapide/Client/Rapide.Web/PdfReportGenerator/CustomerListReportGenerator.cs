@@ -90,7 +90,7 @@ namespace Rapide.Web.PdfReportGenerator
                 });
 
                 // Change image with "PLARIDEL, BULACAN and underline
-                row.ConstantItem(90).Height(60).AlignRight().Image(ImageFile);
+                //row.ConstantItem(90).Height(60).AlignRight().Image(ImageFile);
             });
 
             container.Row(row =>
