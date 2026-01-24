@@ -16,7 +16,7 @@
         public static class ClientType
         {
             public const string All = "ALL";
-            public const string Rapide = "RAPIDE";
+            public const string Rapide = "GOLDEN WRENCH";
             public const string Changan = "CHANGAN";
         }
 
